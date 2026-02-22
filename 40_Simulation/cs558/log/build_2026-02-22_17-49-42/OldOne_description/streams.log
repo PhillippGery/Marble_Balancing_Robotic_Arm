@@ -1,0 +1,16 @@
+[1.043s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/build --no-deps symlink_data
+[1.333s] running develop
+[1.541s] running egg_info
+[1.542s] writing OldOne_description.egg-info/PKG-INFO
+[1.542s] writing dependency_links to OldOne_description.egg-info/dependency_links.txt
+[1.542s] writing entry points to OldOne_description.egg-info/entry_points.txt
+[1.542s] writing requirements to OldOne_description.egg-info/requires.txt
+[1.542s] writing top-level names to OldOne_description.egg-info/top_level.txt
+[1.544s] reading manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[1.545s] writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[1.546s] running build_ext
+[1.546s] Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+[1.547s] 
+[1.547s] Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description
+[1.547s] running symlink_data
+[1.588s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/build --no-deps symlink_data

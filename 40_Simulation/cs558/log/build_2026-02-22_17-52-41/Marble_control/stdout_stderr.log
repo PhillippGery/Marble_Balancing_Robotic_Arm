@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing Marble_control.egg-info/PKG-INFO
+writing dependency_links to Marble_control.egg-info/dependency_links.txt
+writing entry points to Marble_control.egg-info/entry_points.txt
+writing requirements to Marble_control.egg-info/requires.txt
+writing top-level names to Marble_control.egg-info/top_level.txt
+reading manifest file 'Marble_control.egg-info/SOURCES.txt'
+writing manifest file 'Marble_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/Marble_control/lib/python3.10/site-packages/Marble-control.egg-link (link to .)
+Installing joint_publisher script to /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/Marble_control/lib/Marble_control
+
+Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/Marble_control
+running symlink_data

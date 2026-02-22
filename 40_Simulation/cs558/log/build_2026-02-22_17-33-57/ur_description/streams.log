@@ -1,0 +1,249 @@
+[0.299s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/Universal_Robots_ROS2_Description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description
+[0.554s] -- The C compiler identification is GNU 11.4.0
+[0.696s] -- The CXX compiler identification is GNU 11.4.0
+[0.713s] -- Detecting C compiler ABI info
+[0.817s] -- Detecting C compiler ABI info - done
+[0.825s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.826s] -- Detecting C compile features
+[0.827s] -- Detecting C compile features - done
+[0.832s] -- Detecting CXX compiler ABI info
+[0.931s] -- Detecting CXX compiler ABI info - done
+[0.938s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.938s] -- Detecting CXX compile features
+[0.939s] -- Detecting CXX compile features - done
+[0.949s] -- Found ament_cmake: 1.3.12 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.122s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.199s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.258s] -- Found ament_cmake_pytest: 1.3.12 (/opt/ros/humble/share/ament_cmake_pytest/cmake)
+[2.353s] -- Configuring done
+[2.356s] -- Generating done
+[2.358s] -- Build files have been written to: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description
+[2.363s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/Universal_Robots_ROS2_Description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description
+[2.365s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description -- -j6 -l6
+[2.418s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description -- -j6 -l6
+[2.433s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description
+[2.442s] -- Install configuration: ""
+[2.443s] -- Execute custom install script
+[2.444s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/initial_positions.yaml
+[2.456s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10/default_kinematics.yaml
+[2.467s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10/joint_limits.yaml
+[2.479s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10/physical_parameters.yaml
+[2.492s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10/visual_parameters.yaml
+[2.504s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10e/default_kinematics.yaml
+[2.515s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10e/joint_limits.yaml
+[2.529s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10e/physical_parameters.yaml
+[2.541s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur10e/visual_parameters.yaml
+[2.553s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur12e/default_kinematics.yaml
+[2.565s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur12e/joint_limits.yaml
+[2.577s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur12e/physical_parameters.yaml
+[2.590s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur12e/visual_parameters.yaml
+[2.601s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur15/default_kinematics.yaml
+[2.612s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur15/joint_limits.yaml
+[2.627s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur15/physical_parameters.yaml
+[2.638s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur15/visual_parameters.yaml
+[2.650s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur16e/default_kinematics.yaml
+[2.661s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur16e/joint_limits.yaml
+[2.674s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur16e/physical_parameters.yaml
+[2.686s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur16e/visual_parameters.yaml
+[2.698s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur18/default_kinematics.yaml
+[2.709s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur18/joint_limits.yaml
+[2.723s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur18/physical_parameters.yaml
+[2.735s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur18/visual_parameters.yaml
+[2.746s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur20/default_kinematics.yaml
+[2.758s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur20/joint_limits.yaml
+[2.770s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur20/physical_parameters.yaml
+[2.781s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur20/visual_parameters.yaml
+[2.794s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3/default_kinematics.yaml
+[2.806s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3/joint_limits.yaml
+[2.821s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3/physical_parameters.yaml
+[2.834s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3/visual_parameters.yaml
+[2.846s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur30/default_kinematics.yaml
+[2.857s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur30/joint_limits.yaml
+[2.869s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur30/physical_parameters.yaml
+[2.880s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur30/visual_parameters.yaml
+[2.893s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3e/default_kinematics.yaml
+[2.905s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3e/joint_limits.yaml
+[2.917s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3e/physical_parameters.yaml
+[2.930s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur3e/visual_parameters.yaml
+[2.942s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5/default_kinematics.yaml
+[2.953s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5/joint_limits.yaml
+[2.964s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5/physical_parameters.yaml
+[2.977s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5/visual_parameters.yaml
+[2.990s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5e/default_kinematics.yaml
+[3.002s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5e/joint_limits.yaml
+[3.013s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5e/physical_parameters.yaml
+[3.027s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur5e/visual_parameters.yaml
+[3.039s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur7e/default_kinematics.yaml
+[3.050s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur7e/joint_limits.yaml
+[3.061s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur7e/physical_parameters.yaml
+[3.074s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur7e/visual_parameters.yaml
+[3.087s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur8long/default_kinematics.yaml
+[3.098s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur8long/joint_limits.yaml
+[3.109s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur8long/physical_parameters.yaml
+[3.122s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/config/ur8long/visual_parameters.yaml
+[3.134s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/launch/view_ur.launch.py
+[3.148s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/base.stl
+[3.160s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/forearm.stl
+[3.172s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/shoulder.stl
+[3.185s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/upperarm.stl
+[3.197s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/wrist1.stl
+[3.208s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/wrist2.stl
+[3.222s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/collision/wrist3.stl
+[3.235s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/base.dae
+[3.246s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/forearm.dae
+[3.258s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/shoulder.dae
+[3.271s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/upperarm.dae
+[3.283s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/wrist1.dae
+[3.295s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/wrist2.dae
+[3.306s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10/visual/wrist3.dae
+[3.319s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/base.stl
+[3.332s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/forearm.stl
+[3.343s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/shoulder.stl
+[3.354s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/upperarm.stl
+[3.366s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/wrist1.stl
+[3.378s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/wrist2.stl
+[3.390s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/collision/wrist3.stl
+[3.402s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/base.dae
+[3.413s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/forearm.dae
+[3.426s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/shoulder.dae
+[3.438s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/upperarm.dae
+[3.449s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/wrist1.dae
+[3.460s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/wrist2.dae
+[3.472s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur10e/visual/wrist3.dae
+[3.485s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/LICENSE.txt
+[3.497s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/base.stl
+[3.508s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/forearm.stl
+[3.521s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/shoulder.stl
+[3.533s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/upperarm.stl
+[3.544s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/wrist1.stl
+[3.556s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/wrist2.stl
+[3.567s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/collision/wrist3.stl
+[3.579s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/UR15_DIFF_8bit_2K.jpg
+[3.592s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/base.dae
+[3.603s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/forearm.dae
+[3.614s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/shoulder.dae
+[3.627s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/upperarm.dae
+[3.639s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/wrist1.dae
+[3.650s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/wrist2.dae
+[3.661s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur15/visual/wrist3.dae
+[3.674s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur16e/collision/forearm.stl
+[3.686s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur16e/collision/upperarm.stl
+[3.698s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur16e/visual/forearm.dae
+[3.710s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur16e/visual/upperarm.dae
+[3.724s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/LICENSE.txt
+[3.735s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/collision/forearm.stl
+[3.747s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/collision/upperarm.stl
+[3.759s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/visual/UR18_DIFF_8bit_2K.jpg
+[3.771s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/visual/forearm.dae
+[3.784s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur18/visual/upperarm.dae
+[3.795s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/LICENSE.txt
+[3.807s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/base.stl
+[3.820s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/forearm.stl
+[3.832s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/shoulder.stl
+[3.844s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/upperarm.stl
+[3.856s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/wrist1.stl
+[3.867s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/wrist2.stl
+[3.879s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/collision/wrist3.stl
+[3.892s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/UR20_DIFF_8bit_2K.png
+[3.903s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/base.dae
+[3.915s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/forearm.dae
+[3.930s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/shoulder.dae
+[3.941s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/upperarm.dae
+[3.953s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/wrist1.dae
+[3.964s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/wrist2.dae
+[3.976s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur20/visual/wrist3.dae
+[3.989s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/base.stl
+[4.000s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/forearm.stl
+[4.011s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/shoulder.stl
+[4.024s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/upperarm.stl
+[4.036s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/wrist1.stl
+[4.047s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/wrist2.stl
+[4.058s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/collision/wrist3.stl
+[4.070s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/base.dae
+[4.081s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/forearm.dae
+[4.093s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/shoulder.dae
+[4.105s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/upperarm.dae
+[4.116s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/wrist1.dae
+[4.129s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/wrist2.dae
+[4.141s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3/visual/wrist3.dae
+[4.152s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/LICENSE.txt
+[4.163s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/collision/forearm.stl
+[4.175s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/collision/upperarm.stl
+[4.188s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/visual/UR30_DIFF_8bit_2K.png
+[4.199s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/visual/forearm.dae
+[4.210s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur30/visual/upperarm.dae
+[4.223s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/base.stl
+[4.235s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/forearm.stl
+[4.246s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/shoulder.stl
+[4.258s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/upperarm.stl
+[4.270s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/wrist1.stl
+[4.281s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/wrist2.stl
+[4.294s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/collision/wrist3.stl
+[4.305s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/base.dae
+[4.317s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/forearm.dae
+[4.330s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/shoulder.dae
+[4.342s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/upperarm.dae
+[4.354s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/wrist1.dae
+[4.366s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/wrist2.dae
+[4.378s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur3e/visual/wrist3.dae
+[4.391s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/base.stl
+[4.403s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/forearm.stl
+[4.414s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/shoulder.stl
+[4.428s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/upperarm.stl
+[4.440s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/wrist1.stl
+[4.451s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/wrist2.stl
+[4.463s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/collision/wrist3.stl
+[4.475s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/base.dae
+[4.487s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/forearm.dae
+[4.499s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/shoulder.dae
+[4.510s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/upperarm.dae
+[4.523s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/wrist1.dae
+[4.534s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/wrist2.dae
+[4.546s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5/visual/wrist3.dae
+[4.557s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/base.stl
+[4.568s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/forearm.stl
+[4.580s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/shoulder.stl
+[4.592s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/upperarm.stl
+[4.604s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/wrist1.stl
+[4.615s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/wrist2.stl
+[4.629s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/collision/wrist3.stl
+[4.641s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/base.dae
+[4.652s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/forearm.dae
+[4.663s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/shoulder.dae
+[4.676s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/upperarm.dae
+[4.688s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/wrist1.dae
+[4.699s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/wrist2.dae
+[4.711s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur5e/visual/wrist3.dae
+[4.724s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/LICENSE.txt
+[4.736s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/collision/forearm.stl
+[4.747s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/collision/upperarm.stl
+[4.759s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/visual/UR8Long_DIFF_8bit_2K.jpg
+[4.771s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/visual/forearm.dae
+[4.783s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/meshes/ur8long/visual/upperarm.dae
+[4.795s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/rviz/view_robot.rviz
+[4.807s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/inc/ur_common.xacro
+[4.818s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/inc/ur_joint_control.xacro
+[4.832s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/inc/ur_sensors.xacro
+[4.843s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/inc/ur_transmissions.xacro
+[4.854s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/ros2_control_mock_hardware.xacro
+[4.865s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/ur.urdf.xacro
+[4.878s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/ur_macro.xacro
+[4.890s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/urdf/ur_mocked.urdf.xacro
+[4.902s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/test/test_ur_urdf_xacro.py
+[4.913s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/test/test_view_ur_launch.py
+[4.926s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ament_index/resource_index/package_run_dependencies/ur_description
+[4.938s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ament_index/resource_index/parent_prefix_path/ur_description
+[4.949s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/environment/ament_prefix_path.sh
+[4.961s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/environment/ament_prefix_path.dsv
+[4.974s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/environment/path.sh
+[4.986s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/environment/path.dsv
+[4.998s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/local_setup.bash
+[5.009s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/local_setup.sh
+[5.023s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/local_setup.zsh
+[5.035s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/local_setup.dsv
+[5.047s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/package.dsv
+[5.059s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ament_index/resource_index/packages/ur_description
+[5.071s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/cmake/ur_descriptionConfig.cmake
+[5.082s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/cmake/ur_descriptionConfig-version.cmake
+[5.094s] -- Symlinking: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description/share/ur_description/package.xml
+[5.108s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description

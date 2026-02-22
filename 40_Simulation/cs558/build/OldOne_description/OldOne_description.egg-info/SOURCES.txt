@@ -9,6 +9,13 @@ setup.py
 ../../build/OldOne_description/OldOne_description.egg-info/top_level.txt
 ../../build/OldOne_description/OldOne_description.egg-info/zip-safe
 OldOne_description/__init__.py
+OldOne_description.egg-info/PKG-INFO
+OldOne_description.egg-info/SOURCES.txt
+OldOne_description.egg-info/dependency_links.txt
+OldOne_description.egg-info/entry_points.txt
+OldOne_description.egg-info/requires.txt
+OldOne_description.egg-info/top_level.txt
+OldOne_description.egg-info/zip-safe
 config/display.rviz
 config/gazebo.rviz
 config/ros_gz_bridge_gazebo.yaml
@@ -23,9 +30,6 @@ meshes/link5_1.stl
 meshes/link6_1.stl
 meshes/zEBALL_1.stl
 resource/OldOne_description
-test/test_copyright.py
-test/test_flake8.py
-test/test_pep257.py
 urdf/OldOne.gazebo
 urdf/OldOne.trans
 urdf/OldOne.xacro
