@@ -1,0 +1,5 @@
+
+# VS Code / IntelliSense databases
+.vscode/
+*.vc.db
+browse.vc.db
