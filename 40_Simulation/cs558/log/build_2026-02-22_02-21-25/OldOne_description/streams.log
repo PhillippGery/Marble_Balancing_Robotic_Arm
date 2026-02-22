@@ -1,0 +1,54 @@
+[0.293s] Invoking command in '/home/lincoln/cs558/src/OldOne_description': PYTHONPATH=/home/lincoln/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/cs558/build/OldOne_description/build install --record /home/lincoln/cs558/build/OldOne_description/install.log --single-version-externally-managed install_data
+[0.407s] running egg_info
+[0.407s] creating ../../build/OldOne_description/OldOne_description.egg-info
+[0.407s] writing ../../build/OldOne_description/OldOne_description.egg-info/PKG-INFO
+[0.407s] writing dependency_links to ../../build/OldOne_description/OldOne_description.egg-info/dependency_links.txt
+[0.407s] writing entry points to ../../build/OldOne_description/OldOne_description.egg-info/entry_points.txt
+[0.408s] writing requirements to ../../build/OldOne_description/OldOne_description.egg-info/requires.txt
+[0.408s] writing top-level names to ../../build/OldOne_description/OldOne_description.egg-info/top_level.txt
+[0.408s] writing manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.408s] reading manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.409s] writing manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.409s] running build
+[0.409s] running build_py
+[0.409s] creating /home/lincoln/cs558/build/OldOne_description/build
+[0.409s] creating /home/lincoln/cs558/build/OldOne_description/build/lib
+[0.409s] creating /home/lincoln/cs558/build/OldOne_description/build/lib/OldOne_description
+[0.409s] copying OldOne_description/__init__.py -> /home/lincoln/cs558/build/OldOne_description/build/lib/OldOne_description
+[0.409s] running install
+[0.409s] running install_lib
+[0.409s] creating /home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+[0.409s] copying /home/lincoln/cs558/build/OldOne_description/build/lib/OldOne_description/__init__.py -> /home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+[0.409s] byte-compiling /home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description/__init__.py to __init__.cpython-310.pyc
+[0.409s] running install_data
+[0.409s] creating /home/lincoln/cs558/install/OldOne_description/share/ament_index
+[0.410s] creating /home/lincoln/cs558/install/OldOne_description/share/ament_index/resource_index
+[0.410s] creating /home/lincoln/cs558/install/OldOne_description/share/ament_index/resource_index/packages
+[0.410s] copying resource/OldOne_description -> /home/lincoln/cs558/install/OldOne_description/share/ament_index/resource_index/packages
+[0.410s] copying package.xml -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description
+[0.410s] creating /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/launch
+[0.410s] copying launch/gazebo.launch.py -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/launch
+[0.410s] copying launch/display.launch.py -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/launch
+[0.410s] creating /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/urdf
+[0.410s] copying urdf/OldOne.xacro -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/urdf
+[0.410s] copying urdf/OldOne.trans -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/urdf
+[0.410s] copying urdf/materials.xacro -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/urdf
+[0.410s] copying urdf/OldOne.gazebo -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/urdf
+[0.410s] creating /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.410s] copying meshes/link1_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.411s] copying meshes/base_link.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.412s] copying meshes/link5_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.413s] copying meshes/link6_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.413s] copying meshes/link2_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.414s] copying meshes/link4_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.415s] copying meshes/link3_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.416s] copying meshes/zEBALL_1.stl -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/meshes
+[0.416s] creating /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/config
+[0.416s] copying config/gazebo.rviz -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/config
+[0.416s] copying config/display.rviz -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/config
+[0.416s] copying config/ros_gz_bridge_gazebo.yaml -> /home/lincoln/cs558/install/OldOne_description/share/OldOne_description/config
+[0.416s] running install_egg_info
+[0.417s] Copying ../../build/OldOne_description/OldOne_description.egg-info to /home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description-0.0.0-py3.10.egg-info
+[0.417s] running install_scripts
+[0.427s] writing list of installed files to '/home/lincoln/cs558/build/OldOne_description/install.log'
+[0.437s] Invoked command in '/home/lincoln/cs558/src/OldOne_description' returned '0': PYTHONPATH=/home/lincoln/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/cs558/build/OldOne_description/build install --record /home/lincoln/cs558/build/OldOne_description/install.log --single-version-externally-managed install_data
