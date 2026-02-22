@@ -4,7 +4,7 @@ syms x x_dot y y_dot alpha alpha_dot beta beta_dot alpha_ddot beta_ddot real
 %% 1. Parameters
 g = 9.81; 
 mb = 0.05; % kg
-rb = 0.02; % m
+rb = 0.015; % m
 Ib = (2/5)*mb*rb^2;
 C = 5/7*g; % Constant from (mb*g) / (mb + Ib/rb^2)
 
