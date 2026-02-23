@@ -1,0 +1,20 @@
+[0.300s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/OldOne_description': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/install.log --single-version-externally-managed install_data
+[0.416s] running egg_info
+[0.416s] writing ../../build/OldOne_description/OldOne_description.egg-info/PKG-INFO
+[0.416s] writing dependency_links to ../../build/OldOne_description/OldOne_description.egg-info/dependency_links.txt
+[0.416s] writing entry points to ../../build/OldOne_description/OldOne_description.egg-info/entry_points.txt
+[0.416s] writing requirements to ../../build/OldOne_description/OldOne_description.egg-info/requires.txt
+[0.416s] writing top-level names to ../../build/OldOne_description/OldOne_description.egg-info/top_level.txt
+[0.417s] reading manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.417s] writing manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.417s] running build
+[0.417s] running build_py
+[0.418s] running install
+[0.418s] running install_lib
+[0.418s] running install_data
+[0.418s] running install_egg_info
+[0.419s] removing '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description-0.0.0-py3.10.egg-info' (and everything under it)
+[0.419s] Copying ../../build/OldOne_description/OldOne_description.egg-info to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages/OldOne_description-0.0.0-py3.10.egg-info
+[0.420s] running install_scripts
+[0.429s] writing list of installed files to '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/install.log'
+[0.440s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/OldOne_description' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/OldOne_description/install.log --single-version-externally-managed install_data
