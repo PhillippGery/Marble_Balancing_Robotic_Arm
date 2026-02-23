@@ -1,0 +1,83 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage{cite}
+\ifCLASSINFOpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage[dvips]{graphicx}
+\fi
+\usepackage{amsmath}
+\usepackage{array}
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+	
+\title{Dynamic Spatial Stabilization and Trajectory Tracking of a Spherical Agent on a 6-DOF Robotic Platform}
+
+	\author{Phillipp Gery (pgery), Kevin Biju Mathew PUID : 039399374%
+		\thanks{College of Engineering, Purdue University, Indiana, USA.}}
+	
+	\markboth{Course Project Proposal: Robotics Control, February~2026}%
+	{Gery \MakeLowercase{\textit{et al.}}: Autonomous Marble Balancing}
+	
+	\maketitle
+	
+	\begin{abstract}
+		This project explores the integration of classical control theory and Reinforcement Learning (RL) to solve the problem of stabilizing a marble on a mobile platform. Using a UR7e 6-axis manipulator, we aim to maintain a marble's position at a target coordinate while the robot undergoes base-level or end-effector trajectories.
+	\end{abstract}
+	
+	\begin{IEEEkeywords}
+		ROS 2, Gazebo, LQR, Reinforcement Learning, UR7e, Trajectory Tracking.
+	\end{IEEEkeywords}
+	
+	\section{Introduction}
+	\IEEEPARstart{P}{recision} stabilization of unconstrained objects is a fundamental challenge in robotics. This project is different from traditional "Labyrinth" setups because it focuses on Active Surface Control. In this project, the robot must balance a marble on a board or follow a path on a board while also doing a second task, such as following a 3D path with its Endeffector.
+	
+	\section{System Platform and Simulator}
+	For this project, we will utilize:
+	\begin{itemize}
+		\item \textbf{Robot Platform:} Universal Robots UR7e (6-DOF Manipulator).
+		\item \textbf{Simulator:} Gazebo Classic 11. This physics-based simulator will provide ground-truth state data for the ball (position/velocity) and simulate the inertial dynamics of the UR7e and the board.
+		\item \textbf{Software Stack:} ROS 2 Humble running on Ubuntu 22.04, with MATLAB for State feedback Controller design.
+	\end{itemize}
+	
+	\section{Methodology and Learning Component}
+	We propose a hybrid control strategy. An initial state-feedback controller (e.g., LQR) will be designed for baseline stabilization. 
+	\par \textbf{Learning Component:} We will implement a Reinforcement Learning (RL) agent (using Proximal Policy Optimization or Twin Delayed DDPG) to refine the control policy. The agent will focus on learning the non-linear "residual" dynamics, such as rolling friction and surface-contact perturbations, which are difficult to model analytically.
+	
+	\section{Project Milestones}
+	The following milestones outline the development trajectory:
+	
+	\subsection{Milestone 1: Planning and Control (10\%)}
+	\textbf{Focus: Project Proposal + Control Component.}
+	\begin{itemize}
+		\item Derivation of the Nonlinear Model and the linearized State-Space model for the ball-and-plate system.
+		\item \textbf{Trajectory Planning:} Development of a path planning module (e.g., quintic polynomials or Spline-based interpolation) to generate smooth, time-parameterized reference trajectories for the marble on the moving board.
+		\item Development of the primary Marble Position Controller (LQR/State-Feedback).
+		\item Implementation of the UR7e Inverse Kinematics (IK) solver in a ROS 2 node.
+		\item Integration of the Robot, Board, and Marble URDF/Xacro into Gazebo with active joint controllers.
+		\item Simulation tests with desired trajectories of the marble on the board.
+	\end{itemize}
+	
+	\subsection{Milestone 2: Learning and Initial Results (10\%)}
+	\textbf{Focus: Presentation + Learning Component.}
+	\begin{itemize}
+		\item Integration of a state observer (Kalman Filter) to handle Gazebo sensor noise and state estimation.
+		\item Setup of the RL training environment (Gymnasium wrapper) for the Gazebo simulation.
+		\item Initial training results showing the RL agent’s ability to reduce steady-state error compared to LQR alone.
+		\item Presentation of preliminary results.
+	\end{itemize}
+	
+	\subsection{Milestone 3: Full Project Report and Demo (15\%)}
+	\textbf{Focus: Final Documentation + Full Demo.}
+	\begin{itemize}
+		\item Successful stabilization of the marble at target coordinates while the robot follows a 3D path.
+		\item Comparative analysis between the baseline LQR and the Hybrid LQR+RL policy.
+		\item Submission of a full IEEE-format technical report and final code repository.
+		\item Demo videos showing the system resisting external manual perturbations in Gazebo.
+	\end{itemize}
+	
+
+	
+	
+\end{document}
