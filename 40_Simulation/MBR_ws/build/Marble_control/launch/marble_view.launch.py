@@ -1,1 +1,1 @@
-/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/Marble_control/launch/marble_view.launch.py
+/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Marble_control/launch/marble_view.launch.py

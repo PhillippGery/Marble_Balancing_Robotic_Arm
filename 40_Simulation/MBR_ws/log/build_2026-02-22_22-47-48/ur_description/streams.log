@@ -1,0 +1,6 @@
+[0.650s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description -- -j6 -l6
+[0.705s] [0mCMake Error: The current CMakeCache.txt directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/CMakeCache.txt is different than the directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_description where CMakeCache.txt was created. This may result in binaries being created in the wrong place. If you are not sure, reedit the CMakeCache.txt[0m
+[0.740s] [0mCMake Error: The source directory "/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/src/Universal_Robots_ROS2_Description" does not exist.
+[0.740s] Specify --help for usage, or press the help button on the CMake GUI.[0m
+[0.747s] gmake: *** [Makefile:226: cmake_check_build_system] Error 1
+[0.750s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description' returned '2': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description -- -j6 -l6

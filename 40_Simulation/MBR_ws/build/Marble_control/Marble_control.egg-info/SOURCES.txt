@@ -10,5 +10,8 @@ Marble_control.egg-info/entry_points.txt
 Marble_control.egg-info/requires.txt
 Marble_control.egg-info/top_level.txt
 Marble_control.egg-info/zip-safe
+config/ur7e_controllers.yaml
 launch/marble_view.launch.py
+launch/ur7e_gazebo.launch.py
 resource/Marble_control
+urdf/marble_robot.urdf.xacro
