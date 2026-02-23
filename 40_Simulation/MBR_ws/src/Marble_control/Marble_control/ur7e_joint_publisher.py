@@ -92,7 +92,10 @@ class MarbleIKController(Node):
         ev = 0.0001   # Linear error tolerance (0.1mm)
         mu = 0.01     # Damping factor (lambda^2)
 
-        thetas = self.current_theta.copy()
+        if np.allclose(self.current_theta, 0):
+            seed_theta = np.array([0.0, -0.2, 0.4, -0.2, 0.0, 0.0])
+        else:
+            seed_theta = self.current_theta.copy()
         
         for i in range(max_iter):
             # Forward Kinematics
