@@ -1,0 +1,17 @@
+[1.259s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build --no-deps symlink_data
+[1.579s] running develop
+[1.836s] running egg_info
+[1.837s] writing Marble_control.egg-info/PKG-INFO
+[1.838s] writing dependency_links to Marble_control.egg-info/dependency_links.txt
+[1.838s] writing entry points to Marble_control.egg-info/entry_points.txt
+[1.838s] writing requirements to Marble_control.egg-info/requires.txt
+[1.839s] writing top-level names to Marble_control.egg-info/top_level.txt
+[1.841s] reading manifest file 'Marble_control.egg-info/SOURCES.txt'
+[1.843s] writing manifest file 'Marble_control.egg-info/SOURCES.txt'
+[1.845s] running build_ext
+[1.846s] Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble-control.egg-link (link to .)
+[1.847s] Installing joint_publisher script to /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/Marble_control
+[1.848s] 
+[1.848s] Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control
+[1.848s] running symlink_data
+[1.892s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build --no-deps symlink_data
