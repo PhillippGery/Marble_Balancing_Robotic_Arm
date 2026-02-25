@@ -1,0 +1,31 @@
+running develop
+Removing /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble-control.egg-link (link to .)
+running egg_info
+writing ../../build/Marble_control/Marble_control.egg-info/PKG-INFO
+writing dependency_links to ../../build/Marble_control/Marble_control.egg-info/dependency_links.txt
+writing entry points to ../../build/Marble_control/Marble_control.egg-info/entry_points.txt
+writing requirements to ../../build/Marble_control/Marble_control.egg-info/requires.txt
+writing top-level names to ../../build/Marble_control/Marble_control.egg-info/top_level.txt
+reading manifest file '../../build/Marble_control/Marble_control.egg-info/SOURCES.txt'
+writing manifest file '../../build/Marble_control/Marble_control.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control/ur7e_joint_publisher.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control/__init__.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control/ur7e_joint_publisher.py to ur7e_joint_publisher.cpython-310.pyc
+byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control/__init__.py to __init__.cpython-310.pyc
+running install_data
+copying resource/Marble_control -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/ament_index/resource_index/packages
+copying package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control
+copying launch/marble_view.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+copying launch/ur7e_gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+copying urdf/marble_robot.urdf.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/urdf
+copying config/ur7e_controllers.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/config
+running install_egg_info
+Copying ../../build/Marble_control/Marble_control.egg-info to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control-0.0.0-py3.10.egg-info
+running install_scripts
+Installing joint_publisher script to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/Marble_control
+writing list of installed files to '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/install.log'

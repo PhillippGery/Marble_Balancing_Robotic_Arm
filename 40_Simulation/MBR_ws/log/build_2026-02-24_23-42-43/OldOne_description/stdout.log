@@ -1,0 +1,42 @@
+running develop
+Removing /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+running egg_info
+writing ../../build/OldOne_description/OldOne_description.egg-info/PKG-INFO
+writing dependency_links to ../../build/OldOne_description/OldOne_description.egg-info/dependency_links.txt
+writing entry points to ../../build/OldOne_description/OldOne_description.egg-info/entry_points.txt
+writing requirements to ../../build/OldOne_description/OldOne_description.egg-info/requires.txt
+writing top-level names to ../../build/OldOne_description/OldOne_description.egg-info/top_level.txt
+reading manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+writing manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+running build
+running build_py
+running install
+running install_lib
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build/lib/OldOne_description/__init__.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description/__init__.py to __init__.cpython-310.pyc
+running install_data
+copying resource/OldOne_description -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+copying package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description
+copying launch/gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+copying launch/display.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+copying urdf/OldOne.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+copying urdf/zeball.urdf -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+copying urdf/OldOne.trans -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+copying urdf/materials.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+copying urdf/OldOne.gazebo -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+copying meshes/link1_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/base_link.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/link5_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/link6_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/link2_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/link4_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/link3_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying meshes/zEBALL_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+copying config/gazebo.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+copying config/display.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+copying config/ros_gz_bridge_gazebo.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+running install_egg_info
+Copying ../../build/OldOne_description/OldOne_description.egg-info to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description-0.0.0-py3.10.egg-info
+running install_scripts
+writing list of installed files to '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/install.log'

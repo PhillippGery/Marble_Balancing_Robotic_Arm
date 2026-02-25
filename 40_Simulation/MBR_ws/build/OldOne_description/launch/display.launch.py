@@ -1,1 +1,1 @@
-/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description/launch/display.launch.py
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description/launch/display.launch.py

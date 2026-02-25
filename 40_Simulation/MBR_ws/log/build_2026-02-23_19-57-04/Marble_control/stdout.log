@@ -1,0 +1,21 @@
+running develop
+running egg_info
+writing Marble_control.egg-info/PKG-INFO
+writing dependency_links to Marble_control.egg-info/dependency_links.txt
+writing entry points to Marble_control.egg-info/entry_points.txt
+writing requirements to Marble_control.egg-info/requires.txt
+writing top-level names to Marble_control.egg-info/top_level.txt
+reading manifest file 'Marble_control.egg-info/SOURCES.txt'
+writing manifest file 'Marble_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble-control.egg-link (link to .)
+Installing joint_publisher script to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/Marble_control
+
+Installed /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control
+running symlink_data
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/resource/Marble_control -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/ament_index/resource_index/packages
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/launch/marble_view.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/launch/ur7e_gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/urdf/marble_robot.urdf.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/config/ur7e_controllers.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/config

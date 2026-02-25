@@ -1,0 +1,46 @@
+[0.493s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build
+[0.640s] running develop
+[0.742s] Removing /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+[0.757s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build
+[0.757s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/install.log --single-version-externally-managed install_data --force
+[0.893s] running egg_info
+[0.893s] writing ../../build/OldOne_description/OldOne_description.egg-info/PKG-INFO
+[0.893s] writing dependency_links to ../../build/OldOne_description/OldOne_description.egg-info/dependency_links.txt
+[0.893s] writing entry points to ../../build/OldOne_description/OldOne_description.egg-info/entry_points.txt
+[0.893s] writing requirements to ../../build/OldOne_description/OldOne_description.egg-info/requires.txt
+[0.893s] writing top-level names to ../../build/OldOne_description/OldOne_description.egg-info/top_level.txt
+[0.894s] reading manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.895s] writing manifest file '../../build/OldOne_description/OldOne_description.egg-info/SOURCES.txt'
+[0.895s] running build
+[0.895s] running build_py
+[0.895s] running install
+[0.895s] running install_lib
+[0.896s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+[0.896s] copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build/lib/OldOne_description/__init__.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description
+[0.896s] byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description/__init__.py to __init__.cpython-310.pyc
+[0.896s] running install_data
+[0.896s] copying resource/OldOne_description -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+[0.896s] copying package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description
+[0.896s] copying launch/gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[0.896s] copying launch/display.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[0.896s] copying urdf/OldOne.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.896s] copying urdf/zeball.urdf -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.897s] copying urdf/OldOne.trans -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.897s] copying urdf/materials.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.897s] copying urdf/OldOne.gazebo -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.897s] copying meshes/link1_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.898s] copying meshes/base_link.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.899s] copying meshes/link5_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.899s] copying meshes/link6_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.900s] copying meshes/link2_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.902s] copying meshes/link4_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.903s] copying meshes/link3_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.904s] copying meshes/zEBALL_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.904s] copying config/gazebo.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.904s] copying config/display.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.904s] copying config/ros_gz_bridge_gazebo.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.904s] running install_egg_info
+[0.905s] Copying ../../build/OldOne_description/OldOne_description.egg-info to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne_description-0.0.0-py3.10.egg-info
+[0.905s] running install_scripts
+[0.917s] writing list of installed files to '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/install.log'
+[0.948s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/OldOne_description build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/install.log --single-version-externally-managed install_data --force

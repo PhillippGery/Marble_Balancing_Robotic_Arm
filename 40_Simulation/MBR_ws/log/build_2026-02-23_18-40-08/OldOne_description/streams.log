@@ -1,0 +1,45 @@
+[0.430s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data
+[0.561s] running develop
+[0.650s] running egg_info
+[0.650s] creating OldOne_description.egg-info
+[0.651s] writing OldOne_description.egg-info/PKG-INFO
+[0.651s] writing dependency_links to OldOne_description.egg-info/dependency_links.txt
+[0.651s] writing entry points to OldOne_description.egg-info/entry_points.txt
+[0.651s] writing requirements to OldOne_description.egg-info/requires.txt
+[0.651s] writing top-level names to OldOne_description.egg-info/top_level.txt
+[0.651s] writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[0.651s] reading manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[0.652s] writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[0.652s] running build_ext
+[0.652s] Creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+[0.653s] 
+[0.653s] Installed /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description
+[0.653s] running symlink_data
+[0.653s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index
+[0.653s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index
+[0.653s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/resource/OldOne_description -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description
+[0.654s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/display.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[0.654s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/zeball.urdf -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.trans -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/materials.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.gazebo -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[0.654s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.654s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link1_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/base_link.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link5_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link6_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link2_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link4_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link3_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/zEBALL_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[0.655s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/gazebo.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/display.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.655s] symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/ros_gz_bridge_gazebo.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[0.672s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data

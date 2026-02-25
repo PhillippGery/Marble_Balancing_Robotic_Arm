@@ -1,0 +1,40 @@
+[0.450s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build
+[0.592s] running develop
+[0.686s] Removing /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble-control.egg-link (link to .)
+[0.699s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --uninstall --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build
+[0.701s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Marble_control': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/Marble_control build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/install.log --single-version-externally-managed install_data --force
+[0.830s] running egg_info
+[0.830s] writing ../../build/Marble_control/Marble_control.egg-info/PKG-INFO
+[0.830s] writing dependency_links to ../../build/Marble_control/Marble_control.egg-info/dependency_links.txt
+[0.831s] writing entry points to ../../build/Marble_control/Marble_control.egg-info/entry_points.txt
+[0.831s] writing requirements to ../../build/Marble_control/Marble_control.egg-info/requires.txt
+[0.831s] writing top-level names to ../../build/Marble_control/Marble_control.egg-info/top_level.txt
+[0.832s] reading manifest file '../../build/Marble_control/Marble_control.egg-info/SOURCES.txt'
+[0.832s] writing manifest file '../../build/Marble_control/Marble_control.egg-info/SOURCES.txt'
+[0.832s] running build
+[0.832s] running build_py
+[0.832s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build
+[0.832s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib
+[0.832s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control
+[0.832s] copying Marble_control/ur7e_joint_publisher.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control
+[0.832s] copying Marble_control/__init__.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control
+[0.832s] running install
+[0.832s] running install_lib
+[0.833s] creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+[0.833s] copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control/ur7e_joint_publisher.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+[0.833s] copying /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build/lib/Marble_control/__init__.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control
+[0.833s] byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control/ur7e_joint_publisher.py to ur7e_joint_publisher.cpython-310.pyc
+[0.833s] byte-compiling /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control/__init__.py to __init__.cpython-310.pyc
+[0.834s] running install_data
+[0.834s] copying resource/Marble_control -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/ament_index/resource_index/packages
+[0.834s] copying package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control
+[0.834s] copying launch/marble_view.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+[0.834s] copying launch/ur7e_gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/launch
+[0.834s] copying urdf/marble_robot.urdf.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/urdf
+[0.834s] copying config/ur7e_controllers.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/share/Marble_control/config
+[0.834s] running install_egg_info
+[0.835s] Copying ../../build/Marble_control/Marble_control.egg-info to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages/Marble_control-0.0.0-py3.10.egg-info
+[0.835s] running install_scripts
+[0.845s] Installing joint_publisher script to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/Marble_control
+[0.845s] writing list of installed files to '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/install.log'
+[0.856s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Marble_control' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/Marble_control build --build-base /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/build install --record /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/Marble_control/install.log --single-version-externally-managed install_data --force

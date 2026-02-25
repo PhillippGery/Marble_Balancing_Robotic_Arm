@@ -24,17 +24,27 @@ def generate_launch_description():
     )
 
     # 4. Spawn the robot into Gazebo
-    spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                        arguments=['-topic', 'robot_description', '-entity', 'ur7e_robot'],
-                        output='screen')
+    # spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
+    #                     arguments=['-topic', 'robot_description', '-entity', 'ur7e_robot','-x', '0', '-y', '0', '-z', '0.3'],
+    #                     output='screen')
+    spawn_entity = Node(
+    package='gazebo_ros',
+    executable='spawn_entity.py',
+    arguments=[
+        '-topic', 'robot_description',
+        '-entity', 'ur7e_robot',
+        '-x', '0', '-y', '0', '-z', '0'
+    ],
+    output='screen'
+    )
                         
 
     # 5. Robot State Publisher
     node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[robot_description]
+    package='robot_state_publisher',
+    executable='robot_state_publisher',
+    output='screen',
+    parameters=[robot_description, {'publish_robot_description': True}],
     )
 
     # 6. Controller Manager Loaders

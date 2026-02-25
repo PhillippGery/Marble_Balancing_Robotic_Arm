@@ -1,0 +1,3 @@
+[console_scripts]
+joint_publisher = Marble_control.ur7e_joint_publisher:main
+

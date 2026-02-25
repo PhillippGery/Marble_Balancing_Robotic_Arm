@@ -1,1 +1,1 @@
-/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_environment_hooks/local_setup.bash
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_environment_hooks/local_setup.bash
