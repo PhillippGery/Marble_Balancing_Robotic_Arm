@@ -1,1 +1,1 @@
-/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_core/ur_descriptionConfig.cmake
+/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_core/ur_descriptionConfig.cmake

@@ -1,8 +1,8 @@
-# Install script for directory: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description
+# Install script for directory: /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description")
+  set(CMAKE_INSTALL_PREFIX "/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -43,7 +43,7 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  include("/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake")
+  include("/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/ament_cmake_symlink_install/ament_cmake_symlink_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -54,5 +54,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

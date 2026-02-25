@@ -1,8 +1,1 @@
-<?xml version="1.0" ?>
-<robot name="OldOne" xmlns:xacro="http://www.ros.org/wiki/xacro" >
-
-<material name="silver">
-  <color rgba="0.700 0.700 0.700 1.000"/>
-</material>
-
-</robot>
+/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/materials.xacro
