@@ -1,0 +1,254 @@
+[0.121s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build', '--symlink-install']
+[0.121s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=True, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=6, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7de40f465ff0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7de40f465930>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7de40f465930>>)
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.325s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.325s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws'
+[0.325s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.326s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.339s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ignore', 'ignore_ament_install']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ignore_ament_install'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_pkg']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_pkg'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['colcon_meta']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'colcon_meta'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['ros']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'ros'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['cmake', 'python']
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'cmake'
+[0.340s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extensions ['python_setup_py']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src) by extension 'python_setup_py'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extensions ['ignore', 'ignore_ament_install']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extension 'ignore'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extension 'ignore_ament_install'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extensions ['colcon_pkg']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extension 'colcon_pkg'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extensions ['colcon_meta']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extension 'colcon_meta'
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extensions ['ros']
+[0.341s] Level 1:colcon.colcon_core.package_identification:_identify(src/OldOne_description) by extension 'ros'
+[0.344s] DEBUG:colcon.colcon_core.package_identification:Package 'src/OldOne_description' with type 'ros.ament_python' and name 'OldOne_description'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extensions ['ignore', 'ignore_ament_install']
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extension 'ignore'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extension 'ignore_ament_install'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extensions ['colcon_pkg']
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extension 'colcon_pkg'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extensions ['colcon_meta']
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extension 'colcon_meta'
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extensions ['ros']
+[0.344s] Level 1:colcon.colcon_core.package_identification:_identify(src/Universal_Robots_ROS2_Description) by extension 'ros'
+[0.345s] DEBUG:colcon.colcon_core.package_identification:Package 'src/Universal_Robots_ROS2_Description' with type 'ros.ament_cmake' and name 'ur_description'
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extensions ['ignore', 'ignore_ament_install']
+[0.345s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extension 'ignore'
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extension 'ignore_ament_install'
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extensions ['colcon_pkg']
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extension 'colcon_pkg'
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extensions ['colcon_meta']
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extension 'colcon_meta'
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extensions ['ros']
+[0.346s] Level 1:colcon.colcon_core.package_identification:_identify(src/marble_control) by extension 'ros'
+[0.347s] DEBUG:colcon.colcon_core.package_identification:Package 'src/marble_control' with type 'ros.ament_python' and name 'marble_control'
+[0.347s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.347s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.347s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.347s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.347s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.384s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.385s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.386s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.386s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.386s] WARNING:colcon.colcon_ros.prefix_path.ament:The path '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control' in the environment variable AMENT_PREFIX_PATH doesn't exist
+[0.386s] WARNING:colcon.colcon_ros.prefix_path.catkin:The path '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' in the environment variable CMAKE_PREFIX_PATH doesn't exist
+[0.387s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 0 installed packages in /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install
+[0.389s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 382 installed packages in /opt/ros/humble
+[0.392s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_args' from command line to 'None'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_target' from command line to 'None'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_clean_cache' from command line to 'False'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_clean_first' from command line to 'False'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'cmake_force_configure' from command line to 'False'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'ament_cmake_args' from command line to 'None'
+[0.447s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'catkin_cmake_args' from command line to 'None'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'OldOne_description' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.448s] DEBUG:colcon.colcon_core.verb:Building package 'OldOne_description' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description', 'merge_install': False, 'path': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description', 'symlink_install': True, 'test_result_base': None}
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_args' from command line to 'None'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_target' from command line to 'None'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_clean_cache' from command line to 'False'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_clean_first' from command line to 'False'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'cmake_force_configure' from command line to 'False'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'ament_cmake_args' from command line to 'None'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'catkin_cmake_args' from command line to 'None'
+[0.448s] Level 5:colcon.colcon_core.verb:set package 'marble_control' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.448s] DEBUG:colcon.colcon_core.verb:Building package 'marble_control' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control', 'merge_install': False, 'path': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/marble_control', 'symlink_install': True, 'test_result_base': None}
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_args' from command line to 'None'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_target' from command line to 'None'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_clean_cache' from command line to 'False'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_clean_first' from command line to 'False'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'cmake_force_configure' from command line to 'False'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'ament_cmake_args' from command line to 'None'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'catkin_cmake_args' from command line to 'None'
+[0.449s] Level 5:colcon.colcon_core.verb:set package 'ur_description' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.449s] DEBUG:colcon.colcon_core.verb:Building package 'ur_description' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description', 'merge_install': False, 'path': '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description', 'symlink_install': True, 'test_result_base': None}
+[0.449s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.450s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.451s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description' with build type 'ament_python'
+[0.451s] Level 1:colcon.colcon_core.shell:create_environment_hook('OldOne_description', 'ament_prefix_path')
+[0.454s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.454s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/ament_prefix_path.ps1'
+[0.455s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/ament_prefix_path.dsv'
+[0.455s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/ament_prefix_path.sh'
+[0.456s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.456s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.460s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/marble_control' with build type 'ament_python'
+[0.460s] Level 1:colcon.colcon_core.shell:create_environment_hook('marble_control', 'ament_prefix_path')
+[0.460s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/ament_prefix_path.ps1'
+[0.461s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/ament_prefix_path.dsv'
+[0.461s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/ament_prefix_path.sh'
+[0.462s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.462s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.465s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description' with build type 'ament_cmake'
+[0.466s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description'
+[0.466s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.466s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.771s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/OldOne_description'
+[0.772s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.772s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.082s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/marble_control'
+[1.082s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[1.082s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[1.095s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description
+[1.559s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data
+[1.566s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data
+[2.165s] Level 1:colcon.colcon_core.shell:create_environment_hook('OldOne_description', 'pythonpath_develop')
+[2.165s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/share/OldOne_description/hook/pythonpath_develop.ps1'
+[2.166s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data
+[2.167s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/share/OldOne_description/hook/pythonpath_develop.dsv'
+[2.167s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/share/OldOne_description/hook/pythonpath_develop.sh'
+[2.171s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description' for CMake module files
+[2.171s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description' for CMake config files
+[2.172s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib'
+[2.173s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/bin'
+[2.173s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/pkgconfig/OldOne_description.pc'
+[2.173s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages'
+[2.173s] Level 1:colcon.colcon_core.shell:create_environment_hook('OldOne_description', 'pythonpath')
+[2.174s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/pythonpath.ps1'
+[2.174s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/pythonpath.dsv'
+[2.175s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/hook/pythonpath.sh'
+[2.176s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/bin'
+[2.176s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(OldOne_description)
+[2.176s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/package.ps1'
+[2.177s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/package.dsv'
+[2.178s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/package.sh'
+[2.180s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/package.bash'
+[2.181s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/package.zsh'
+[2.182s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/colcon-core/packages/OldOne_description)
+[2.183s] Level 1:colcon.colcon_core.shell:create_environment_hook('marble_control', 'pythonpath_develop')
+[2.184s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/share/marble_control/hook/pythonpath_develop.ps1'
+[2.185s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data
+[2.186s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/share/marble_control/hook/pythonpath_develop.dsv'
+[2.186s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/share/marble_control/hook/pythonpath_develop.sh'
+[2.187s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control' for CMake module files
+[2.188s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control' for CMake config files
+[2.189s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib'
+[2.189s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/bin'
+[2.189s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/pkgconfig/marble_control.pc'
+[2.189s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages'
+[2.189s] Level 1:colcon.colcon_core.shell:create_environment_hook('marble_control', 'pythonpath')
+[2.190s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/pythonpath.ps1'
+[2.190s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/pythonpath.dsv'
+[2.191s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/hook/pythonpath.sh'
+[2.192s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/bin'
+[2.192s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(marble_control)
+[2.192s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/package.ps1'
+[2.193s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/package.dsv'
+[2.194s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/package.sh'
+[2.194s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/package.bash'
+[2.195s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/package.zsh'
+[2.195s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/colcon-core/packages/marble_control)
+[2.704s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/src/Universal_Robots_ROS2_Description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description
+[2.707s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description -- -j6 -l6
+[2.753s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake --build /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description -- -j6 -l6
+[2.766s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake --install /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description
+[5.570s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ur_description)
+[5.570s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' for CMake module files
+[5.571s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/Marble_control:/opt/ros/humble /usr/bin/cmake --install /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/ur_description
+[5.571s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' for CMake config files
+[5.572s] Level 1:colcon.colcon_core.shell:create_environment_hook('ur_description', 'cmake_prefix_path')
+[5.572s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.ps1'
+[5.573s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.dsv'
+[5.573s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.sh'
+[5.574s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/bin'
+[5.574s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/lib/pkgconfig/ur_description.pc'
+[5.574s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/lib/python3.10/site-packages'
+[5.574s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/bin'
+[5.575s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.ps1'
+[5.575s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.dsv'
+[5.576s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.sh'
+[5.576s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.bash'
+[5.576s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.zsh'
+[5.577s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/colcon-core/packages/ur_description)
+[5.577s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(ur_description)
+[5.577s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' for CMake module files
+[5.578s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description' for CMake config files
+[5.579s] Level 1:colcon.colcon_core.shell:create_environment_hook('ur_description', 'cmake_prefix_path')
+[5.579s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.ps1'
+[5.580s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.dsv'
+[5.580s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/hook/cmake_prefix_path.sh'
+[5.581s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/bin'
+[5.581s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/lib/pkgconfig/ur_description.pc'
+[5.581s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/lib/python3.10/site-packages'
+[5.581s] Level 1:colcon.colcon_core.environment:checking '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/bin'
+[5.582s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.ps1'
+[5.582s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.dsv'
+[5.583s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.sh'
+[5.583s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.bash'
+[5.584s] INFO:colcon.colcon_core.shell:Creating package script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/ur_description/package.zsh'
+[5.584s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/ur_description/share/colcon-core/packages/ur_description)
+[5.585s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[5.585s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[5.585s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[5.586s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[5.592s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[5.592s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[5.592s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[5.606s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[5.606s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/local_setup.ps1'
+[5.608s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/_local_setup_util_ps1.py'
+[5.609s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/setup.ps1'
+[5.610s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/local_setup.sh'
+[5.611s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/_local_setup_util_sh.py'
+[5.612s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/setup.sh'
+[5.613s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/local_setup.bash'
+[5.614s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/setup.bash'
+[5.615s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/local_setup.zsh'
+[5.616s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/setup.zsh'

@@ -1,0 +1,29 @@
+running develop
+running egg_info
+creating marble_control.egg-info
+writing marble_control.egg-info/PKG-INFO
+writing dependency_links to marble_control.egg-info/dependency_links.txt
+writing entry points to marble_control.egg-info/entry_points.txt
+writing requirements to marble_control.egg-info/requires.txt
+writing top-level names to marble_control.egg-info/top_level.txt
+writing manifest file 'marble_control.egg-info/SOURCES.txt'
+reading manifest file 'marble_control.egg-info/SOURCES.txt'
+writing manifest file 'marble_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages/marble-control.egg-link (link to .)
+Installing joint_publisher script to /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/marble_control
+
+Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control
+running symlink_data
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index/packages
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/resource/marble_control -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index/packages
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/package.xml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/launch/marble_view.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/launch/ur7e_gazebo.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/urdf
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/urdf/marble_robot.urdf.xacro -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/urdf
+creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/config
+symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/config/ur7e_controllers.yaml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/config

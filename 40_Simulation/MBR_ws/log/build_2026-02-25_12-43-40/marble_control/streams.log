@@ -1,0 +1,31 @@
+[1.029s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data
+[1.345s] running develop
+[1.579s] running egg_info
+[1.581s] creating marble_control.egg-info
+[1.581s] writing marble_control.egg-info/PKG-INFO
+[1.581s] writing dependency_links to marble_control.egg-info/dependency_links.txt
+[1.582s] writing entry points to marble_control.egg-info/entry_points.txt
+[1.586s] writing requirements to marble_control.egg-info/requires.txt
+[1.586s] writing top-level names to marble_control.egg-info/top_level.txt
+[1.586s] writing manifest file 'marble_control.egg-info/SOURCES.txt'
+[1.586s] reading manifest file 'marble_control.egg-info/SOURCES.txt'
+[1.586s] writing manifest file 'marble_control.egg-info/SOURCES.txt'
+[1.589s] running build_ext
+[1.590s] Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages/marble-control.egg-link (link to .)
+[1.591s] Installing joint_publisher script to /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/marble_control
+[1.591s] 
+[1.591s] Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control
+[1.592s] running symlink_data
+[1.596s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index
+[1.596s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index
+[1.596s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index/packages
+[1.596s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/resource/marble_control -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/ament_index/resource_index/packages
+[1.596s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/package.xml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control
+[1.596s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+[1.602s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/launch/marble_view.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+[1.602s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/launch/ur7e_gazebo.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/launch
+[1.603s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/urdf
+[1.603s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/urdf/marble_robot.urdf.xacro -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/urdf
+[1.604s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/config
+[1.604s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/config/ur7e_controllers.yaml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/share/marble_control/config
+[1.647s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data

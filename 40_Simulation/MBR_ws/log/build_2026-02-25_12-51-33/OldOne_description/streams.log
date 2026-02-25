@@ -1,0 +1,45 @@
+[1.234s] Invoking command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data
+[1.612s] running develop
+[1.898s] running egg_info
+[1.898s] creating OldOne_description.egg-info
+[1.899s] writing OldOne_description.egg-info/PKG-INFO
+[1.899s] writing dependency_links to OldOne_description.egg-info/dependency_links.txt
+[1.900s] writing entry points to OldOne_description.egg-info/entry_points.txt
+[1.900s] writing requirements to OldOne_description.egg-info/requires.txt
+[1.900s] writing top-level names to OldOne_description.egg-info/top_level.txt
+[1.900s] writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[1.903s] reading manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[1.904s] writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+[1.907s] running build_ext
+[1.908s] Creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+[1.909s] 
+[1.909s] Installed /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description
+[1.909s] running symlink_data
+[1.910s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index
+[1.910s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index
+[1.910s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+[1.912s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/resource/OldOne_description -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+[1.912s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/package.xml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description
+[1.913s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[1.913s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/display.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[1.914s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/gazebo.launch.py -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+[1.915s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.915s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/materials.xacro -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.916s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/zeball.urdf -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.916s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.gazebo -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.917s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.xacro -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.917s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.trans -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+[1.917s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.917s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link6_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.917s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/base_link.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.918s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link3_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.918s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link4_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.918s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/zEBALL_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.918s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link1_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.918s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link2_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.919s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link5_1.stl -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+[1.919s] creating /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[1.919s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/ros_gz_bridge_gazebo.yaml -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[1.919s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/display.rviz -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[1.919s] symbolically linking /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/gazebo.rviz -> /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+[1.996s] Invoked command in '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description' returned '0': PYTHONPATH=/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/build --no-deps symlink_data
