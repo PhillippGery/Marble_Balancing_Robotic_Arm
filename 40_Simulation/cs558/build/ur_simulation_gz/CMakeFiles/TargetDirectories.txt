@@ -1,0 +1,9 @@
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/uninstall.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/ur_simulation_gz_uninstall.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/test.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/edit_cache.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/rebuild_cache.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/list_install_components.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/install.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/install/local.dir
+/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz/CMakeFiles/install/strip.dir
