@@ -19,6 +19,8 @@ Three figures are produced:
 import sys
 import csv
 import math
+import os
+import shutil
 import subprocess
 from pathlib import Path
 from datetime import datetime
@@ -169,12 +171,23 @@ def plot_from_csv(csv_path: str):
 def record_node(default_output: Path):
     import rclpy
     from rclpy.node import Node
+    from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
     from nav_msgs.msg import Odometry
     from geometry_msgs.msg import TwistStamped
     from std_msgs.msg import Empty
     import tf2_ros
 
-    _this_file = Path(__file__).resolve()
+    _LATCHED = QoSProfile(
+        depth=1,
+        durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        reliability=ReliabilityPolicy.RELIABLE,
+        history=HistoryPolicy.KEEP_LAST,
+    )
+
+    # Prefer the installed binary so Python path is set up correctly.
+    # Fall back to calling the source file directly with the current interpreter.
+    _plot_bin = shutil.which('marble_plotter') or str(Path(__file__).resolve())
+    _use_bin  = shutil.which('marble_plotter') is not None
 
     class PlotterNode(Node):
         def __init__(self):
@@ -205,9 +218,9 @@ def record_node(default_output: Path):
             self.create_subscription(
                 TwistStamped, '/servo_node/delta_twist_cmds', self._cmd_cb, 10)
             self.create_subscription(
-                Empty, '/marble/landed',  self._landed_cb,  10)
+                Empty, '/marble/landed',   self._landed_cb,   _LATCHED)
             self.create_subscription(
-                Empty, '/marble/fell_off', self._fell_off_cb, 10)
+                Empty, '/marble/fell_off', self._fell_off_cb, _LATCHED)
 
         def _open_new_csv(self, path: Path):
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -235,8 +248,21 @@ def record_node(default_output: Path):
             self.get_logger().info(
                 f'Marble fell off — saved {self._row_count} rows → {saved}')
 
-            # Open plots in a separate process (non-blocking)
-            subprocess.Popen([sys.executable, str(_this_file), '--plot', str(saved)])
+            # Open plots in a separate process (non-blocking).
+            # Use the installed binary so the Python path is correct; pass the
+            # full environment so DISPLAY is available for the GUI backend.
+            cmd = ([_plot_bin, '--plot', str(saved)] if _use_bin
+                   else [sys.executable, _plot_bin, '--plot', str(saved)])
+            log_path = saved.with_suffix('.plot.log')
+            with log_path.open('w') as log_f:
+                proc = subprocess.Popen(
+                    cmd,
+                    env=os.environ.copy(),
+                    stdout=log_f,
+                    stderr=log_f,
+                )
+            self.get_logger().info(
+                f'Plot process started (pid {proc.pid}), log → {log_path}')
 
             # Fresh CSV ready for the next marble
             new_path = LOG_DIR / f'marble_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'

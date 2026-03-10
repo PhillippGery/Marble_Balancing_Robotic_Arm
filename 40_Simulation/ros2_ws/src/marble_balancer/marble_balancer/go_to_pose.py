@@ -145,8 +145,8 @@ class GoToPose(Node):
         self.get_logger().info('Controller active — sending trajectory.')
         self.traj_pub.publish(msg)
 
-        # Spin for move time + 1 s so the robot finishes before we exit
-        deadline = self.get_clock().now().nanoseconds + (MOVE_TIME_SEC + 1) * 1_000_000_000
+        # Spin for move time + 0.5 s so the robot finishes before we exit
+        deadline = self.get_clock().now().nanoseconds + (MOVE_TIME_SEC + 0.5) * 1_000_000_000
         while self.get_clock().now().nanoseconds < deadline:
             rclpy.spin_once(self, timeout_sec=0.1)
 

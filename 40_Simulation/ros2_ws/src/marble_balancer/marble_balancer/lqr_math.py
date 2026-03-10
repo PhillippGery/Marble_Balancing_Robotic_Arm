@@ -33,7 +33,7 @@ IB = (2.0 / 5.0) * MB * RB**2
 C  = MB * G / (MB + IB / RB**2)   # ≈ (5/7)*g ≈ 7.0 m/s²
 
 # Robot PT1 time constant (s) — tune if robot responds faster/slower
-T_ROBOT = 0.15
+T_ROBOT = 0.35
 
 
 # ── Continuous-time A, B (with PT1 robot model) ───────────────────────────────
@@ -111,4 +111,4 @@ def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
 #  Position/velocity errors penalised heavily; angle/rate moderate; inputs = 1
 #  State:   [x, xd, y, yd, alpha, omega_alpha, beta, omega_beta]
 DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5])
-DEFAULT_R = np.eye(2) * 0.5
+DEFAULT_R = np.eye(2) * 0.1

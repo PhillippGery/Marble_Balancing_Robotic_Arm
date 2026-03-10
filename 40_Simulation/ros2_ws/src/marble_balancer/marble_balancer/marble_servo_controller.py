@@ -26,12 +26,21 @@ import math
 import subprocess
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TwistStamped
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 import numpy as np
 import tf2_ros
+
+# Latched QoS: late subscribers always receive the last published value
+_LATCHED = QoSProfile(
+    depth=1,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    reliability=ReliabilityPolicy.RELIABLE,
+    history=HistoryPolicy.KEEP_LAST,
+)
 
 from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R, T_ROBOT
 
@@ -102,9 +111,9 @@ class MarbleServoController(Node):
         self._twist_pub = self.create_publisher(
             TwistStamped, '/servo_node/delta_twist_cmds', 10)
         self._fell_off_pub = self.create_publisher(
-            Empty, '/marble/fell_off', 10)
+            Empty, '/marble/fell_off', _LATCHED)
         self._landed_pub = self.create_publisher(
-            Empty, '/marble/landed', 10)
+            Empty, '/marble/landed', _LATCHED)
 
         self._odom_sub = self.create_subscription(
             Odometry, '/marble/odom', self._odom_cb, 10)
