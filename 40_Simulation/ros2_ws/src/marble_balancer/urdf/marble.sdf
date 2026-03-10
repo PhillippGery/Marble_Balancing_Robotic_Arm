@@ -2,7 +2,7 @@
 <sdf version="1.6">
   <model name="marble">
     <!-- Pose is overridden by marble_spawner via /spawn_entity initial_pose -->
-    <pose>0 0 0 0 0 0</pose>
+    <pose>0.00 0.00 0 0 0 0</pose>
 
     <link name="marble_link">
       <inertial>

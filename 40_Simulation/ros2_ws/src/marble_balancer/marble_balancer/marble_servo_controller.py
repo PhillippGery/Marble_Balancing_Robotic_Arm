@@ -73,6 +73,9 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 # ── Tunable parameters ────────────────────────────────────────────────────────
 CONTROL_HZ = 30.0
 MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
+OMEGA_LPF_TC = 0.08               # low-pass filter time constant for Jacobian omega (s)
+                                  # smaller = faster response but noisier
+                                  # larger  = smoother but more lag (PT1 limit)
 
 # Landing detection — relaxed so marble is detected even when sliding on arrival
 LAND_Z_MARGIN  = 0.030    # ±3 cm z-window around plate top
@@ -201,7 +204,11 @@ class MarbleServoController(Node):
         if self._q_prev is not None:
             dt = t_new - self._q_prev_t
             if 0.0 < dt < 0.5:
-                self._q_dot = (q_new - self._q_prev) / dt
+                q_dot_raw = (q_new - self._q_prev) / dt
+                # Exponential low-pass filter: smooth out differentiation noise
+                # while keeping real plate motion information
+                alpha_f = dt / (OMEGA_LPF_TC + dt)
+                self._q_dot = alpha_f * q_dot_raw + (1.0 - alpha_f) * self._q_dot
         self._q_prev   = q_new
         self._q_prev_t = t_new
         omega = self._compute_plate_omega()
@@ -361,8 +368,8 @@ class MarbleServoController(Node):
 
         # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
         u = -self._K @ self._state
-        omega_alpha_cmd = float(np.clip(u[0], -MAX_RATE, MAX_RATE))
-        omega_beta_cmd  = float(np.clip(u[1], -MAX_RATE, MAX_RATE))
+        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))
+        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
 
         # Update PT1 state with the new command
         self._u_prev[0] = omega_alpha_cmd

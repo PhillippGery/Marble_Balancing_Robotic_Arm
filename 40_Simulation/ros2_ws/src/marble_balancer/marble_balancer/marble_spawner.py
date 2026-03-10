@@ -73,12 +73,15 @@ class MarbleSpawner(Node):
         plate_z = tf.transform.translation.z
         # plate_tcp is already at the top surface; other frames need half-thickness offset
         surface_z = plate_z if used_frame in TOP_SURFACE_FRAMES else plate_z + PLATE_THICKNESS / 2.0
+
+        spawn_x = plate_x + 0.01
+        spawn_y = plate_y + 0.09
         spawn_z = surface_z + MARBLE_RADIUS + DROP_HEIGHT
 
         self.get_logger().info(
             f'Plate "{used_frame}": x={plate_x:.4f} y={plate_y:.4f} z={plate_z:.4f}')
         self.get_logger().info(
-            f'Spawning marble at:  x={plate_x:.4f} y={plate_y:.4f} z={spawn_z:.4f}')
+            f'Spawning marble at:  x={spawn_x:.4f} y={spawn_y:.4f} z={spawn_z:.4f}')
 
         # ── Load SDF ──────────────────────────────────────────────────────────
         pkg = get_package_share_directory('marble_balancer')
@@ -91,8 +94,8 @@ class MarbleSpawner(Node):
         req.xml             = sdf_xml
         req.robot_namespace = ''
         req.reference_frame = 'world'
-        req.initial_pose.position.x    = plate_x
-        req.initial_pose.position.y    = plate_y
+        req.initial_pose.position.x    = spawn_x
+        req.initial_pose.position.y    = spawn_y
         req.initial_pose.position.z    = spawn_z
         req.initial_pose.orientation.w = 1.0
 
