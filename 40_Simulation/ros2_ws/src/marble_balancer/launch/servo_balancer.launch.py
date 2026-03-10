@@ -1,7 +1,11 @@
 import os
 import yaml
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.actions import (
+    IncludeLaunchDescription,
+    RegisterEventHandler,
+)
+from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -19,8 +23,7 @@ def generate_launch_description():
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
 
-    # ── 1. Generate robot description via xacro (same file used by Gazebo) ───
-    #    No sim_gazebo here — move_group/servo only need the kinematic model.
+    # ── 1. Robot description via xacro ────────────────────────────────────────
     robot_description_content = ParameterValue(
         Command([
             PathJoinSubstitution([FindExecutable(name='xacro')]),
@@ -38,8 +41,6 @@ def generate_launch_description():
     )
 
     # ── 2. Gazebo + UR5e + controllers ────────────────────────────────────────
-    #    Override description_package/file so Gazebo spawns the same URDF
-    #    (including the plate when it is uncommented).
     ur_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             FindPackageShare('ur_simulation_gazebo'),
@@ -56,7 +57,7 @@ def generate_launch_description():
         }.items(),
     )
 
-    # ── 3. Load MoveIt semantic + kinematics configs ───────────────────────────
+    # ── 3. MoveIt configs ─────────────────────────────────────────────────────
     with open(os.path.join(pkg_moveit, 'config', 'ur.srdf'), 'r') as f:
         robot_description_semantic_str = f.read()
 
@@ -70,9 +71,9 @@ def generate_launch_description():
         {'allow_trajectory_execution': True},
         {'moveit_manage_controllers': False},
         {'planning_scene_monitor_options': {
-            'publish_planning_scene':    True,
-            'publish_geometry_updates':  True,
-            'publish_state_updates':     True,
+            'publish_planning_scene':   True,
+            'publish_geometry_updates': True,
+            'publish_state_updates':    True,
         }},
     ]
 
@@ -87,14 +88,13 @@ def generate_launch_description():
 
     # ── 4b. MoveIt Servo node ─────────────────────────────────────────────────
     servo_yaml = load_yaml(os.path.join(pkg_marble, 'config', 'servo_params.yaml'))
-    servo_params = {'moveit_servo': servo_yaml}
 
     servo_node = Node(
         package='moveit_servo',
         executable='servo_node_main',
         name='servo_node',
         parameters=[
-            servo_params,
+            {'moveit_servo': servo_yaml},
             {'robot_description':            robot_description_content},
             {'robot_description_semantic':   robot_description_semantic_str},
             {'robot_description_kinematics': kinematics_yaml},
@@ -102,7 +102,9 @@ def generate_launch_description():
         output='screen',
     )
 
-    # ── 5. go_to_pose: move robot to balancing home position ──────────────────
+    # ── 5. go_to_pose: homing move ────────────────────────────────────────────
+    # Started when move_group starts; blocks internally until /compute_ik
+    # and /joint_states are available, then sends the trajectory and exits.
     go_to_pose_node = Node(
         package='marble_balancer',
         executable='go_to_pose',
@@ -110,7 +112,8 @@ def generate_launch_description():
         output='screen',
     )
 
-    # ── 6. Marble servo controller (LQR → twist commands) ─────────────────────
+    # ── 6. Marble servo controller ────────────────────────────────────────────
+    # Started only after go_to_pose exits (robot is in balancing position).
     pilot_node = Node(
         package='marble_balancer',
         executable='marble_servo_controller',
@@ -118,16 +121,38 @@ def generate_launch_description():
         output='screen',
     )
 
-    # ── Sequencing ────────────────────────────────────────────────────────────
-    # Gazebo ~15 s → MoveIt stack → go_to_pose (needs /compute_ik ready) →
-    # servo controller (starts after robot is at balancing position)
-    moveit_delayed   = TimerAction(period=15.0, actions=[move_group_node, servo_node])
-    go_to_pose_delayed = TimerAction(period=20.0, actions=[go_to_pose_node])
-    pilot_delayed    = TimerAction(period=26.0, actions=[pilot_node])
+    # ── Event-driven sequencing ───────────────────────────────────────────────
+    #
+    #  ur_sim  ──starts──>  move_group + servo_node  (wait internally for /joint_states)
+    #                             │
+    #                        OnProcessStart
+    #                             │
+    #                             v
+    #                         go_to_pose  (waits for /compute_ik + /joint_states,
+    #                             │         sends trajectory, then exits)
+    #                        OnProcessExit
+    #                             │
+    #                             v
+    #                         pilot_node
+
+    go_to_pose_on_moveit_ready = RegisterEventHandler(
+        OnProcessStart(
+            target_action=move_group_node,
+            on_start=[go_to_pose_node],
+        )
+    )
+
+    pilot_on_homed = RegisterEventHandler(
+        OnProcessExit(
+            target_action=go_to_pose_node,
+            on_exit=[pilot_node],
+        )
+    )
 
     return LaunchDescription([
         ur_sim,
-        moveit_delayed,
-        go_to_pose_delayed,
-        pilot_delayed,
+        move_group_node,
+        servo_node,
+        go_to_pose_on_moveit_ready,
+        pilot_on_homed,
     ])
