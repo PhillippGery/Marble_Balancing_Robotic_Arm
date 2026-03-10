@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="marble">
+    <!-- Initial pose: roughly above the robot tool0 position -->
+    <pose>0.0 0.4 0.75 0 0 0</pose>
+
+    <link name="marble_link">
+      <inertial>
+        <mass>0.05</mass>  <!-- mb = 0.05 kg (matches MATLAB) -->
+        <inertia>
+          <!-- Ib = (2/5)*mb*rb^2, rb=0.015 m → 9e-6 kg·m^2 -->
+          <ixx>9e-6</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>9e-6</iyy><iyz>0</iyz>
+          <izz>9e-6</izz>
+        </inertia>
+      </inertial>
+
+      <collision name="collision">
+        <geometry>
+          <sphere><radius>0.015</radius></sphere>
+        </geometry>
+        <surface>
+          <friction>
+            <ode><mu>0.6</mu><mu2>0.6</mu2></ode>
+          </friction>
+          <bounce>
+            <restitution_coefficient>0.0</restitution_coefficient>
+          </bounce>
+        </surface>
+      </collision>
+
+      <visual name="visual">
+        <geometry>
+          <sphere><radius>0.015</radius></sphere>
+        </geometry>
+        <material>
+          <ambient>0.9 0.1 0.1 1</ambient>
+          <diffuse>0.9 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!--
+      Classic Gazebo ground truth plugin (libgazebo_ros_p3d.so).
+      Publishes nav_msgs/Odometry directly to /marble/odom — no bridge needed.
+    -->
+    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
+      <ros>
+        <remapping>odom:=/marble/odom</remapping>
+      </ros>
+      <body_name>marble_link</body_name>
+      <frame_name>world</frame_name>
+      <update_rate>50</update_rate>
+    </plugin>
+
+  </model>
+</sdf>

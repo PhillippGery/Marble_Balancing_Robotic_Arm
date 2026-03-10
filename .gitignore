@@ -6,3 +6,13 @@ browse.vc.db
 
 40_Simulation/MBR_ws/install
 40_Simulation/MBR_ws/build
+
+# cs558 workspace build artifacts
+40_Simulation/cs558/build/
+40_Simulation/cs558/install/
+40_Simulation/cs558/log/
+
+# New clean workspace build artifacts
+40_Simulation/ros2_ws/build/
+40_Simulation/ros2_ws/install/
+40_Simulation/ros2_ws/log/

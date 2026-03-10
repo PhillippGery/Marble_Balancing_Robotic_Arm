@@ -18,27 +18,34 @@ class marbleIKController(Node):
         self.joint_names = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
                             'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint']
         
-        # Official UR7e/UR5e Geometric Parameters (meters)
-        H1, L1, L2 = 0.1625, 0.425, 0.3922
-        W1, W2, H2 = 0.1333, 0.0997, 0.0996
+        # Revised Parameters for UR5e/UR7e (meters)
+        # These follow the standard DH-to-Screw conversion
+        d1 = 0.1625   # Base to shoulder
+        a2 = -0.425   # Shoulder to elbow
+        a3 = -0.3922  # Elbow to wrist 1
+        d4 = 0.1333   # Wrist 1 offset
+        d5 = 0.0997   # Wrist 2 offset
+        d6 = 0.0996   # Wrist 3 to flange
 
-        # Home position of end effector (M)
-
+        # 1. Corrected Home Configuration M
+        # At zero angles, the tool points up (Z-axis) 
+        # and is offset by the 'W' values in the Y-direction.
         self.M = np.array([
-            [-1, 0, 0, L1 + L2],
-            [ 0, 0, 1, W1 + W2],
-            [ 0, 1, 0, H1 - H2],
-            [ 0, 0, 0, 1]
+            [1, 0, 0, 0],
+            [0, 0, 1, d4 + d6],
+            [0, -1, 0, d1 - d5], # Orientation depends on URDF specific tool0 orientation
+            [0, 0, 0, 1]
         ])
 
-
+        # 2. Corrected Screw Axes Slist (Space Frame)
+        # Axis directions: Joint 1 (Z), Joints 2,3,4 (Y), Joint 5 (Z), Joint 6 (Y)
         self.Slist = np.array([
-            [0, 0,  1, 0,   0,       0],     # S1
-            [0, 1,  0, -H1, 0,       0],     # S2
-            [0, 1,  0, -H1, 0,       L1],    # S3
-            [0, 1,  0, -H1, 0,       L1+L2], # S4
-            [0, 0, -1, -W1, L1+L2,   0],     # S5
-            [0, 1,  0, H2-H1, 0,     L1+L2]  # S6
+            [0, 0, 1, 0, 0, 0],                                  # S1: Base rotation
+            [0, 1, 0, -d1, 0, 0],                                # S2: Shoulder
+            [0, 1, 0, -d1, 0, -a2],                              # S3: Elbow
+            [0, 1, 0, -d1, 0, -(a2 + a3)],                       # S4: Wrist 1
+            [0, 0, -1, -d4, (a2 + a3), 0],                       # S5: Wrist 2
+            [0, 1, 0, -(d1 - d5), 0, -(a2 + a3)]                 # S6: Wrist 3
         ]).T
 
 

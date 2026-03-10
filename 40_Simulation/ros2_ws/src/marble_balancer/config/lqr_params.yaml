@@ -1,0 +1,25 @@
+marble_lqr_controller:
+  ros__parameters:
+
+    # ── Fixed TCP position (meters) ───────────────────────────────────────────
+    # The robot TCP stays at this XYZ while only rotating to tilt the board.
+    # Tune these to match the reachable workspace of your UR5e in Gazebo.
+    # Home TCP position (tool pointing up): computed from FK of home joint config
+    # joints(deg) = [0, -75, 120, -135, 90, 0]  — rule: q2+q3+q4 = -90 deg, q5 = 90 deg
+    tcp_x: 0.487
+    tcp_y: 0.133
+    tcp_z: 0.550
+
+    # ── LQR weights (match MATLAB MarbelSysModel_mfile.m) ────────────────────
+    # Q_diag: [x, x_dot, y, y_dot, alpha, alpha_dot, beta, beta_dot]
+    Q_diag: [1000.0, 100.0, 1000.0, 100.0, 1.0, 0.1, 1.0, 0.1]
+    # R_scale: scalar multiplied by eye(2)
+    R_scale: 0.01
+
+    # ── Control limits ────────────────────────────────────────────────────────
+    # Maximum board tilt angle in each axis (degrees)
+    max_angle_deg: 15.0
+
+    # ── Control rate ──────────────────────────────────────────────────────────
+    # Start conservative given MoveIt planning latency; increase after profiling
+    control_rate_hz: 10.0
