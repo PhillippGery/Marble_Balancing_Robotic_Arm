@@ -43,6 +43,31 @@ _LATCHED = QoSProfile(
 )
 
 from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R, T_ROBOT
+from sensor_msgs.msg import JointState
+
+
+# ── Jacobian: joint child-link frames (all joints rotate about local Z) ───────
+_JOINT_FRAMES = [
+    'shoulder_link',    # shoulder_pan_joint
+    'upper_arm_link',   # shoulder_lift_joint
+    'forearm_link',     # elbow_joint
+    'wrist_1_link',     # wrist_1_joint
+    'wrist_2_link',     # wrist_2_joint
+    'wrist_3_link',     # wrist_3_joint
+]
+_JOINT_NAMES = [
+    'shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
+    'wrist_1_joint', 'wrist_2_joint', 'wrist_3_joint',
+]
+
+
+def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
+    """Quaternion → 3×3 rotation matrix."""
+    return np.array([
+        [1-2*(qy*qy+qz*qz),   2*(qx*qy-qz*qw),   2*(qx*qz+qy*qw)],
+        [  2*(qx*qy+qz*qw), 1-2*(qx*qx+qz*qz),   2*(qy*qz-qx*qw)],
+        [  2*(qx*qz-qy*qw),   2*(qy*qz+qx*qw), 1-2*(qx*qx+qy*qy)],
+    ])
 
 
 # ── Tunable parameters ────────────────────────────────────────────────────────
@@ -88,11 +113,16 @@ class MarbleServoController(Node):
         # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
 
-        # Internal PT1 estimate of actual omega (updated every control tick)
-        self._omega_alpha_est = 0.0
-        self._omega_beta_est  = 0.0
+        # Actual plate angular velocity from Jacobian + joint_states (rad/s)
+        self._omega_alpha_actual = 0.0   # pitch rate (α̇, world Y-axis)
+        self._omega_beta_actual  = 0.0   # roll rate  (β̇, world X-axis)
 
-        # Last command sent (for PT1 propagation in control loop)
+        # Joint velocities computed from position differentiation
+        self._q_dot      = np.zeros(6)
+        self._q_prev     = None          # previous joint positions
+        self._q_prev_t   = None          # timestamp of previous sample
+
+        # Last command sent (kept for PT1 reference in lqr_math but not used in state)
         self._u_prev = np.zeros(2)
 
         # ── TF ────────────────────────────────────────────────────────────────
@@ -110,6 +140,8 @@ class MarbleServoController(Node):
         # ── Publishers / subscribers ──────────────────────────────────────────
         self._twist_pub = self.create_publisher(
             TwistStamped, '/servo_node/delta_twist_cmds', 10)
+        self._plate_omega_pub = self.create_publisher(
+            TwistStamped, '/marble/plate_omega', 10)
         self._fell_off_pub = self.create_publisher(
             Empty, '/marble/fell_off', _LATCHED)
         self._landed_pub = self.create_publisher(
@@ -117,6 +149,8 @@ class MarbleServoController(Node):
 
         self._odom_sub = self.create_subscription(
             Odometry, '/marble/odom', self._odom_cb, 10)
+        self._js_sub = self.create_subscription(
+            JointState, '/joint_states', self._js_cb, 10)
 
         self._timer = self.create_timer(dt, self._control_cb)
 
@@ -157,6 +191,50 @@ class MarbleServoController(Node):
                 lambda f: self.get_logger().info('MoveIt Servo stopped.'))
         else:
             self.get_logger().warn('stop_servo service not available.')
+
+    def _js_cb(self, msg: JointState):
+        """Compute joint velocities from position differentiation, then publish plate omega."""
+        pos_map = dict(zip(msg.name, msg.position))
+        q_new = np.array([pos_map.get(j, 0.0) for j in _JOINT_NAMES])
+        t_new = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+
+        if self._q_prev is not None:
+            dt = t_new - self._q_prev_t
+            if 0.0 < dt < 0.5:
+                self._q_dot = (q_new - self._q_prev) / dt
+        self._q_prev   = q_new
+        self._q_prev_t = t_new
+        omega = self._compute_plate_omega()
+        if omega is not None:
+            self._omega_beta_actual  = omega[0]   # world X → β̇ (roll rate)
+            self._omega_alpha_actual = omega[1]   # world Y → α̇ (pitch rate)
+            om_msg = TwistStamped()
+            om_msg.header.stamp    = msg.header.stamp
+            om_msg.header.frame_id = 'world'
+            om_msg.twist.angular.x = float(omega[0])   # β̇  (roll rate)
+            om_msg.twist.angular.y = float(omega[1])   # α̇  (pitch rate)
+            self._plate_omega_pub.publish(om_msg)
+
+    def _compute_plate_omega(self):
+        """
+        Build the 3×6 rotational Jacobian from TF and multiply by q_dot.
+        Each column = Z-axis of the joint's child-link frame in world frame,
+        because every UR5e joint rotates about its local Z axis.
+        Returns [ω_x, ω_y, ω_z] in world frame, or None if TF not ready.
+        """
+        J_rot = np.zeros((3, 6))
+        for i, frame in enumerate(_JOINT_FRAMES):
+            try:
+                tf = self._tf_buffer.lookup_transform(
+                    'world', frame, rclpy.time.Time())
+            except (tf2_ros.LookupException,
+                    tf2_ros.ConnectivityException,
+                    tf2_ros.ExtrapolationException):
+                return None
+            q = tf.transform.rotation
+            R = _quat_to_rot(q.x, q.y, q.z, q.w)
+            J_rot[:, i] = R[:, 2]   # Z-column = joint rotation axis in world frame
+        return J_rot @ self._q_dot
 
     def _get_plate_tf(self):
         """Return (plate_tf, plate_top_z) or (None, None)."""
@@ -203,19 +281,19 @@ class MarbleServoController(Node):
         alpha = pitch
         beta  = roll
 
-        # Fill state — omega comes from internal PT1 estimate (updated in control_cb)
+        # Fill state — omegas from Jacobian + joint_states (actual, not estimated)
         self._state[4] = alpha
-        self._state[5] = self._omega_alpha_est
+        self._state[5] = self._omega_alpha_actual
         self._state[6] = beta
-        self._state[7] = self._omega_beta_est
+        self._state[7] = self._omega_beta_actual
 
         if self._landed:
             self.get_logger().info(
                 f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
                 f'vx:{self._state[1]:+.4f} vy:{self._state[3]:+.4f}  '
                 f'α:{np.rad2deg(alpha):+.2f}° β:{np.rad2deg(beta):+.2f}°  '
-                f'ωα:{np.rad2deg(self._omega_alpha_est):+.2f}°/s '
-                f'ωβ:{np.rad2deg(self._omega_beta_est):+.2f}°/s',
+                f'ωα:{np.rad2deg(self._omega_alpha_actual):+.2f}°/s '
+                f'ωβ:{np.rad2deg(self._omega_beta_actual):+.2f}°/s',
                 throttle_duration_sec=0.5)
 
         # Landing detection
@@ -243,9 +321,9 @@ class MarbleServoController(Node):
                 self._landed     = False
                 self._homing     = True
                 self._land_ticks = 0
-                self._omega_alpha_est = 0.0
-                self._omega_beta_est  = 0.0
-                self._u_prev[:]       = 0.0
+                self._omega_alpha_actual = 0.0
+                self._omega_beta_actual  = 0.0
+                self._u_prev[:]          = 0.0
 
                 # Notify plotter to save & plot
                 self._fell_off_pub.publish(Empty())
@@ -275,10 +353,6 @@ class MarbleServoController(Node):
         msg.header.stamp    = self.get_clock().now().to_msg()
         msg.header.frame_id = 'plate_tcp'
 
-        # Always propagate PT1 estimate (even when not active)
-        self._omega_alpha_est += (self._u_prev[0] - self._omega_alpha_est) * self._dt / T_ROBOT
-        self._omega_beta_est  += (self._u_prev[1] - self._omega_beta_est)  * self._dt / T_ROBOT
-
         if not self._landed:
             self._u_prev[:] = 0.0
             if not self._homing:
@@ -288,7 +362,7 @@ class MarbleServoController(Node):
         # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
         u = -self._K @ self._state
         omega_alpha_cmd = float(np.clip(u[0], -MAX_RATE, MAX_RATE))
-        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
+        omega_beta_cmd  = float(np.clip(u[1], -MAX_RATE, MAX_RATE))
 
         # Update PT1 state with the new command
         self._u_prev[0] = omega_alpha_cmd

@@ -40,10 +40,12 @@ FIELDNAMES = [
     'time',
     'marble_x_rel', 'marble_y_rel', 'marble_z_abs',
     'tcp_x', 'tcp_y', 'tcp_z',
-    'plate_alpha_deg',   # pitch (Y-axis rotation → controls X)
-    'plate_beta_deg',    # roll  (X-axis rotation → controls Y)
-    'cmd_ang_x_deg',     # angular.x sent to Servo (→ ω_beta)
-    'cmd_ang_y_deg',     # angular.y sent to Servo (→ ω_alpha)
+    'plate_alpha_deg',       # pitch (Y-axis rotation → controls X)
+    'plate_beta_deg',        # roll  (X-axis rotation → controls Y)
+    'cmd_ang_x_deg',         # angular.x sent to Servo (→ ω_beta cmd)
+    'cmd_ang_y_deg',         # angular.y sent to Servo (→ ω_alpha cmd)
+    'actual_omega_alpha_deg', # Jacobian ω_alpha from /marble/plate_omega
+    'actual_omega_beta_deg',  # Jacobian ω_beta  from /marble/plate_omega
 ]
 
 
@@ -83,9 +85,9 @@ def plot_from_csv(csv_path: str):
     cmd_x_deg = np.array([r['cmd_ang_x_deg']   for r in rows])   # → ω_beta
     cmd_y_deg = np.array([r['cmd_ang_y_deg']   for r in rows])   # → ω_alpha
 
-    # Actual plate angular velocities via finite differences of TF angles
-    omega_alpha_actual = np.gradient(alpha_deg, t)   # °/s
-    omega_beta_actual  = np.gradient(beta_deg,  t)   # °/s
+    # Actual plate angular velocities from Jacobian (recorded from /marble/plate_omega)
+    omega_alpha_actual = np.array([r['actual_omega_alpha_deg'] for r in rows])
+    omega_beta_actual  = np.array([r['actual_omega_beta_deg']  for r in rows])
 
     # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
     fig1, ax1 = plt.subplots(figsize=(7, 7))
@@ -119,7 +121,7 @@ def plot_from_csv(csv_path: str):
 
     ax2a.plot(t, cmd_y_deg,          label='ω_alpha commanded (angular.y)',
               color='tab:blue',   lw=1.5)
-    ax2a.plot(t, omega_alpha_actual, label='ω_alpha actual (TF diff)',
+    ax2a.plot(t, omega_alpha_actual, label='ω_alpha actual (Jacobian)',
               color='tab:orange', lw=1.0, alpha=0.85)
     ax2a.axhline( MAX_RATE_DEG, color='red', lw=0.8, ls='--', label='±clamp')
     ax2a.axhline(-MAX_RATE_DEG, color='red', lw=0.8, ls='--')
@@ -131,7 +133,7 @@ def plot_from_csv(csv_path: str):
 
     ax2b.plot(t, cmd_x_deg,         label='ω_beta commanded (angular.x)',
               color='tab:green', lw=1.5)
-    ax2b.plot(t, omega_beta_actual, label='ω_beta actual (TF diff)',
+    ax2b.plot(t, omega_beta_actual, label='ω_beta actual (Jacobian)',
               color='tab:red',   lw=1.0, alpha=0.85)
     ax2b.axhline( MAX_RATE_DEG, color='red', lw=0.8, ls='--', label='±clamp')
     ax2b.axhline(-MAX_RATE_DEG, color='red', lw=0.8, ls='--')
@@ -207,8 +209,10 @@ def record_node(default_output: Path):
                 Path(self.get_parameter('output').get_parameter_value().string_value))
 
             self._recording_active = False   # only True while marble is on the plate
-            self._cmd_ang_x_deg = 0.0
-            self._cmd_ang_y_deg = 0.0
+            self._cmd_ang_x_deg        = 0.0
+            self._cmd_ang_y_deg        = 0.0
+            self._actual_omega_alpha   = 0.0
+            self._actual_omega_beta    = 0.0
 
             self._tf_buf = tf2_ros.Buffer()
             self._tf_lis = tf2_ros.TransformListener(self._tf_buf, self)
@@ -217,6 +221,8 @@ def record_node(default_output: Path):
                 Odometry, '/marble/odom', self._odom_cb, 10)
             self.create_subscription(
                 TwistStamped, '/servo_node/delta_twist_cmds', self._cmd_cb, 10)
+            self.create_subscription(
+                TwistStamped, '/marble/plate_omega', self._omega_cb, 10)
             self.create_subscription(
                 Empty, '/marble/landed',   self._landed_cb,   _LATCHED)
             self.create_subscription(
@@ -272,6 +278,10 @@ def record_node(default_output: Path):
             self._cmd_ang_x_deg = math.degrees(msg.twist.angular.x)
             self._cmd_ang_y_deg = math.degrees(msg.twist.angular.y)
 
+        def _omega_cb(self, msg: TwistStamped):
+            self._actual_omega_alpha = math.degrees(msg.twist.angular.y)  # α̇
+            self._actual_omega_beta  = math.degrees(msg.twist.angular.x)  # β̇
+
         def _odom_cb(self, msg: Odometry):
             if not self._recording_active:
                 return
@@ -299,8 +309,10 @@ def record_node(default_output: Path):
                 'tcp_z':           plate_z,
                 'plate_alpha_deg': math.degrees(pitch),
                 'plate_beta_deg':  math.degrees(roll),
-                'cmd_ang_x_deg':   self._cmd_ang_x_deg,
-                'cmd_ang_y_deg':   self._cmd_ang_y_deg,
+                'cmd_ang_x_deg':         self._cmd_ang_x_deg,
+                'cmd_ang_y_deg':         self._cmd_ang_y_deg,
+                'actual_omega_alpha_deg': self._actual_omega_alpha,
+                'actual_omega_beta_deg':  self._actual_omega_beta,
             })
             self._row_count += 1
 
