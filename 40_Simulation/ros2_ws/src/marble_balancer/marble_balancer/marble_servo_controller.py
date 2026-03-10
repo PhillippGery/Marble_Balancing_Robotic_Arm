@@ -232,7 +232,7 @@ class MarbleServoController(Node):
         # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
         u = -self._K @ self._state
         omega_alpha_cmd = float(np.clip(u[0], -MAX_RATE, MAX_RATE))
-        omega_beta_cmd  = float(np.clip(u[1], -MAX_RATE, MAX_RATE))
+        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
 
         # Update PT1 state with the new command
         self._u_prev[0] = omega_alpha_cmd
