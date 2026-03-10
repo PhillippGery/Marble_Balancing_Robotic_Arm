@@ -1,0 +1,291 @@
+================================================================================
+  MARBLE BALANCING ROBOTIC ARM — SIMULATION PROGRESS REPORT
+  ROS2 Humble | Gazebo Classic | MoveIt2 | UR5e
+================================================================================
+
+PROJECT GOAL
+------------
+Balance a marble on a flat plate attached to the end-effector of a Universal
+Robots UR5e robot arm. The system must detect the marble's position in real time,
+compute a control action, and tilt the plate to drive the marble back to center.
+
+================================================================================
+SYSTEM ARCHITECTURE
+================================================================================
+
+                 Gazebo Classic Simulation
+                        │
+              libgazebo_ros_p3d plugin
+                        │
+                 /marble/odom  (nav_msgs/Odometry @ 30 Hz)
+                        │
+            marble_servo_controller node
+            (Discrete-time LQR @ 30 Hz)
+                        │
+              TwistStamped commands
+              (frame: base_link)
+                        │
+              MoveIt Servo node
+              (real-time Cartesian velocity control)
+                        │
+           JointTrajectory @ 30 Hz
+                        │
+              ur7e_arm_controller
+              (joint position controller)
+                        │
+                  UR5e Joints
+
+================================================================================
+STEP 1 — ROBOT DESCRIPTION & GAZEBO SETUP
+================================================================================
+
+Base:
+  - Universal_Robots_ROS2_Description and Universal_Robots_ROS2_Gazebo_Simulation
+    packages used as dependencies (symlinked into workspace).
+  - Classic Gazebo (gazebo_ros) selected over Ignition/GZ Sim for compatibility.
+
+Custom URDF (ur5e_marble_balancer.urdf.xacro):
+  - Extended the standard UR5e description.
+  - Added a marble plate (0.70×0.70×0.005 m, mass 0.15 kg) fixed to tool0.
+  - Added plate_tcp: a massless reference frame at the exact top surface of the
+    plate. This frame is used as the servo control reference and EE frame.
+
+    tool0 ──(xyz: 0 0 0.0025)──► marble_plate ──(xyz: 0 0 0.0025)──► plate_tcp
+
+  - plate_tcp.z = exact plate surface height (used for marble landing detection).
+
+Marble model (marble.sdf):
+  - Sphere: radius=0.015 m, mass=0.05 kg, restitution=0.3.
+  - libgazebo_ros_p3d plugin publishes ground-truth pose+velocity on /marble/odom.
+    No ROS-Gazebo bridge needed — direct topic publish from Gazebo.
+
+SRDF (ur.srdf):
+  - Defined planning group "ur_arm" (6 DOF: shoulder_pan → wrist_3).
+  - Home state: [0, -π/2, π/2, -π/2, -π/2, 0] → plate horizontal.
+  - Added disabled collision pairs for marble_plate and plate_tcp against all arm
+    links. Critical: marble_plate ↔ wrist_3_link disabled — this was causing
+    MoveIt Servo to halt immediately (false self-collision detection).
+
+================================================================================
+STEP 2 — LAUNCH PIPELINE (servo_balancer.launch.py)
+================================================================================
+
+Event-driven sequencing using RegisterEventHandler:
+
+  1. ur_sim_control.launch.py  →  Gazebo + UR5e robot + controllers spawn
+  2. move_group node starts    →  triggers go_to_pose
+  3. go_to_pose completes      →  2s settle delay → marble_spawner
+  4. marble_spawner exits       →  marble_servo_controller starts
+
+Nodes launched:
+  - move_group          : MoveIt planning server (needed for IK + planning scene)
+  - servo_node_main     : MoveIt Servo (real-time Cartesian velocity control)
+  - go_to_pose          : homes robot to flat-plate configuration
+  - marble_spawner      : spawns marble above plate center using TF
+  - marble_servo_controller : LQR controller
+
+================================================================================
+STEP 3 — ROBOT HOMING (go_to_pose.py)
+================================================================================
+
+Initial approach: Used MoveIt /compute_ik service to find joint angles for a
+target TCP position. Problem: KDL IK solver returned configurations where the
+plate was tilted (e.g., α=9.6°, β=15.9°) because the orientation constraint
+was applied to wrist_3 (the default group tip) rather than plate_tcp.
+
+Solution: Replaced IK with direct joint-space command to the known-good SRDF
+home configuration:
+  [shoulder_pan=0, shoulder_lift=-π/2, elbow=π/2,
+   wrist_1=-π/2, wrist_2=-π/2, wrist_3=0]
+This guarantees zero roll and zero pitch on the plate at startup.
+
+Reliability fix: Controller readiness is verified via /controller_manager/
+list_controllers service (checking ur7e_arm_controller == "active") rather than
+subscriber count, which was unreliable.
+
+================================================================================
+STEP 4 — MARBLE SPAWNER (marble_spawner.py)
+================================================================================
+
+- Waits for /delete_entity service and deletes any existing "marble" entity from
+  previous sessions (prevents ghost odom data from crashed runs).
+- Looks up world→plate_tcp transform from TF.
+- Computes spawn position: plate_tcp(x,y) + DROP_HEIGHT=0.08m above surface.
+- Spawns marble.sdf via /spawn_entity service.
+- No hardcoded coordinates — always drops above actual plate position.
+
+================================================================================
+STEP 5 — CONTROL SYSTEM DESIGN
+================================================================================
+
+--- 5.1 PHYSICAL MODEL ---
+
+Ball-on-plate dynamics (linearized at equilibrium):
+
+  dx/dt    = vx
+  dvx/dt   = -C * alpha        C = (5/7)*g ≈ 7.0 m/s²
+  dy/dt    = vy
+  dvy/dt   = -C * beta
+  dalpha/dt = omega_alpha
+  dbeta/dt  = omega_beta
+
+Sign convention:
+  alpha = plate angle around world X → positive alpha → marble accelerates in -X
+  beta  = plate angle around world Y → positive beta  → marble accelerates in -Y
+
+--- 5.2 PT1 ROBOT DELAY MODEL ---
+
+Problem: MoveIt Servo accepts velocity commands, not acceleration. The robot
+also has a measurable response lag (~0.15s). Sending acceleration commands
+(as the MATLAB model originally used) is one integration level off and
+destabilizes the closed-loop system.
+
+Solution: Model the robot as a PT1 (first-order lag) on angular velocity:
+  d(omega)/dt = (omega_cmd - omega) / T_ROBOT     T_ROBOT = 0.15 s
+
+New state vector (8 states):
+  x = [marble_x, marble_vx, marble_y, marble_vy,
+       plate_alpha, omega_alpha, plate_beta, omega_beta]
+
+New inputs (2 inputs):
+  u = [omega_alpha_cmd, omega_beta_cmd]    (rad/s velocity commands)
+
+Continuous A matrix (relevant rows):
+  Row 5: d(alpha)/dt    = omega_alpha              → A[4,5] = 1
+  Row 6: d(omega_alpha) = -omega_alpha/T + u1/T   → A[5,5] = -1/T, B[5,0] = 1/T
+  Row 7: d(beta)/dt     = omega_beta               → A[6,7] = 1
+  Row 8: d(omega_beta)  = -omega_beta/T  + u2/T   → A[7,7] = -1/T, B[7,1] = 1/T
+
+--- 5.3 DISCRETE-TIME LQR ---
+
+Discretization: Zero-Order-Hold via matrix exponential (scipy.linalg.expm)
+  dt = 1/30 s (30 Hz control loop)
+
+LQR gain computed via DARE (solve_discrete_are):
+  Q = diag([1000, 100, 1000, 100, 10, 1, 10, 1])
+  R = I₂ × 1.0
+
+Resulting K matrix (2×8):
+  K[0,:] ≈ [-24.7, -15.2,  0,     0,    23.9, 1.94, 0,    0   ]
+  K[1,:] ≈ [ 0,     0,    -24.7, -15.2,  0,   0,   23.9, 1.94 ]
+
+Control law: u[k] = -K @ x[k]
+
+--- 5.4 SERVO COMMAND MAPPING ---
+
+MoveIt Servo key parameter: robot_link_command_frame = plate_tcp
+  → Servo uses the plate_tcp Jacobian, preventing wrist_3 spin.
+  → Before this fix, commands caused wrist spin instead of plate tilting.
+
+Command frame: header.frame_id = "base_link" (world frame)
+  → Servo internally transforms from base_link to plate_tcp via TF.
+  → This correctly handles the wrist_3 yaw rotation (~124° at home).
+
+World-frame axis mapping (physics-based):
+  angular.x = +omega_beta_cmd   (rotation around world X → changes beta → Y dynamics)
+  angular.y = +omega_alpha_cmd  (rotation around world Y → changes alpha → X dynamics)
+
+Omega estimation: PT1 propagated in software each control tick:
+  omega_est += (u_cmd - omega_est) * dt / T_ROBOT
+
+================================================================================
+STEP 6 — LANDING DETECTION
+================================================================================
+
+Marble detected as "on plate" when:
+  - marble_z ∈ [plate_top_z - 0.030, plate_top_z + MARBLE_RADIUS + 0.030]
+  - |marble_vz| < 0.50 m/s  (allows sliding marble, blocks free-falling marble)
+  - 5 consecutive odom callbacks satisfy above conditions (~0.17s at 30 Hz)
+
+On fall-off (marble_z < plate_top_z - 0.05m):
+  - Resets _landed, omega estimates, u_prev
+  - Controller goes back to "waiting for marble" state
+
+================================================================================
+BUGS FOUND AND FIXED
+================================================================================
+
+1. SELF-COLLISION HALT
+   Problem: MoveIt Servo stopped immediately — marble_plate adjacent to wrist_3.
+   Fix: Added marble_plate ↔ wrist_3_link disabled collision in SRDF.
+
+2. HOMING RACE CONDITION
+   Problem: Robot moved before controller was ready; subscriber count returned
+            1 from a non-controller subscriber.
+   Fix: Wait for ur7e_arm_controller == "active" via list_controllers service.
+
+3. LANDING FALSE POSITIVE ON FLOOR
+   Problem: marble_z=0.015m (floor) passed z <= plate_top condition.
+   Fix: Added lower bound: marble_z >= plate_top - LAND_Z_MARGIN.
+
+4. SMOOTHING PLUGIN CRASH
+   Problem: NoSmoothingPlugin doesn't exist in Humble.
+   Fix: Reverted to ButterworthFilterPlugin.
+
+5. WRIST SPIN INSTEAD OF PLATE TILT
+   Problem: robot_link_command_frame=base_link caused Jacobian to route
+            angular commands to wrist_3 instead of plate tilt joints.
+   Fix: robot_link_command_frame=plate_tcp.
+
+6. IK RETURNING TILTED PLATE CONFIGURATION
+   Problem: KDL IK solver returned joints where plate was tilted 9-15°,
+            marble slid immediately, controller never activated.
+   Fix: Replaced IK with direct joint-space command to SRDF home angles.
+
+7. OLD MARBLE GHOST DATA
+   Problem: Marble from crashed session remained in Gazebo; spawner failed,
+            old /marble/odom published positions 350m from plate.
+   Fix: marble_spawner calls /delete_entity before /spawn_entity.
+
+8. LANDING DETECTION TOO STRICT
+   Problem: LAND_VZ_MAX=0.10 m/s too tight; marble arriving on tilted plate
+            had vz > 0.10, landing never detected, controller never activated.
+   Fix: LAND_VZ_MAX raised to 0.50 m/s.
+
+9. PT1 INPUT LEVEL MISMATCH
+   Problem: Original model used acceleration inputs [alpha_ddot, beta_ddot].
+            MoveIt Servo takes velocity inputs. One integration level off →
+            closed-loop system unstable.
+   Fix: Redesigned state-space model with velocity inputs and PT1 robot lag.
+
+================================================================================
+CURRENT STATUS
+================================================================================
+
+WORKING:
+  ✓ Full Gazebo simulation with UR5e + marble plate
+  ✓ Launch pipeline with correct sequencing
+  ✓ Robot homes to flat plate configuration (zero roll/pitch)
+  ✓ Marble spawns above plate center, deletes old marble first
+  ✓ MoveIt Servo tilts plate physically (wrist spin resolved)
+  ✓ PT1 LQR math computes and produces reasonable gains
+  ✓ Landing detection logic correct
+  ✓ Controller activates and sends commands when marble lands
+
+PENDING VERIFICATION:
+  ✗ Control direction (sign of angular.x / angular.y) not yet empirically confirmed
+  ✗ Robot gravity drift causes singularity when controller sends zero commands
+  ✗ Full closed-loop stability with marble on plate not yet demonstrated
+
+NEXT STEPS:
+  1. Verify plate starts flat (α≈0°, β≈0°) at first odom reading
+  2. Confirm "Marble landed" triggers within 1-2s
+  3. Test control directions: does ball at +x lead to corrective tilt?
+  4. Tune gains if oscillation observed (adjust Q/R in lqr_math.py)
+  5. Address gravity drift at home configuration
+
+================================================================================
+TECHNOLOGY STACK
+================================================================================
+
+  ROS2 Humble           — middleware
+  Gazebo Classic 11     — physics simulation
+  MoveIt2 2.5.x         — motion planning + Servo
+  UR5e                  — 6-DOF robot arm
+  Python 3.10           — controller implementation
+  NumPy / SciPy         — LQR math (DARE solver, matrix exponential)
+  tf2_ros               — coordinate frame transforms
+  nav_msgs/Odometry     — marble ground-truth state
+  trajectory_msgs       — joint trajectory commands
+
+================================================================================

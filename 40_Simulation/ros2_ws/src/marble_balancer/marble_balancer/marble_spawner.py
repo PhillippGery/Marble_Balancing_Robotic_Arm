@@ -10,7 +10,7 @@ calls /spawn_entity.  No hardcoded coordinates.
 import os
 import rclpy
 from rclpy.node import Node
-from gazebo_msgs.srv import SpawnEntity
+from gazebo_msgs.srv import SpawnEntity, DeleteEntity
 import tf2_ros
 from ament_index_python.packages import get_package_share_directory
 
@@ -33,6 +33,16 @@ class MarbleSpawner(Node):
         self._spawn_client = self.create_client(SpawnEntity, '/spawn_entity')
 
     def run(self):
+        # ── Delete old marble if it exists ────────────────────────────────────
+        del_client = self.create_client(DeleteEntity, '/delete_entity')
+        if del_client.wait_for_service(timeout_sec=3.0):
+            del_req = DeleteEntity.Request()
+            del_req.name = 'marble'
+            future = del_client.call_async(del_req)
+            rclpy.spin_until_future_complete(self, future)
+            if future.result() and future.result().success:
+                self.get_logger().info('Deleted existing marble.')
+
         # ── Wait for /spawn_entity ────────────────────────────────────────────
         self.get_logger().info('Waiting for /spawn_entity service…')
         while rclpy.ok() and not self._spawn_client.service_is_ready():

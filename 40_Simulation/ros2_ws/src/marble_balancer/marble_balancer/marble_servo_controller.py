@@ -38,10 +38,10 @@ from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R, T_ROBOT
 CONTROL_HZ = 30.0
 MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
 
-# Landing detection
-LAND_Z_MARGIN  = 0.025
-LAND_VZ_MAX    = 0.10
-LAND_CONFIRM   = 10
+# Landing detection — relaxed so marble is detected even when sliding on arrival
+LAND_Z_MARGIN  = 0.030    # ±3 cm z-window around plate top
+LAND_VZ_MAX    = 0.50     # allow sliding marble (only blocks free-falling marble)
+LAND_CONFIRM   = 5        # 5 consecutive odom ticks ≈ 0.17 s at 30 Hz
 # ─────────────────────────────────────────────────────────────────────────────
 
 MARBLE_RADIUS   = 0.015
@@ -205,8 +205,13 @@ class MarbleServoController(Node):
         else:
             if self._marble_z < plate_top_z - 0.05:
                 self.get_logger().warn(
-                    f'Marble fell off (z={self._marble_z:.3f} m).',
-                    throttle_duration_sec=5.0)
+                    f'Marble fell off (z={self._marble_z:.3f} m) — resetting.',
+                    throttle_duration_sec=2.0)
+                self._landed     = False
+                self._land_ticks = 0
+                self._omega_alpha_est = 0.0
+                self._omega_beta_est  = 0.0
+                self._u_prev[:]       = 0.0
 
     # ── Control loop ──────────────────────────────────────────────────────────
 
@@ -233,37 +238,18 @@ class MarbleServoController(Node):
         self._u_prev[0] = omega_alpha_cmd
         self._u_prev[1] = omega_beta_cmd
 
-        # ── World-frame twist components ──────────────────────────────────────
-        # alpha is plate roll around world X → omega_alpha changes angular.y (pitch)
-        # beta  is plate pitch around world Y → omega_beta  changes angular.x (roll)
-        #   positive omega_beta_cmd  → angular.x_world > 0 → marble in -Y  ✓
-        #   positive omega_alpha_cmd → angular.y_world < 0 → marble in -X  ✓
-        wx_world =  omega_beta_cmd
-        wy_world = -omega_alpha_cmd
-
-        # ── Rotate from world frame into plate_tcp frame ──────────────────────
-        # Get current yaw of plate_tcp to account for wrist rotation
-        yaw = 0.0
-        try:
-            tf = self._tf_buffer.lookup_transform(
-                'world', 'plate_tcp', rclpy.time.Time())
-            q = tf.transform.rotation
-            _, _, yaw = _quat_to_rpy(q.x, q.y, q.z, q.w)
-        except Exception:
-            pass   # use yaw=0 if TF not available
-
-        cy, sy = math.cos(yaw), math.sin(yaw)
-        wx_plate =  wx_world * cy + wy_world * sy
-        wy_plate = -wx_world * sy + wy_world * cy
-
-        msg.twist.angular.x = wx_plate
-        msg.twist.angular.y = wy_plate
+        # ── World-frame twist (base_link) — servo transforms to plate_tcp frame ─
+        # Rotation around world X (angular.x) → tilts plate so +Y side goes up → marble in -Y → controls beta
+        # Rotation around world Y (angular.y) → tilts plate so +X side goes up → marble in -X → controls alpha
+        # No manual yaw rotation: servo handles base_link → plate_tcp transform via TF
+        msg.header.frame_id = 'base_link'
+        msg.twist.angular.x = omega_beta_cmd    # world X rotation → beta → Y dynamics
+        msg.twist.angular.y = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
 
         self.get_logger().info(
             f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '
             f'ωβ={np.rad2deg(omega_beta_cmd):+.1f}°/s  '
-            f'yaw={np.rad2deg(yaw):+.1f}°  '
-            f'cmd_plate x={np.rad2deg(wx_plate):+.1f} y={np.rad2deg(wy_plate):+.1f}°/s',
+            f'angular x={np.rad2deg(msg.twist.angular.x):+.1f} y={np.rad2deg(msg.twist.angular.y):+.1f}°/s',
             throttle_duration_sec=0.5)
 
         self._twist_pub.publish(msg)
