@@ -17,7 +17,7 @@ setup(
         (os.path.join('share', package_name, 'config'),
             glob('config/*.yaml')),
         (os.path.join('share', package_name, 'urdf'),
-            glob('urdf/*.sdf') + glob('urdf/*.urdf')),
+            glob('urdf/*.sdf') + glob('urdf/*.urdf') + glob('urdf/*.xacro')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

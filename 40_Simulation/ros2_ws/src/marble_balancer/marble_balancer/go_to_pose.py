@@ -18,7 +18,7 @@ from builtin_interfaces.msg import Duration
 
 
 # ── Target pose ────────────────────────────────────────────────────────────────
-TARGET_X   = 0.433
+TARGET_X   = 0.133
 TARGET_Y   = 0.25
 TARGET_Z   = 0.8
 # TCP Z axis straight up = tool frame aligned with world frame = identity quaternion
@@ -86,7 +86,11 @@ class GoToPose(Node):
         req.ik_request.pose_stamped     = target
         req.ik_request.robot_state      = seed
         req.ik_request.timeout.sec      = 10
-        req.ik_request.avoid_collisions = True
+        # marble_plate is not in the SRDF disabled-collision list, so
+        # avoid_collisions=True causes every IK solution to be rejected as
+        # self-colliding after the plate was added. Disable it here — go_to_pose
+        # is a homing command, not real-time control.
+        req.ik_request.avoid_collisions = False
 
         future = self.ik_client.call_async(req)
         future.add_done_callback(self._ik_callback)
