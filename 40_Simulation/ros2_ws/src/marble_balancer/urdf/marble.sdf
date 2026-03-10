@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
   <model name="marble">
-    <!-- Initial pose: roughly above the robot tool0 position -->
-    <pose>0.0 0.4 0.75 0 0 0</pose>
+    <!-- Pose is overridden by marble_spawner via /spawn_entity initial_pose -->
+    <pose>0 0 0 0 0 0</pose>
 
     <link name="marble_link">
       <inertial>
