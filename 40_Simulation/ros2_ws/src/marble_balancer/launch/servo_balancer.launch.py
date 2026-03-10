@@ -2,13 +2,15 @@ import os
 import yaml
 from launch import LaunchDescription
 from launch.actions import (
+    DeclareLaunchArgument,
     IncludeLaunchDescription,
     RegisterEventHandler,
     TimerAction,
 )
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
@@ -21,6 +23,10 @@ def load_yaml(path):
 
 
 def generate_launch_description():
+    record_arg = DeclareLaunchArgument(
+        'plot', default_value='false',
+        description='Set to true to record marble data and plot after shutdown')
+
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
 
@@ -130,6 +136,15 @@ def generate_launch_description():
         output='screen',
     )
 
+    # ── 8. Data recorder/plotter (optional, starts with marble spawn) ─────────
+    plotter_node = Node(
+        package='marble_balancer',
+        executable='marble_plotter',
+        name='marble_plotter',
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('plot')),
+    )
+
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
     #  ur_sim ──► move_group + servo_node
@@ -163,11 +178,12 @@ def generate_launch_description():
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node],
+            on_exit=[pilot_node, plotter_node],
         )
     )
 
     return LaunchDescription([
+        record_arg,
         ur_sim,
         move_group_node,
         servo_node,

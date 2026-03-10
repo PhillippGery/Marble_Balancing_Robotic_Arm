@@ -28,7 +28,7 @@ TARGET_QX  = 0.0
 TARGET_QY  = 0.0
 TARGET_QZ  = 0.0
 
-MOVE_TIME_SEC = 5   # seconds to reach the pose
+MOVE_TIME_SEC = 3   # seconds to reach the pose
 # ──────────────────────────────────────────────────────────────────────────────
 
 JOINTS = [

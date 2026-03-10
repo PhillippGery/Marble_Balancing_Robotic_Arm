@@ -109,5 +109,6 @@ def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
 
 # ── Default weights ───────────────────────────────────────────────────────────
 #  Position/velocity errors penalised heavily; angle/rate moderate; inputs = 1
-DEFAULT_Q = np.diag([1000.0, 100.0, 1000.0, 100.0, 10.0, 1.0, 10.0, 1.0])
-DEFAULT_R = np.eye(2) * 1.0
+#  State:   [x, xd, y, yd, alpha, omega_alpha, beta, omega_beta]
+DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5])
+DEFAULT_R = np.eye(2) * 0.5
