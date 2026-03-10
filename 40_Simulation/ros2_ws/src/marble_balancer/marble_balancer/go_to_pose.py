@@ -129,6 +129,11 @@ class GoToPose(Node):
         pt.time_from_start = Duration(sec=MOVE_TIME_SEC)
         msg.points = [pt]
 
+        # Wait until the trajectory controller is subscribed before publishing
+        self.get_logger().info('Waiting for trajectory controller to be ready…')
+        while self.traj_pub.get_subscription_count() == 0:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
         self.traj_pub.publish(msg)
         self.get_logger().info('Trajectory sent. Done.')
         rclpy.shutdown()

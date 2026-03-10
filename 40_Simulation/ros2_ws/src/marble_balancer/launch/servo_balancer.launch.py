@@ -132,17 +132,19 @@ def generate_launch_description():
 
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
-    #  ur_sim ──► move_group + servo_node  (start immediately, wait for /joint_states)
+    #  ur_sim ──► move_group + servo_node
     #                  │
     #             OnProcessStart
-    #                  │
     #                  ▼
-    #             go_to_pose  (waits for /compute_ik + /joint_states,
-    #                  │       sends 5 s trajectory, then exits)
-    #             OnProcessExit
+    #             go_to_pose  (waits for /compute_ik + /joint_states, exits)
     #                  │
-    #                  ├─ +6 s ──► marble_spawn  (robot has finished moving + settled)
-    #                  └─ +7 s ──► pilot_node    (LQR starts 1 s after marble lands)
+    #             OnProcessExit  (+6 s settle)
+    #                  ▼
+    #             marble_spawner  (reads TF → drops marble → exits)
+    #                  │
+    #             OnProcessExit
+    #                  ▼
+    #             pilot_node  (waits internally for marble to land, then LQR)
 
     go_to_pose_on_moveit_ready = RegisterEventHandler(
         OnProcessStart(
@@ -154,10 +156,14 @@ def generate_launch_description():
     on_homed = RegisterEventHandler(
         OnProcessExit(
             target_action=go_to_pose_node,
-            on_exit=[
-                TimerAction(period=6.0, actions=[marble_spawn]),
-                TimerAction(period=7.0, actions=[pilot_node]),
-            ],
+            on_exit=[TimerAction(period=6.0, actions=[marble_spawn])],
+        )
+    )
+
+    on_marble_spawned = RegisterEventHandler(
+        OnProcessExit(
+            target_action=marble_spawn,
+            on_exit=[pilot_node],
         )
     )
 
@@ -167,4 +173,5 @@ def generate_launch_description():
         servo_node,
         go_to_pose_on_moveit_ready,
         on_homed,
+        on_marble_spawned,
     ])
