@@ -4,6 +4,7 @@ from launch import LaunchDescription
 from launch.actions import (
     IncludeLaunchDescription,
     RegisterEventHandler,
+    TimerAction,
 )
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -103,8 +104,7 @@ def generate_launch_description():
     )
 
     # ── 5. go_to_pose: homing move ────────────────────────────────────────────
-    # Started when move_group starts; blocks internally until /compute_ik
-    # and /joint_states are available, then sends the trajectory and exits.
+    # Waits internally for /compute_ik + /joint_states, moves robot, then exits.
     go_to_pose_node = Node(
         package='marble_balancer',
         executable='go_to_pose',
@@ -112,8 +112,17 @@ def generate_launch_description():
         output='screen',
     )
 
-    # ── 6. Marble servo controller ────────────────────────────────────────────
-    # Started only after go_to_pose exits (robot is in balancing position).
+    # ── 6. Marble spawner ─────────────────────────────────────────────────────
+    # Reads world → tool0 TF, adds drop offset, calls /spawn_entity service.
+    # No hardcoded coordinates — always drops above the actual TCP position.
+    marble_spawn = Node(
+        package='marble_balancer',
+        executable='marble_spawner',
+        name='marble_spawner',
+        output='screen',
+    )
+
+    # ── 7. LQR marble balancing controller ───────────────────────────────────
     pilot_node = Node(
         package='marble_balancer',
         executable='marble_servo_controller',
@@ -123,17 +132,17 @@ def generate_launch_description():
 
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
-    #  ur_sim  ──starts──>  move_group + servo_node  (wait internally for /joint_states)
-    #                             │
-    #                        OnProcessStart
-    #                             │
-    #                             v
-    #                         go_to_pose  (waits for /compute_ik + /joint_states,
-    #                             │         sends trajectory, then exits)
-    #                        OnProcessExit
-    #                             │
-    #                             v
-    #                         pilot_node
+    #  ur_sim ──► move_group + servo_node  (start immediately, wait for /joint_states)
+    #                  │
+    #             OnProcessStart
+    #                  │
+    #                  ▼
+    #             go_to_pose  (waits for /compute_ik + /joint_states,
+    #                  │       sends 5 s trajectory, then exits)
+    #             OnProcessExit
+    #                  │
+    #                  ├─ +6 s ──► marble_spawn  (robot has finished moving + settled)
+    #                  └─ +7 s ──► pilot_node    (LQR starts 1 s after marble lands)
 
     go_to_pose_on_moveit_ready = RegisterEventHandler(
         OnProcessStart(
@@ -142,10 +151,13 @@ def generate_launch_description():
         )
     )
 
-    pilot_on_homed = RegisterEventHandler(
+    on_homed = RegisterEventHandler(
         OnProcessExit(
             target_action=go_to_pose_node,
-            on_exit=[pilot_node],
+            on_exit=[
+                TimerAction(period=6.0, actions=[marble_spawn]),
+                TimerAction(period=7.0, actions=[pilot_node]),
+            ],
         )
     )
 
@@ -154,5 +166,5 @@ def generate_launch_description():
         move_group_node,
         servo_node,
         go_to_pose_on_moveit_ready,
-        pilot_on_homed,
+        on_homed,
     ])

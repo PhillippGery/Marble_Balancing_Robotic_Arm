@@ -35,6 +35,7 @@ setup(
             'velocity_bridge = marble_balancer.velocity_bridge:main',
             'marble_servo_controller = marble_balancer.marble_servo_controller:main',
             'go_to_pose = marble_balancer.go_to_pose:main',
+            'marble_spawner = marble_balancer.marble_spawner:main',
         ],
     },
 )
