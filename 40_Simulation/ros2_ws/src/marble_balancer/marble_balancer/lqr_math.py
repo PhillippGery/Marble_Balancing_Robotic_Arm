@@ -1,117 +1,113 @@
 """
 lqr_math.py
 
-Ports the linearized ball-on-plate model from MarbelSysModel_mfile.m to Python
-and computes a discrete-time LQR gain matrix K_d.
+Linearized ball-on-plate model with PT1 robot delay.
 
-System state: [x, x_dot, y, y_dot, alpha, alpha_dot, beta, beta_dot]
-  x, y       - ball position on plate (m)
-  alpha, beta - plate tilt angles around X and Y axes (rad)
-Control input: [alpha_ddot, beta_ddot] - plate angular accelerations (rad/s^2)
+System state: [x, x_dot, y, y_dot, alpha, omega_alpha, beta, omega_beta]
+  x, y           - ball position on plate (m)
+  alpha, beta    - plate tilt angles around X and Y axes (rad)
+  omega_alpha    - actual plate angular velocity around X (rad/s)  — PT1 state
+  omega_beta     - actual plate angular velocity around Y (rad/s)  — PT1 state
 
-The continuous A, B matrices are identical to the MATLAB linearization.
-They are then discretized via matrix exponential and K_d is solved with
-scipy.linalg.solve_discrete_are (equivalent to MATLAB's dlqr).
+Control input: [omega_alpha_cmd, omega_beta_cmd]
+  Velocity commands sent to MoveIt Servo (rad/s).
+  The robot dynamics are modelled as a PT1 with time constant T:
+    d(omega)/dt = (cmd - omega) / T
+
+PT1 model rows (continuous):
+  d(alpha)/dt      = omega_alpha
+  d(omega_alpha)/dt = (omega_alpha_cmd - omega_alpha) / T  →  -omega_alpha/T + u/T
+  d(beta)/dt       = omega_beta
+  d(omega_beta)/dt  = (omega_beta_cmd - omega_beta) / T   →  -omega_beta/T + u/T
 """
 
 import numpy as np
 from scipy.linalg import expm, solve_discrete_are
 
 
-# ── Physical parameters (matches MATLAB) ─────────────────────────────────────
-G  = 9.81          # gravitational acceleration (m/s^2)
-MB = 0.05          # ball mass (kg)
-RB = 0.015         # ball radius (m)
-IB = (2.0 / 5.0) * MB * RB**2   # ball moment of inertia (kg·m^2)
-C  = MB * G / (MB + IB / RB**2) # = (5/7)*g  — linearized coupling constant
+# ── Physical parameters ───────────────────────────────────────────────────────
+G  = 9.81
+MB = 0.05
+RB = 0.015
+IB = (2.0 / 5.0) * MB * RB**2
+C  = MB * G / (MB + IB / RB**2)   # ≈ (5/7)*g ≈ 7.0 m/s²
+
+# Robot PT1 time constant (s) — tune if robot responds faster/slower
+T_ROBOT = 0.15
 
 
-# ── Continuous-time A, B matrices (linearized at equilibrium x=0, u=0) ──────
+# ── Continuous-time A, B (with PT1 robot model) ───────────────────────────────
 #
-#  State ordering: [x, xd, y, yd, alpha, alphad, beta, betad]
-#  Control:        [alpha_ddot, beta_ddot]
-#
-#  From the Jacobian of f_nonlin evaluated at equilibrium:
-#    d(x_dot)/dt   = 0*x + 0*xd + 0*y + 0*yd - C*alpha + 0 + 0 + 0
-#    d(alpha)/dt   = alpha_dot
-#    d(alpha_dot)  = alpha_ddot  (input)
-#  (same pattern for y / beta)
+#  State:   [x, xd, y, yd, alpha, omega_alpha, beta, omega_beta]
+#  Control: [omega_alpha_cmd, omega_beta_cmd]
 
-A_CONTINUOUS = np.array([
-    # x    xd    y    yd   al   ald   be   bed
-    [0,    1,    0,    0,    0,    0,    0,    0],   # dx/dt   = x_dot
-    [0,    0,    0,    0,   -C,   0,    0,    0],   # dxd/dt  = -C*alpha
-    [0,    0,    0,    1,    0,    0,    0,    0],   # dy/dt   = y_dot
-    [0,    0,    0,    0,    0,    0,   -C,   0],   # dyd/dt  = -C*beta
-    [0,    0,    0,    0,    0,    1,    0,    0],   # dal/dt  = alpha_dot
-    [0,    0,    0,    0,    0,    0,    0,    0],   # dald/dt = u1
-    [0,    0,    0,    0,    0,    0,    0,    1],   # dbe/dt  = beta_dot
-    [0,    0,    0,    0,    0,    0,    0,    0],   # dbed/dt = u2
-], dtype=float)
+def _build_continuous(T: float):
+    A = np.array([
+        # x    xd    y    yd   al   om_al  be   om_be
+        [0,    1,    0,    0,    0,    0,    0,    0   ],  # dx/dt = xd
+        [0,    0,    0,    0,   -C,    0,    0,    0   ],  # dxd/dt = -C*alpha
+        [0,    0,    0,    1,    0,    0,    0,    0   ],  # dy/dt = yd
+        [0,    0,    0,    0,    0,    0,   -C,    0   ],  # dyd/dt = -C*beta
+        [0,    0,    0,    0,    0,    1,    0,    0   ],  # dal/dt = omega_alpha
+        [0,    0,    0,    0,    0, -1/T,    0,    0   ],  # dom_al/dt = -om_al/T + u1/T
+        [0,    0,    0,    0,    0,    0,    0,    1   ],  # dbe/dt = omega_beta
+        [0,    0,    0,    0,    0,    0,    0, -1/T   ],  # dom_be/dt = -om_be/T + u2/T
+    ], dtype=float)
 
-B_CONTINUOUS = np.array([
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [1, 0],   # alpha_ddot = u1
-    [0, 0],
-    [0, 1],   # beta_ddot  = u2
-], dtype=float)
+    B = np.array([
+        [0,     0   ],
+        [0,     0   ],
+        [0,     0   ],
+        [0,     0   ],
+        [0,     0   ],
+        [1/T,   0   ],   # omega_alpha_cmd → d(omega_alpha)/dt
+        [0,     0   ],
+        [0,     1/T ],   # omega_beta_cmd  → d(omega_beta)/dt
+    ], dtype=float)
+
+    return A, B
+
+
+A_CONTINUOUS, B_CONTINUOUS = _build_continuous(T_ROBOT)
 
 
 def discretize(A: np.ndarray, B: np.ndarray, dt: float):
-    """
-    Zero-order-hold (ZOH) discretization of continuous (A, B) pair.
-
-    Ad = expm(A * dt)
-    Bd = (Ad - I) @ inv(A) @ B   when A is invertible,
-         approximated as dt*B for near-singular A rows.
-
-    Returns: Ad (8x8), Bd (8x2)
-    """
+    """ZOH discretization via matrix exponential."""
     n = A.shape[0]
-    # Build augmented matrix for exact ZOH: M = [[A, B], [0, 0]]
     m = B.shape[1]
     M = np.zeros((n + m, n + m))
     M[:n, :n] = A
     M[:n, n:] = B
     eM = expm(M * dt)
-    Ad = eM[:n, :n]
-    Bd = eM[:n, n:]
-    return Ad, Bd
+    return eM[:n, :n], eM[:n, n:]
 
 
-def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float):
+def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
     """
-    Compute the discrete-time LQR gain K_d such that u[k] = -K_d @ x[k]
-    minimises sum_k ( x'Qx + u'Ru ).
-
-    Uses scipy.linalg.solve_discrete_are (DARE) — equivalent to MATLAB dlqr().
+    Compute discrete-time LQR gain K_d for the PT1 ball-on-plate model.
 
     Parameters
     ----------
     Q  : (8,8) state cost matrix
     R  : (2,2) control cost matrix
     dt : sample period (s)
+    T  : PT1 robot time constant (s)
 
     Returns
     -------
-    K_d : (2,8) gain matrix
+    K_d : (2,8) gain matrix  — u[k] = -K_d @ x[k]
     Ad  : (8,8) discrete A
     Bd  : (8,2) discrete B
     """
-    Ad, Bd = discretize(A_CONTINUOUS, B_CONTINUOUS, dt)
+    A, B = _build_continuous(T)
+    Ad, Bd = discretize(A, B, dt)
 
-    # Solve Discrete Algebraic Riccati Equation: P = Ad'PA - (Ad'PBd)(R+Bd'PBd)^{-1}(Bd'PAd) + Q
     P = solve_discrete_are(Ad, Bd, Q, R)
-
-    # Optimal gain
     K_d = np.linalg.inv(R + Bd.T @ P @ Bd) @ (Bd.T @ P @ Ad)
     return K_d, Ad, Bd
 
 
-# ── Default LQR weights (identical to MATLAB) ─────────────────────────────────
-DEFAULT_Q = np.diag([1000.0, 100.0, 1000.0, 100.0, 1.0, 0.1, 1.0, 0.1])
-DEFAULT_R = np.eye(2) * 0.01
+# ── Default weights ───────────────────────────────────────────────────────────
+#  Position/velocity errors penalised heavily; angle/rate moderate; inputs = 1
+DEFAULT_Q = np.diag([1000.0, 100.0, 1000.0, 100.0, 10.0, 1.0, 10.0, 1.0])
+DEFAULT_R = np.eye(2) * 1.0

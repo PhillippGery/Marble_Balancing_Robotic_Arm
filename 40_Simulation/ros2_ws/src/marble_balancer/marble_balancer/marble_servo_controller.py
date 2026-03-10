@@ -1,20 +1,28 @@
 """
 marble_servo_controller.py
 --------------------------
-Real-time LQR marble balancing controller.
+Real-time LQR marble balancing controller with PT1 robot delay model.
 
-Subscribes to /marble/odom and uses TF (world → marble_plate) to detect
-when the marble has landed on the plate, then activates the LQR loop.
+State vector: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
+  alpha/beta     — plate tilt angles read from TF (world → plate_tcp)
+  omega_alpha/beta — actual plate angular velocities, estimated via PT1
 
-Control pipeline:
-  /marble/odom  ──►  landing detection  ──►  LQR  ──►  TwistStamped  ──►  MoveIt Servo
+Control inputs: [omega_alpha_cmd, omega_beta_cmd]  (rad/s velocity commands)
 
-Sign convention (matches lqr_math.py A matrix):
-  alpha = plate roll  (rotation around world X): positive α → marble accelerates in -X
-  beta  = plate pitch (rotation around world Y): positive β → marble accelerates in -Y
-  (flip signs in the publish block if observed motion is opposite to expected)
+The LQR output is in world frame (alpha around world-X, beta around world-Y).
+Before sending to MoveIt Servo (which operates in plate_tcp frame), the
+commands are rotated by the plate yaw angle extracted from TF.
+
+World-frame convention:
+  omega_x_world =  omega_beta_cmd   (tilt around world X → marble moves in -Y)
+  omega_y_world = -omega_alpha_cmd  (tilt around world Y → marble moves in +X)
+
+Then rotate into plate_tcp frame:
+  angular.x_plate =  omega_x_world * cos(yaw) + omega_y_world * sin(yaw)
+  angular.y_plate = -omega_x_world * sin(yaw) + omega_y_world * cos(yaw)
 """
 
+import math
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
@@ -23,22 +31,31 @@ from std_srvs.srv import Trigger
 import numpy as np
 import tf2_ros
 
-from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R
+from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R, T_ROBOT
 
 
-# ── Tunable parameters ─────────────────────────────────────────────────────────
-CONTROL_HZ = 30.0                 # must match servo publish_period (~30 Hz)
-MAX_ANGLE  = np.deg2rad(15.0)     # plate tilt saturation (rad)
-MAX_RATE   = np.deg2rad(20.0)     # max angular rate command to servo (rad/s)
+# ── Tunable parameters ────────────────────────────────────────────────────────
+CONTROL_HZ = 30.0
+MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
 
-# Landing detection thresholds
-LAND_Z_MARGIN  = 0.025            # marble centre must be within this of plate top (m)
-LAND_VZ_MAX    = 0.10             # max vertical speed to be considered "landed" (m/s)
-LAND_CONFIRM   = 10               # consecutive odom ticks that must pass the check
-# ──────────────────────────────────────────────────────────────────────────────
+# Landing detection
+LAND_Z_MARGIN  = 0.025
+LAND_VZ_MAX    = 0.10
+LAND_CONFIRM   = 10
+# ─────────────────────────────────────────────────────────────────────────────
 
 MARBLE_RADIUS   = 0.015
 PLATE_THICKNESS = 0.005
+
+
+def _quat_to_rpy(qx, qy, qz, qw):
+    """Extract roll (X), pitch (Y), yaw (Z) from quaternion."""
+    roll  = math.atan2(2.0 * (qw * qx + qy * qz),
+                       1.0 - 2.0 * (qx * qx + qy * qy))
+    pitch = math.asin(max(-1.0, min(1.0, 2.0 * (qw * qy - qz * qx))))
+    yaw   = math.atan2(2.0 * (qw * qz + qx * qy),
+                       1.0 - 2.0 * (qy * qy + qz * qz))
+    return roll, pitch, yaw
 
 
 class MarbleServoController(Node):
@@ -51,21 +68,30 @@ class MarbleServoController(Node):
         # ── LQR gain ──────────────────────────────────────────────────────────
         self._K, _, _ = compute_dlqr(DEFAULT_Q, DEFAULT_R, dt)
         self.get_logger().info(
-            f'LQR K computed:\n{np.array2string(self._K, precision=3)}')
+            f'LQR K (PT1 model, T={T_ROBOT}s):\n{np.array2string(self._K, precision=3)}')
 
+        self._dt = dt
+
+        # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
-        self._dt    = dt
 
-        # ── TF for plate position ─────────────────────────────────────────────
+        # Internal PT1 estimate of actual omega (updated every control tick)
+        self._omega_alpha_est = 0.0
+        self._omega_beta_est  = 0.0
+
+        # Last command sent (for PT1 propagation in control loop)
+        self._u_prev = np.zeros(2)
+
+        # ── TF ────────────────────────────────────────────────────────────────
         self._tf_buffer   = tf2_ros.Buffer()
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self)
-        self._plate_z     = None   # resolved once from TF
+        self._plate_z     = None
 
         # ── Landing detection ─────────────────────────────────────────────────
         self._marble_z    = None
         self._marble_vz   = 0.0
         self._landed      = False
-        self._land_ticks  = 0      # consecutive ticks meeting landing criteria
+        self._land_ticks  = 0
 
         # ── Publishers / subscribers ──────────────────────────────────────────
         self._twist_pub = self.create_publisher(
@@ -76,7 +102,7 @@ class MarbleServoController(Node):
 
         self._timer = self.create_timer(dt, self._control_cb)
 
-        # ── Start MoveIt Servo (it begins in stopped state) ───────────────────
+        # ── Start MoveIt Servo ────────────────────────────────────────────────
         self._start_servo()
 
         self.get_logger().info(
@@ -86,12 +112,10 @@ class MarbleServoController(Node):
     # ── Helpers ───────────────────────────────────────────────────────────────
 
     def _start_servo(self):
-        """Call /servo_node/start_servo so Servo processes our twist commands."""
         client = self.create_client(Trigger, '/servo_node/start_servo')
         self.get_logger().info('Waiting for /servo_node/start_servo …')
         if client.wait_for_service(timeout_sec=10.0):
             future = client.call_async(Trigger.Request())
-            # Non-blocking — result logged when it arrives
             future.add_done_callback(self._on_servo_started)
         else:
             self.get_logger().error(
@@ -103,72 +127,73 @@ class MarbleServoController(Node):
             if result.success:
                 self.get_logger().info('MoveIt Servo started.')
             else:
-                self.get_logger().warn(
-                    f'start_servo returned: {result.message}')
+                self.get_logger().warn(f'start_servo: {result.message}')
         except Exception as e:
             self.get_logger().error(f'start_servo call failed: {e}')
 
-    def _get_plate_z(self):
-        """Look up plate top surface Z from TF (cached after first success)."""
-        if self._plate_z is not None:
-            return self._plate_z
-        for frame in ('marble_plate', 'tool0'):
+    def _get_plate_tf(self):
+        """Return (plate_tf, plate_top_z) or (None, None)."""
+        for frame in ('plate_tcp', 'marble_plate', 'tool0'):
             try:
                 tf = self._tf_buffer.lookup_transform(
                     'world', frame, rclpy.time.Time())
-                # plate_z = centre of plate link; top = centre + half thickness
-                self._plate_z = tf.transform.translation.z + PLATE_THICKNESS / 2.0
-                self.get_logger().info(
-                    f'Plate top Z from "{frame}": {self._plate_z:.4f} m')
-                return self._plate_z
+                plate_top_z = tf.transform.translation.z + PLATE_THICKNESS / 2.0
+                if self._plate_z is None:
+                    self._plate_z = plate_top_z
+                    self.get_logger().info(
+                        f'Plate top Z from "{frame}": {self._plate_z:.4f} m')
+                return tf, plate_top_z
             except (tf2_ros.LookupException,
                     tf2_ros.ConnectivityException,
                     tf2_ros.ExtrapolationException):
                 pass
-        return None
+        return None, None
 
     # ── Odometry callback ─────────────────────────────────────────────────────
 
     def _odom_cb(self, msg: Odometry):
-        # Update marble Z and vertical velocity for landing detection
         self._marble_z  = msg.pose.pose.position.z
         self._marble_vz = msg.twist.twist.linear.z
 
-        # XY state for LQR (relative to plate centre)
-        plate_z = self._get_plate_z()
-        if plate_z is None:
+        tf, plate_top_z = self._get_plate_tf()
+        if tf is None:
             return
 
-        # Use plate TF X/Y as the reference (cached plate_z already available)
-        try:
-            tf = self._tf_buffer.lookup_transform(
-                'world', 'marble_plate', rclpy.time.Time())
-            plate_x = tf.transform.translation.x
-            plate_y = tf.transform.translation.y
-        except Exception:
-            return
+        plate_x = tf.transform.translation.x
+        plate_y = tf.transform.translation.y
 
+        # Marble position/velocity relative to plate centre (world frame)
         self._state[0] = msg.pose.pose.position.x - plate_x
         self._state[1] = msg.twist.twist.linear.x
         self._state[2] = msg.pose.pose.position.y - plate_y
         self._state[3] = msg.twist.twist.linear.y
 
-        # ── Debug: marble error relative to plate centre ───────────────────
+        # Plate roll/pitch from TF quaternion
+        q = tf.transform.rotation
+        alpha, beta, _ = _quat_to_rpy(q.x, q.y, q.z, q.w)
+
+        # Fill state — omega comes from internal PT1 estimate (updated in control_cb)
+        self._state[4] = alpha
+        self._state[5] = self._omega_alpha_est
+        self._state[6] = beta
+        self._state[7] = self._omega_beta_est
+
         self.get_logger().info(
-            f'Marble error — x: {self._state[0]:+.4f} m  '
-            f'y: {self._state[2]:+.4f} m  '
-            f'vx: {self._state[1]:+.4f} m/s  '
-            f'vy: {self._state[3]:+.4f} m/s',
+            f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
+            f'vx:{self._state[1]:+.4f} vy:{self._state[3]:+.4f}  '
+            f'α:{np.rad2deg(alpha):+.2f}° β:{np.rad2deg(beta):+.2f}°  '
+            f'ωα:{np.rad2deg(self._omega_alpha_est):+.2f}°/s '
+            f'ωβ:{np.rad2deg(self._omega_beta_est):+.2f}°/s',
             throttle_duration_sec=0.5)
 
-        # ── Landing detection ──────────────────────────────────────────────
+        # Landing detection
+        marble_in_z = (
+            self._marble_z >= plate_top_z - LAND_Z_MARGIN
+            and self._marble_z <= plate_top_z + MARBLE_RADIUS + LAND_Z_MARGIN
+        )
+
         if not self._landed:
-            marble_on_plate = (
-                self._marble_z is not None
-                and self._marble_z <= plate_z + MARBLE_RADIUS + LAND_Z_MARGIN
-                and abs(self._marble_vz) < LAND_VZ_MAX
-            )
-            if marble_on_plate:
+            if marble_in_z and abs(self._marble_vz) < LAND_VZ_MAX:
                 self._land_ticks += 1
                 if self._land_ticks >= LAND_CONFIRM:
                     self._landed = True
@@ -176,46 +201,70 @@ class MarbleServoController(Node):
                         f'Marble landed at z={self._marble_z:.4f} m — '
                         'LQR control activated!')
             else:
-                self._land_ticks = 0   # reset if marble bounces back up
+                self._land_ticks = 0
+        else:
+            if self._marble_z < plate_top_z - 0.05:
+                self.get_logger().warn(
+                    f'Marble fell off (z={self._marble_z:.3f} m).',
+                    throttle_duration_sec=5.0)
 
     # ── Control loop ──────────────────────────────────────────────────────────
 
     def _control_cb(self):
         msg = TwistStamped()
         msg.header.stamp    = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'base_link'
+        msg.header.frame_id = 'plate_tcp'
+
+        # Always propagate PT1 estimate (even when not active)
+        self._omega_alpha_est += (self._u_prev[0] - self._omega_alpha_est) * self._dt / T_ROBOT
+        self._omega_beta_est  += (self._u_prev[1] - self._omega_beta_est)  * self._dt / T_ROBOT
 
         if not self._landed:
-            # Hold position with zero twist while marble is still falling
+            self._u_prev[:] = 0.0
             self._twist_pub.publish(msg)
             return
 
-        # ── LQR ───────────────────────────────────────────────────────────
-        u = -self._K @ self._state   # [alpha_ddot, beta_ddot]
+        # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
+        u = -self._K @ self._state
+        omega_alpha_cmd = float(np.clip(u[0], -MAX_RATE, MAX_RATE))
+        omega_beta_cmd  = float(np.clip(u[1], -MAX_RATE, MAX_RATE))
 
-        alpha_dot_new = self._state[5] + u[0] * self._dt
-        beta_dot_new  = self._state[7] + u[1] * self._dt
+        # Update PT1 state with the new command
+        self._u_prev[0] = omega_alpha_cmd
+        self._u_prev[1] = omega_beta_cmd
 
-        alpha_new = self._state[4] + alpha_dot_new * self._dt
-        beta_new  = self._state[6] + beta_dot_new  * self._dt
+        # ── World-frame twist components ──────────────────────────────────────
+        # alpha is plate roll around world X → omega_alpha changes angular.y (pitch)
+        # beta  is plate pitch around world Y → omega_beta  changes angular.x (roll)
+        #   positive omega_beta_cmd  → angular.x_world > 0 → marble in -Y  ✓
+        #   positive omega_alpha_cmd → angular.y_world < 0 → marble in -X  ✓
+        wx_world =  omega_beta_cmd
+        wy_world = -omega_alpha_cmd
 
-        # Angle saturation
-        if abs(alpha_new) >= MAX_ANGLE:
-            alpha_new, alpha_dot_new = np.clip(alpha_new, -MAX_ANGLE, MAX_ANGLE), 0.0
-        if abs(beta_new) >= MAX_ANGLE:
-            beta_new,  beta_dot_new  = np.clip(beta_new,  -MAX_ANGLE, MAX_ANGLE), 0.0
+        # ── Rotate from world frame into plate_tcp frame ──────────────────────
+        # Get current yaw of plate_tcp to account for wrist rotation
+        yaw = 0.0
+        try:
+            tf = self._tf_buffer.lookup_transform(
+                'world', 'plate_tcp', rclpy.time.Time())
+            q = tf.transform.rotation
+            _, _, yaw = _quat_to_rpy(q.x, q.y, q.z, q.w)
+        except Exception:
+            pass   # use yaw=0 if TF not available
 
-        # Rate saturation
-        alpha_dot_new = np.clip(alpha_dot_new, -MAX_RATE, MAX_RATE)
-        beta_dot_new  = np.clip(beta_dot_new,  -MAX_RATE, MAX_RATE)
+        cy, sy = math.cos(yaw), math.sin(yaw)
+        wx_plate =  wx_world * cy + wy_world * sy
+        wy_plate = -wx_world * sy + wy_world * cy
 
-        self._state[4] = alpha_new
-        self._state[5] = alpha_dot_new
-        self._state[6] = beta_new
-        self._state[7] = beta_dot_new
+        msg.twist.angular.x = wx_plate
+        msg.twist.angular.y = wy_plate
 
-        msg.twist.angular.x = alpha_dot_new
-        msg.twist.angular.y = beta_dot_new
+        self.get_logger().info(
+            f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '
+            f'ωβ={np.rad2deg(omega_beta_cmd):+.1f}°/s  '
+            f'yaw={np.rad2deg(yaw):+.1f}°  '
+            f'cmd_plate x={np.rad2deg(wx_plate):+.1f} y={np.rad2deg(wy_plate):+.1f}°/s',
+            throttle_duration_sec=0.5)
 
         self._twist_pub.publish(msg)
 

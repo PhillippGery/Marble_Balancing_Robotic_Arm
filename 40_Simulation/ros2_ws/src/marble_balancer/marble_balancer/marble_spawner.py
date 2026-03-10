@@ -19,7 +19,9 @@ MARBLE_RADIUS   = 0.015   # m
 PLATE_THICKNESS = 0.005   # m
 DROP_HEIGHT     = 0.08    # m above plate surface
 
-CANDIDATE_FRAMES = ['marble_plate', 'tool0']
+# plate_tcp is at the top surface; other frames need a half-thickness correction
+CANDIDATE_FRAMES   = ['plate_tcp', 'marble_plate', 'tool0']
+TOP_SURFACE_FRAMES = {'plate_tcp'}   # frames already on the top surface
 
 
 class MarbleSpawner(Node):
@@ -59,7 +61,9 @@ class MarbleSpawner(Node):
         plate_x = tf.transform.translation.x
         plate_y = tf.transform.translation.y
         plate_z = tf.transform.translation.z
-        spawn_z = plate_z + PLATE_THICKNESS / 2.0 + MARBLE_RADIUS + DROP_HEIGHT
+        # plate_tcp is already at the top surface; other frames need half-thickness offset
+        surface_z = plate_z if used_frame in TOP_SURFACE_FRAMES else plate_z + PLATE_THICKNESS / 2.0
+        spawn_z = surface_z + MARBLE_RADIUS + DROP_HEIGHT
 
         self.get_logger().info(
             f'Plate "{used_frame}": x={plate_x:.4f} y={plate_y:.4f} z={plate_z:.4f}')

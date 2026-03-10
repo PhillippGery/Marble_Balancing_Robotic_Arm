@@ -34,7 +34,7 @@
     <disable_collisions link1="forearm_link" link2="wrist_2_link" reason="Never"/>
     <disable_collisions link1="forearm_link" link2="wrist_3_link" reason="Never"/>
     <disable_collisions link1="wrist_1_link" link2="wrist_3_link" reason="Never"/>
-    <!-- marble_plate is a fixed end-effector — disable against all arm links -->
+    <!-- marble_plate and plate_tcp are fixed end-effectors — disable against all arm links -->
     <disable_collisions link1="marble_plate" link2="wrist_3_link" reason="Adjacent"/>
     <disable_collisions link1="marble_plate" link2="wrist_2_link" reason="Never"/>
     <disable_collisions link1="marble_plate" link2="wrist_1_link" reason="Never"/>
@@ -42,4 +42,13 @@
     <disable_collisions link1="marble_plate" link2="upper_arm_link" reason="Never"/>
     <disable_collisions link1="marble_plate" link2="shoulder_link" reason="Never"/>
     <disable_collisions link1="marble_plate" link2="base_link_inertia" reason="Never"/>
+    <!-- plate_tcp is a massless frame at plate top surface -->
+    <disable_collisions link1="plate_tcp" link2="wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="plate_tcp" link2="marble_plate" reason="Adjacent"/>
+    <disable_collisions link1="plate_tcp" link2="wrist_2_link" reason="Never"/>
+    <disable_collisions link1="plate_tcp" link2="wrist_1_link" reason="Never"/>
+    <disable_collisions link1="plate_tcp" link2="forearm_link" reason="Never"/>
+    <disable_collisions link1="plate_tcp" link2="upper_arm_link" reason="Never"/>
+    <disable_collisions link1="plate_tcp" link2="shoulder_link" reason="Never"/>
+    <disable_collisions link1="plate_tcp" link2="base_link_inertia" reason="Never"/>
 </robot>

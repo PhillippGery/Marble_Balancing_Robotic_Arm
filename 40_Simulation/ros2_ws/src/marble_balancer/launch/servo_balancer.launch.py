@@ -156,7 +156,7 @@ def generate_launch_description():
     on_homed = RegisterEventHandler(
         OnProcessExit(
             target_action=go_to_pose_node,
-            on_exit=[TimerAction(period=6.0, actions=[marble_spawn])],
+            on_exit=[TimerAction(period=2.0, actions=[marble_spawn])],
         )
     )
 

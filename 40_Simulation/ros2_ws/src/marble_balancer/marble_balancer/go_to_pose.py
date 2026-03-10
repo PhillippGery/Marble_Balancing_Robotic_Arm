@@ -14,6 +14,7 @@ from moveit_msgs.msg import PositionIKRequest, RobotState
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from controller_manager_msgs.srv import ListControllers
 from builtin_interfaces.msg import Duration
 
 
@@ -129,13 +130,27 @@ class GoToPose(Node):
         pt.time_from_start = Duration(sec=MOVE_TIME_SEC)
         msg.points = [pt]
 
-        # Wait until the trajectory controller is subscribed before publishing
-        self.get_logger().info('Waiting for trajectory controller to be ready…')
-        while self.traj_pub.get_subscription_count() == 0:
+        # Wait until controller_manager reports ur7e_arm_controller as active
+        self.get_logger().info('Waiting for ur7e_arm_controller to be active…')
+        cm_client = self.create_client(ListControllers, '/controller_manager/list_controllers')
+        cm_client.wait_for_service()
+        while True:
+            future = cm_client.call_async(ListControllers.Request())
+            rclpy.spin_until_future_complete(self, future)
+            states = {c.name: c.state for c in future.result().controller}
+            if states.get('ur7e_arm_controller') == 'active':
+                break
             rclpy.spin_once(self, timeout_sec=0.1)
 
+        self.get_logger().info('Controller active — sending trajectory.')
         self.traj_pub.publish(msg)
-        self.get_logger().info('Trajectory sent. Done.')
+
+        # Spin for move time + 1 s so the robot finishes before we exit
+        deadline = self.get_clock().now().nanoseconds + (MOVE_TIME_SEC + 1) * 1_000_000_000
+        while self.get_clock().now().nanoseconds < deadline:
+            rclpy.spin_once(self, timeout_sec=0.1)
+
+        self.get_logger().info('Move complete. Done.')
         rclpy.shutdown()
 
 

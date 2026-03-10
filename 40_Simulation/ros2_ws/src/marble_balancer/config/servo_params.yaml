@@ -29,8 +29,8 @@ move_group_name:  ur_arm
 planning_frame:   base_link
 
 ## Frames
-ee_frame_name:             tool0
-robot_link_command_frame:  base_link
+ee_frame_name:             plate_tcp
+robot_link_command_frame:  plate_tcp
 
 ## Stopping
 incoming_command_timeout: 0.1

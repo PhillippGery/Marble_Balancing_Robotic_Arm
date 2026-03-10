@@ -6,7 +6,7 @@
 
     <link name="marble_link">
       <inertial>
-        <mass>0.05</mass>  <!-- mb = 0.05 kg (matches MATLAB) -->
+        <mass>0.05</mass>  <!-- mb = 0.05 kg ) -->
         <inertia>
           <!-- Ib = (2/5)*mb*rb^2, rb=0.015 m → 9e-6 kg·m^2 -->
           <ixx>9e-6</ixx><ixy>0</ixy><ixz>0</ixz>
