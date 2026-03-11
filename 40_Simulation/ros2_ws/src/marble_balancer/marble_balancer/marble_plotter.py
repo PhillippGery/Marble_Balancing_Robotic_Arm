@@ -177,6 +177,7 @@ def record_node(default_output: Path):
     from nav_msgs.msg import Odometry
     from geometry_msgs.msg import TwistStamped
     from std_msgs.msg import Empty
+    from std_srvs.srv import Trigger
     import tf2_ros
 
     _LATCHED = QoSProfile(
@@ -228,6 +229,8 @@ def record_node(default_output: Path):
             self.create_subscription(
                 Empty, '/marble/fell_off', self._fell_off_cb, _LATCHED)
 
+            self.create_service(Trigger, '/marble/plot_now', self._plot_now_cb)
+
         def _open_new_csv(self, path: Path):
             path.parent.mkdir(parents=True, exist_ok=True)
             self._csv_path  = path
@@ -273,6 +276,22 @@ def record_node(default_output: Path):
             # Fresh CSV ready for the next marble
             new_path = LOG_DIR / f'marble_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
             self._open_new_csv(new_path)
+
+        def _plot_now_cb(self, _req, response):
+            """Service handler: save current CSV and open plots without stopping recording."""
+            if self._row_count == 0:
+                response.success = False
+                response.message = 'No data recorded yet.'
+                return response
+            self._file.flush()
+            cmd = ([_plot_bin, '--plot', str(self._csv_path)] if _use_bin
+                   else [sys.executable, _plot_bin, '--plot', str(self._csv_path)])
+            subprocess.Popen(cmd, env=os.environ.copy(),
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            response.success = True
+            response.message = f'Plotting {self._row_count} rows from {self._csv_path}'
+            self.get_logger().info(response.message)
+            return response
 
         def _cmd_cb(self, msg: TwistStamped):
             self._cmd_ang_x_deg = math.degrees(msg.twist.angular.x)

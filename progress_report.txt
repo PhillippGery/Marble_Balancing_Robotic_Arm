@@ -17,7 +17,7 @@ SYSTEM ARCHITECTURE
                         │
               libgazebo_ros_p3d plugin
                         │
-                 /marble/odom  (nav_msgs/Odometry @ 30 Hz)
+                 /marble/odom  (nav_msgs/Odometry @ 50 Hz)
                         │
             marble_servo_controller node
             (Discrete-time LQR @ 30 Hz)
@@ -55,13 +55,13 @@ Custom URDF (ur5e_marble_balancer.urdf.xacro):
   - plate_tcp.z = exact plate surface height (used for marble landing detection).
 
 Marble model (marble.sdf):
-  - Sphere: radius=0.015 m, mass=0.05 kg, restitution=0.3.
-  - libgazebo_ros_p3d plugin publishes ground-truth pose+velocity on /marble/odom.
-    No ROS-Gazebo bridge needed — direct topic publish from Gazebo.
+  - Sphere: radius=0.015 m, mass=0.05 kg, restitution=0.0.
+  - libgazebo_ros_p3d plugin publishes ground-truth pose on /marble/odom.
+    frame_name=world → position in world frame.
 
 SRDF (ur.srdf):
   - Defined planning group "ur_arm" (6 DOF: shoulder_pan → wrist_3).
-  - Home state: [0, -π/2, π/2, -π/2, -π/2, 0] → plate horizontal.
+  - Home state: [0, -π/2, π/2, -π/2, -π/2, 0] → plate horizontal, facing up.
   - Added disabled collision pairs for marble_plate and plate_tcp against all arm
     links. Critical: marble_plate ↔ wrist_3_link disabled — this was causing
     MoveIt Servo to halt immediately (false self-collision detection).
@@ -74,41 +74,44 @@ Event-driven sequencing using RegisterEventHandler:
 
   1. ur_sim_control.launch.py  →  Gazebo + UR5e robot + controllers spawn
   2. move_group node starts    →  triggers go_to_pose
-  3. go_to_pose completes      →  2s settle delay → marble_spawner
-  4. marble_spawner exits       →  marble_servo_controller starts
+  3. go_to_pose completes      →  0.5s settle delay → marble_spawner
+  4. marble_spawner exits      →  marble_servo_controller + marble_plotter start
 
 Nodes launched:
-  - move_group          : MoveIt planning server (needed for IK + planning scene)
-  - servo_node_main     : MoveIt Servo (real-time Cartesian velocity control)
-  - go_to_pose          : homes robot to flat-plate configuration
-  - marble_spawner      : spawns marble above plate center using TF
+  - move_group              : MoveIt planning server
+  - servo_node_main         : MoveIt Servo (real-time Cartesian velocity control)
+  - go_to_pose              : homes robot to flat-plate configuration
+  - marble_spawner          : spawns marble above plate center using TF
   - marble_servo_controller : LQR controller
+  - marble_plotter          : data recorder + visualizer (optional: plot:=true)
+
+Optional launch argument:
+  ros2 launch marble_balancer servo_balancer.launch.py plot:=true
 
 ================================================================================
 STEP 3 — ROBOT HOMING (go_to_pose.py)
 ================================================================================
 
-Initial approach: Used MoveIt /compute_ik service to find joint angles for a
-target TCP position. Problem: KDL IK solver returned configurations where the
-plate was tilted (e.g., α=9.6°, β=15.9°) because the orientation constraint
-was applied to wrist_3 (the default group tip) rather than plate_tcp.
+Initial approach: Used MoveIt /compute_ik service. Problem: KDL IK solver
+returned configurations where the plate was tilted because orientation constraint
+was applied to wrist_3 (default group tip) rather than plate_tcp.
 
-Solution: Replaced IK with direct joint-space command to the known-good SRDF
-home configuration:
+Solution: Replaced IK with direct joint-space command to SRDF home configuration:
   [shoulder_pan=0, shoulder_lift=-π/2, elbow=π/2,
    wrist_1=-π/2, wrist_2=-π/2, wrist_3=0]
 This guarantees zero roll and zero pitch on the plate at startup.
 
-Reliability fix: Controller readiness is verified via /controller_manager/
-list_controllers service (checking ur7e_arm_controller == "active") rather than
-subscriber count, which was unreliable.
+Reliability fix: Controller readiness verified via /controller_manager/
+list_controllers service (ur7e_arm_controller == "active").
+
+On marble fall-off: go_to_pose is re-launched as a subprocess by the controller,
+returning the robot to the exact same home configuration for the next marble.
 
 ================================================================================
 STEP 4 — MARBLE SPAWNER (marble_spawner.py)
 ================================================================================
 
-- Waits for /delete_entity service and deletes any existing "marble" entity from
-  previous sessions (prevents ghost odom data from crashed runs).
+- Calls /delete_entity service first — removes any marble from crashed sessions.
 - Looks up world→plate_tcp transform from TF.
 - Computes spawn position: plate_tcp(x,y) + DROP_HEIGHT=0.08m above surface.
 - Spawns marble.sdf via /spawn_entity service.
@@ -120,7 +123,7 @@ STEP 5 — CONTROL SYSTEM DESIGN
 
 --- 5.1 PHYSICAL MODEL ---
 
-Ball-on-plate dynamics (linearized at equilibrium):
+Ball-on-plate dynamics (linearized at equilibrium, world frame):
 
   dx/dt    = vx
   dvx/dt   = -C * alpha        C = (5/7)*g ≈ 7.0 m/s²
@@ -130,18 +133,17 @@ Ball-on-plate dynamics (linearized at equilibrium):
   dbeta/dt  = omega_beta
 
 Sign convention:
-  alpha = plate angle around world X → positive alpha → marble accelerates in -X
-  beta  = plate angle around world Y → positive beta  → marble accelerates in -Y
+  alpha = plate pitch (rotation around world Y) → positive alpha → marble in -X
+  beta  = plate roll  (rotation around world X) → positive beta  → marble in -Y
 
 --- 5.2 PT1 ROBOT DELAY MODEL ---
 
 Problem: MoveIt Servo accepts velocity commands, not acceleration. The robot
-also has a measurable response lag (~0.15s). Sending acceleration commands
-(as the MATLAB model originally used) is one integration level off and
-destabilizes the closed-loop system.
+also has a measurable response lag. Sending acceleration commands is one
+integration level off and destabilizes the closed-loop system.
 
 Solution: Model the robot as a PT1 (first-order lag) on angular velocity:
-  d(omega)/dt = (omega_cmd - omega) / T_ROBOT     T_ROBOT = 0.15 s
+  d(omega)/dt = (omega_cmd - omega) / T_ROBOT     T_ROBOT = 0.35 s
 
 New state vector (8 states):
   x = [marble_x, marble_vx, marble_y, marble_vy,
@@ -150,43 +152,56 @@ New state vector (8 states):
 New inputs (2 inputs):
   u = [omega_alpha_cmd, omega_beta_cmd]    (rad/s velocity commands)
 
-Continuous A matrix (relevant rows):
-  Row 5: d(alpha)/dt    = omega_alpha              → A[4,5] = 1
-  Row 6: d(omega_alpha) = -omega_alpha/T + u1/T   → A[5,5] = -1/T, B[5,0] = 1/T
-  Row 7: d(beta)/dt     = omega_beta               → A[6,7] = 1
-  Row 8: d(omega_beta)  = -omega_beta/T  + u2/T   → A[7,7] = -1/T, B[7,1] = 1/T
-
 --- 5.3 DISCRETE-TIME LQR ---
 
 Discretization: Zero-Order-Hold via matrix exponential (scipy.linalg.expm)
   dt = 1/30 s (30 Hz control loop)
 
 LQR gain computed via DARE (solve_discrete_are):
-  Q = diag([1000, 100, 1000, 100, 10, 1, 10, 1])
+  Q = diag([100, 100, 100, 100, 5, 0.5, 5, 0.5])
   R = I₂ × 1.0
-
-Resulting K matrix (2×8):
-  K[0,:] ≈ [-24.7, -15.2,  0,     0,    23.9, 1.94, 0,    0   ]
-  K[1,:] ≈ [ 0,     0,    -24.7, -15.2,  0,   0,   23.9, 1.94 ]
 
 Control law: u[k] = -K @ x[k]
 
---- 5.4 SERVO COMMAND MAPPING ---
+--- 5.4 STATE ESTIMATION ---
+
+Marble position (state[0], state[2]):
+  - Computed from /marble/odom world-frame position minus plate_tcp TF position.
+  - IMPORTANT: marble_x_relative = (marble_x_world - plate_x) * -1.0
+    The plate_tcp frame at home [0,-π/2,π/2,-π/2,-π/2,0] has yaw≈180° in world.
+    The p3d plugin gives velocities in body frame, and world-frame X offset must
+    be negated to match the LQR model's plate-frame X convention.
+  - world Y offset does NOT need negation (beta axis works without it).
+
+Marble velocity (state[1], state[3]):
+  - Differentiated from world-frame position (consecutive odom callbacks).
+  - Low-pass filtered: EMA with TC = OMEGA_LPF_TC = 0.08 s.
+  - Avoids body-frame twist issue from p3d plugin (body frame rotates as marble
+    rolls, making msg.twist.twist.linear unreliable).
+
+Plate angles (state[4], state[6]):
+  - alpha = pitch, beta = roll, extracted from plate_tcp TF quaternion (ZYX Euler).
+
+Plate angular velocities (state[5], state[7]):
+  - Differentiated from TF angles (pitch and roll) in the odom callback.
+  - Low-pass filtered: same EMA with TC = OMEGA_LPF_TC = 0.08 s.
+  - Sign-consistent with alpha/beta by construction (omega_alpha = d(alpha)/dt).
+  - Replaces Jacobian-based approach which had sign inconsistency at home config.
+
+--- 5.5 SERVO COMMAND MAPPING ---
 
 MoveIt Servo key parameter: robot_link_command_frame = plate_tcp
-  → Servo uses the plate_tcp Jacobian, preventing wrist_3 spin.
-  → Before this fix, commands caused wrist spin instead of plate tilting.
+  → Servo uses plate_tcp Jacobian, preventing wrist_3 spin.
 
-Command frame: header.frame_id = "base_link" (world frame)
-  → Servo internally transforms from base_link to plate_tcp via TF.
-  → This correctly handles the wrist_3 yaw rotation (~124° at home).
+Command frame: header.frame_id = "base_link"
 
-World-frame axis mapping (physics-based):
-  angular.x = +omega_beta_cmd   (rotation around world X → changes beta → Y dynamics)
-  angular.y = +omega_alpha_cmd  (rotation around world Y → changes alpha → X dynamics)
+World-frame axis mapping:
+  angular.x = -u[1]  (omega_beta_cmd negated — kinematic sign flip at home)
+  angular.y = -u[0]  (omega_alpha_cmd negated — kinematic sign flip at home)
 
-Omega estimation: PT1 propagated in software each control tick:
-  omega_est += (u_cmd - omega_est) * dt / T_ROBOT
+Both commands need negation because at the home configuration the plate_tcp
+frame has yaw≈180°. This inverts the effective B matrix sign for both channels.
+The LQR was designed for +1/T; physical response gives -1/T, requiring -u.
 
 ================================================================================
 STEP 6 — LANDING DETECTION
@@ -195,11 +210,50 @@ STEP 6 — LANDING DETECTION
 Marble detected as "on plate" when:
   - marble_z ∈ [plate_top_z - 0.030, plate_top_z + MARBLE_RADIUS + 0.030]
   - |marble_vz| < 0.50 m/s  (allows sliding marble, blocks free-falling marble)
-  - 5 consecutive odom callbacks satisfy above conditions (~0.17s at 30 Hz)
+  - 5 consecutive odom callbacks satisfy above (~0.17s at 50 Hz)
+
+On landing:
+  - Publishes /marble/landed (TRANSIENT_LOCAL QoS — latched)
+  - Calls /servo_node/start_servo service
+  - LQR activates
 
 On fall-off (marble_z < plate_top_z - 0.05m):
-  - Resets _landed, omega estimates, u_prev
-  - Controller goes back to "waiting for marble" state
+  - Publishes /marble/fell_off (TRANSIENT_LOCAL QoS — latched)
+  - Stops MoveIt Servo
+  - Launches go_to_pose subprocess → robot returns to home
+  - Resets state estimates
+
+================================================================================
+STEP 7 — DATA RECORDING AND PLOTTING (marble_plotter.py)
+================================================================================
+
+Node that records marble and plate state to CSV and generates plots.
+
+Launch with: ros2 launch marble_balancer servo_balancer.launch.py plot:=true
+
+Recorded CSV columns:
+  time, marble_x_rel, marble_y_rel, marble_z_abs,
+  tcp_x, tcp_y, tcp_z,
+  plate_alpha_deg, plate_beta_deg,
+  cmd_ang_x_deg, cmd_ang_y_deg,
+  actual_omega_alpha_deg, actual_omega_beta_deg
+
+Recording gated by /marble/landed and /marble/fell_off (TRANSIENT_LOCAL QoS).
+CSV saved to ~/marble_logs/ with timestamp filename.
+
+Plots generated (3 figures):
+  1. Bird's-eye XY marble trajectory on plate (colour = time)
+  2. Commanded vs actual plate angular velocity (ω_alpha, ω_beta)
+  3. [TCP XYZ position — available, currently commented out]
+
+Trigger options:
+  A. Automatic: when marble falls off plate (saves CSV + opens plots)
+  B. On-demand: ros2 service call /marble/plot_now std_srvs/srv/Trigger
+     → opens plots without stopping recording or controller
+  C. Ctrl-C on launch terminal → plots from current CSV on shutdown
+
+Plot subprocess uses installed binary path + inherits DISPLAY env variable.
+Log file written alongside CSV: marble_YYYYMMDD_HHMMSS.plot.log
 
 ================================================================================
 BUGS FOUND AND FIXED
@@ -210,8 +264,7 @@ BUGS FOUND AND FIXED
    Fix: Added marble_plate ↔ wrist_3_link disabled collision in SRDF.
 
 2. HOMING RACE CONDITION
-   Problem: Robot moved before controller was ready; subscriber count returned
-            1 from a non-controller subscriber.
+   Problem: Robot moved before controller was ready.
    Fix: Wait for ur7e_arm_controller == "active" via list_controllers service.
 
 3. LANDING FALSE POSITIVE ON FLOOR
@@ -228,25 +281,64 @@ BUGS FOUND AND FIXED
    Fix: robot_link_command_frame=plate_tcp.
 
 6. IK RETURNING TILTED PLATE CONFIGURATION
-   Problem: KDL IK solver returned joints where plate was tilted 9-15°,
-            marble slid immediately, controller never activated.
+   Problem: KDL IK solver returned joints where plate was tilted 9-15°.
    Fix: Replaced IK with direct joint-space command to SRDF home angles.
 
 7. OLD MARBLE GHOST DATA
-   Problem: Marble from crashed session remained in Gazebo; spawner failed,
-            old /marble/odom published positions 350m from plate.
+   Problem: Marble from crashed session remained in Gazebo; old /marble/odom
+            published positions far from plate.
    Fix: marble_spawner calls /delete_entity before /spawn_entity.
 
 8. LANDING DETECTION TOO STRICT
-   Problem: LAND_VZ_MAX=0.10 m/s too tight; marble arriving on tilted plate
-            had vz > 0.10, landing never detected, controller never activated.
+   Problem: LAND_VZ_MAX=0.10 m/s too tight; landing never detected.
    Fix: LAND_VZ_MAX raised to 0.50 m/s.
 
 9. PT1 INPUT LEVEL MISMATCH
-   Problem: Original model used acceleration inputs [alpha_ddot, beta_ddot].
-            MoveIt Servo takes velocity inputs. One integration level off →
-            closed-loop system unstable.
+   Problem: Original model used acceleration inputs. MoveIt Servo takes velocity.
+            One integration level off → closed-loop system unstable.
    Fix: Redesigned state-space model with velocity inputs and PT1 robot lag.
+
+10. PLOTTER MISSED LATCHED MESSAGES (RACE CONDITION)
+    Problem: /marble/landed published before plotter subscribed → recording
+             never started (_recording_active stayed False).
+    Fix: TRANSIENT_LOCAL (latched) QoS on both publisher and subscriber sides.
+
+11. ROBOT NOT RETURNING TO HOME AFTER FALL-OFF
+    Problem: Controller published zero-twist every 33ms, overriding the home
+             trajectory via MoveIt Servo.
+    Fix: _homing flag — when True, skip twist publishing entirely. Also stop
+         Servo before sending home trajectory.
+
+12. GAZEBO CRASH ON plot:=true LAUNCH ARGUMENT
+    Problem: 'record' argument name conflicted with gzserver --record flag.
+    Fix: Renamed launch argument from 'record' to 'plot'.
+
+13. CONTROLLER OSCILLATES IN X, COMPENSATES IN Y (SIGN BUG)
+    Problem: Marble at +Y offset → immediately compensated. Marble at +X offset
+             → plate tilted correctly but controller could not converge.
+    Root cause: The plate_tcp frame at home config [0,-π/2,π/2,-π/2,-π/2,0]
+                has yaw≈180°. The p3d plugin's odom pose.position is in world
+                frame, but the world-frame X offset of the marble relative to
+                the plate must be negated to match the LQR model's plate-frame
+                coordinate convention. Without negation, the x-error in state[0]
+                had the wrong sign, causing the LQR to command corrections in
+                the wrong direction for X.
+    Fix: mx = (msg.pose.pose.position.x - plate_x) * -1.0
+    Note: Y axis (my) does NOT need negation due to the same 180° yaw.
+
+14. JACOBIAN OMEGA SIGN INCONSISTENCY
+    Problem: omega_alpha from Jacobian (world-Y angular velocity) had ambiguous
+             sign relative to alpha=pitch from TF at this robot configuration.
+             Caused wrong derivative feedback → oscillation in alpha channel.
+    Fix: Replaced Jacobian omega with direct TF angle differentiation:
+         omega_alpha = d(pitch)/dt, omega_beta = d(roll)/dt.
+         Sign-consistent by construction. EMA low-pass filtered (TC=0.08s).
+
+15. MARBLE VELOCITY FROM BODY-FRAME TWIST
+    Problem: p3d plugin publishes twist in body frame per ROS Odometry convention.
+             As marble rolls and spins, body frame rotates → vx/vy unreliable.
+    Fix: Compute marble velocity from consecutive position differences (world
+         frame), EMA low-pass filtered with same TC=0.08s.
 
 ================================================================================
 CURRENT STATUS
@@ -254,25 +346,29 @@ CURRENT STATUS
 
 WORKING:
   ✓ Full Gazebo simulation with UR5e + marble plate
-  ✓ Launch pipeline with correct sequencing
+  ✓ Launch pipeline with correct event-driven sequencing
   ✓ Robot homes to flat plate configuration (zero roll/pitch)
   ✓ Marble spawns above plate center, deletes old marble first
   ✓ MoveIt Servo tilts plate physically (wrist spin resolved)
-  ✓ PT1 LQR math computes and produces reasonable gains
-  ✓ Landing detection logic correct
-  ✓ Controller activates and sends commands when marble lands
+  ✓ PT1 LQR computes correct gains, controller activates on landing
+  ✓ Landing detection and fall-off detection work correctly
+  ✓ Robot returns to home after marble falls off
+  ✓ Data recorder (marble_plotter) logs CSV while marble is on plate
+  ✓ Plots generated: bird's-eye XY, commanded vs actual omega
+  ✓ On-demand plotting via /marble/plot_now service
+  ✓ CLOSED-LOOP BALANCING WORKING — marble stabilized on plate
 
-PENDING VERIFICATION:
-  ✗ Control direction (sign of angular.x / angular.y) not yet empirically confirmed
-  ✗ Robot gravity drift causes singularity when controller sends zero commands
-  ✗ Full closed-loop stability with marble on plate not yet demonstrated
+KNOWN LIMITATIONS:
+  - Balancing performance depends on LQR weight tuning (Q, R in lqr_math.py)
+  - OMEGA_LPF_TC = 0.08s filter introduces some lag in derivative feedback
+  - T_ROBOT = 0.35s PT1 model is approximate; actual robot lag varies
 
-NEXT STEPS:
-  1. Verify plate starts flat (α≈0°, β≈0°) at first odom reading
-  2. Confirm "Marble landed" triggers within 1-2s
-  3. Test control directions: does ball at +x lead to corrective tilt?
-  4. Tune gains if oscillation observed (adjust Q/R in lqr_math.py)
-  5. Address gravity drift at home configuration
+TUNABLE PARAMETERS (lqr_math.py / marble_servo_controller.py):
+  - DEFAULT_Q = diag([100, 100, 100, 100, 5, 0.5, 5, 0.5])
+  - DEFAULT_R = eye(2) * 1.0
+  - T_ROBOT   = 0.35 s
+  - MAX_RATE  = 45 deg/s (saturation limit for servo commands)
+  - OMEGA_LPF_TC = 0.08 s (EMA filter for velocity/omega estimates)
 
 ================================================================================
 TECHNOLOGY STACK
@@ -286,6 +382,6 @@ TECHNOLOGY STACK
   NumPy / SciPy         — LQR math (DARE solver, matrix exponential)
   tf2_ros               — coordinate frame transforms
   nav_msgs/Odometry     — marble ground-truth state
-  trajectory_msgs       — joint trajectory commands
+  std_srvs/Trigger      — plot_now service
 
 ================================================================================
