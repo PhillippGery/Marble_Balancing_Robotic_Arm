@@ -19,14 +19,15 @@ from builtin_interfaces.msg import Duration
 
 
 # ── Target pose ────────────────────────────────────────────────────────────────
-TARGET_X   = 0.133
+TARGET_X   = 0.233
 TARGET_Y   = 0.25
 TARGET_Z   = 0.8
 # TCP Z axis straight up = tool frame aligned with world frame = identity quaternion
-TARGET_QW  = 1.0
+
 TARGET_QX  = 0.0
 TARGET_QY  = 0.0
 TARGET_QZ  = 0.0
+TARGET_QW  = 1.0
 
 MOVE_TIME_SEC = 3   # seconds to reach the pose
 # ──────────────────────────────────────────────────────────────────────────────
@@ -145,7 +146,7 @@ class GoToPose(Node):
         self.get_logger().info('Controller active — sending trajectory.')
         self.traj_pub.publish(msg)
 
-        # Spin for move time + 0.5 s so the robot finishes before we exit
+        # Spin for move time + 1 s so the robot finishes before we exit
         deadline = self.get_clock().now().nanoseconds + (MOVE_TIME_SEC + 0.5) * 1_000_000_000
         while self.get_clock().now().nanoseconds < deadline:
             rclpy.spin_once(self, timeout_sec=0.1)

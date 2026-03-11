@@ -116,14 +116,19 @@ class MarbleServoController(Node):
         # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
 
-        # Actual plate angular velocity from Jacobian + joint_states (rad/s)
-        self._omega_alpha_actual = 0.0   # pitch rate (α̇, world Y-axis)
-        self._omega_beta_actual  = 0.0   # roll rate  (β̇, world X-axis)
+        # Plate angular velocities — differentiated from TF angles (sign-consistent by construction)
+        self._omega_alpha_actual = 0.0   # d(alpha)/dt = d(pitch)/dt
+        self._omega_beta_actual  = 0.0   # d(beta)/dt  = d(roll)/dt
+        self._prev_alpha  = None
+        self._prev_beta   = None
+        self._prev_tf_t   = None
+        self._prev_mx     = 0.0
+        self._prev_my     = 0.0
 
-        # Joint velocities computed from position differentiation
+        # Joint velocities (kept for Jacobian publication to plotter)
         self._q_dot      = np.zeros(6)
-        self._q_prev     = None          # previous joint positions
-        self._q_prev_t   = None          # timestamp of previous sample
+        self._q_prev     = None
+        self._q_prev_t   = None
 
         # Last command sent (kept for PT1 reference in lqr_math but not used in state)
         self._u_prev = np.zeros(2)
@@ -274,13 +279,28 @@ class MarbleServoController(Node):
         plate_x = tf.transform.translation.x
         plate_y = tf.transform.translation.y
 
-        # Marble position/velocity relative to plate centre (world frame)
-        self._state[0] = msg.pose.pose.position.x - plate_x
-        self._state[1] = msg.twist.twist.linear.x
-        self._state[2] = msg.pose.pose.position.y - plate_y
-        self._state[3] = msg.twist.twist.linear.y
+        # Timestamp from odom message (used for all differentiations below)
+        t_now = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
 
-        # Plate roll/pitch from TF quaternion
+        # ── Marble position relative to plate centre (world frame) ────────────
+        mx = (msg.pose.pose.position.x - plate_x)*-1.0   # invert X to match plate tilt directions (world frame)
+        my = (msg.pose.pose.position.y - plate_y)
+        # Differentiate world-frame position for marble velocity
+        # (avoids body-frame twist issue from p3d plugin)
+        if self._prev_tf_t is not None:
+            dt_odom = t_now - self._prev_tf_t
+            if 0.0 < dt_odom < 0.5:
+                vx_raw = (mx - self._prev_mx) / dt_odom
+                vy_raw = (my - self._prev_my) / dt_odom
+                vf = dt_odom / (OMEGA_LPF_TC + dt_odom)
+                self._state[1] += vf * (vx_raw - self._state[1])
+                self._state[3] += vf * (vy_raw - self._state[3])
+        self._prev_mx = mx
+        self._prev_my = my
+        self._state[0] = mx
+        self._state[2] = my
+
+        # ── Plate roll/pitch from TF quaternion ───────────────────────────────
         # alpha = pitch (Y-axis rotation) → controls X ball motion  (dxd/dt = -C*alpha)
         # beta  = roll  (X-axis rotation) → controls Y ball motion  (dyd/dt = -C*beta)
         q = tf.transform.rotation
@@ -288,7 +308,18 @@ class MarbleServoController(Node):
         alpha = pitch
         beta  = roll
 
-        # Fill state — omegas from Jacobian + joint_states (actual, not estimated)
+        # Differentiate TF angles → omega sign-consistent with alpha/beta by construction
+        if self._prev_alpha is not None:
+            if 0.0 < dt_odom < 0.5:
+                af = dt_odom / (OMEGA_LPF_TC + dt_odom)
+                self._omega_alpha_actual += af * ((alpha - self._prev_alpha) / dt_odom
+                                                   - self._omega_alpha_actual)
+                self._omega_beta_actual  += af * ((beta  - self._prev_beta)  / dt_odom
+                                                   - self._omega_beta_actual)
+        self._prev_alpha = alpha
+        self._prev_beta  = beta
+        self._prev_tf_t  = t_now
+
         self._state[4] = alpha
         self._state[5] = self._omega_alpha_actual
         self._state[6] = beta
@@ -368,8 +399,8 @@ class MarbleServoController(Node):
 
         # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
         u = -self._K @ self._state
-        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))
-        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
+        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))   # no negation
+        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))  # negation needed (kinematic asymmetry at home config)
 
         # Update PT1 state with the new command
         self._u_prev[0] = omega_alpha_cmd
