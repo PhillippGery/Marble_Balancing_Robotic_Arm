@@ -28,7 +28,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, Point
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 import numpy as np
@@ -154,6 +154,11 @@ class MarbleServoController(Node):
             Empty, '/marble/fell_off', _LATCHED)
         self._landed_pub = self.create_publisher(
             Empty, '/marble/landed', _LATCHED)
+
+        # Desired marble position — published by marble_lissajous_node (or stays 0/0)
+        self._desired = np.zeros(2)   # [x_d, y_d] in plate frame (m)
+        self._desired_sub = self.create_subscription(
+            Point, '/marble/desired_pos', self._desired_cb, 10)
 
         self._odom_sub = self.create_subscription(
             Odometry, '/marble/odom', self._odom_cb, 10)
@@ -326,13 +331,19 @@ class MarbleServoController(Node):
         self._state[7] = self._omega_beta_actual
 
         if self._landed:
-            self.get_logger().info(
-                f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
-                f'vx:{self._state[1]:+.4f} vy:{self._state[3]:+.4f}  '
-                f'α:{np.rad2deg(alpha):+.2f}° β:{np.rad2deg(beta):+.2f}°  '
-                f'ωα:{np.rad2deg(self._omega_alpha_actual):+.2f}°/s '
-                f'ωβ:{np.rad2deg(self._omega_beta_actual):+.2f}°/s',
-                throttle_duration_sec=0.5)
+            # self.get_logger().info(
+            #     f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
+            #     f'vx:{self._state[1]:+.4f} vy:{self._state[3]:+.4f}  '
+            #     f'α:{np.rad2deg(alpha):+.2f}° β:{np.rad2deg(beta):+.2f}°  '
+            #     f'ωα:{np.rad2deg(self._omega_alpha_actual):+.2f}°/s '
+            #     f'ωβ:{np.rad2deg(self._omega_beta_actual):+.2f}°/s',
+            #     throttle_duration_sec=0.5)
+
+            self.get_logger().info(f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}',
+                throttle_duration_sec=1.0)
+            
+          
+        
 
         # Landing detection
         marble_in_z = (
@@ -384,6 +395,11 @@ class MarbleServoController(Node):
         self._homing = False
         self.get_logger().info('Robot at home — ready for new marble.')
 
+    def _desired_cb(self, msg: Point):
+        """Update desired marble position from Lissajous node (or any setpoint publisher)."""
+        self._desired[0] = msg.x
+        self._desired[1] = msg.y
+
     # ── Control loop ──────────────────────────────────────────────────────────
 
     def _control_cb(self):
@@ -397,8 +413,11 @@ class MarbleServoController(Node):
                 self._twist_pub.publish(msg)   # zero twist keeps Servo happy
             return
 
-        # LQR: u = -K @ x  →  [omega_alpha_cmd, omega_beta_cmd] in world frame
-        u = -self._K @ self._state
+        # LQR: u = -K @ (x - x_d)  — subtract desired setpoint (default 0/0)
+        error = self._state.copy()
+        error[0] -= self._desired[0]   # x error
+        error[2] -= self._desired[1]   # y error
+        u = -self._K @ error
         omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))   # no negation
         omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))  # negation needed (kinematic asymmetry at home config)
 
@@ -414,11 +433,12 @@ class MarbleServoController(Node):
         msg.twist.angular.x = omega_beta_cmd    # world X rotation → beta → Y dynamics
         msg.twist.angular.y = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
 
-        self.get_logger().info(
-            f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '
-            f'ωβ={np.rad2deg(omega_beta_cmd):+.1f}°/s  '
-            f'angular x={np.rad2deg(msg.twist.angular.x):+.1f} y={np.rad2deg(msg.twist.angular.y):+.1f}°/s',
-            throttle_duration_sec=0.5)
+        # self.get_logger().info(
+        #     f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '
+        #     f'ωβ={np.rad2deg(omega_beta_cmd):+.1f}°/s  '
+        #     f'angular x={np.rad2deg(msg.twist.angular.x):+.1f} y={np.rad2deg(msg.twist.angular.y):+.1f}°/s',
+        #     throttle_duration_sec=1.0)
+        
 
         self._twist_pub.publish(msg)
 

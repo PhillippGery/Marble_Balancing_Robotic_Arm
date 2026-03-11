@@ -145,13 +145,13 @@
   <link name="marble_plate">
     <visual>
       <geometry>
-        <box size="0.70 0.70 0.005"/>
+        <box size="0.40 0.40 0.005"/>
       </geometry>
       <material name="plate_white"><color rgba="0.9 0.9 0.9 1.0"/></material>
     </visual>
     <collision>
       <geometry>
-        <box size="0.70 0.70 0.005"/>
+        <box size="0.40 0.40 0.005"/>
       </geometry>
     </collision>
     <inertial>

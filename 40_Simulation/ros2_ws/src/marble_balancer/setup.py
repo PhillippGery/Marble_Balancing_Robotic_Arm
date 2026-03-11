@@ -37,6 +37,7 @@ setup(
             'go_to_pose = marble_balancer.go_to_pose:main',
             'marble_spawner = marble_balancer.marble_spawner:main',
             'marble_plotter = marble_balancer.marble_plotter:main',
+            'marble_lissajous = marble_balancer.marble_lissajous_node:main',
         ],
     },
 )

@@ -26,6 +26,9 @@ def generate_launch_description():
     record_arg = DeclareLaunchArgument(
         'plot', default_value='false',
         description='Set to true to record marble data and plot after shutdown')
+    lissajous_arg = DeclareLaunchArgument(
+        'lissajous', default_value='false',
+        description='Set to true to drive the marble along a Lissajous curve')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -145,6 +148,17 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('plot')),
     )
 
+    # ── 9. Lissajous setpoint node (optional) ────────────────────────────────
+    # Publishes desired marble position on /marble/desired_pos.
+    # Controller always subscribes; when this node is not running, desired = (0,0).
+    lissajous_node = Node(
+        package='marble_balancer',
+        executable='marble_lissajous',
+        name='marble_lissajous',
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('lissajous')),
+    )
+
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
     #  ur_sim ──► move_group + servo_node
@@ -178,12 +192,13 @@ def generate_launch_description():
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node, plotter_node],
+            on_exit=[pilot_node, plotter_node, lissajous_node],
         )
     )
 
     return LaunchDescription([
         record_arg,
+        lissajous_arg,
         ur_sim,
         move_group_node,
         servo_node,
