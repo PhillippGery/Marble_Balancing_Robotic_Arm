@@ -28,7 +28,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TwistStamped, Point
+from geometry_msgs.msg import TwistStamped, Point, Vector3
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 import numpy as np
@@ -159,6 +159,16 @@ class MarbleServoController(Node):
         self._desired = np.zeros(2)   # [x_d, y_d] in plate frame (m)
         self._desired_sub = self.create_subscription(
             Point, '/marble/desired_pos', self._desired_cb, 10)
+
+        # TCP Lissajous — linear velocity to blend into servo command + feedforward tilt
+        self._tcp_lin_x  = 0.0
+        self._tcp_lin_y  = 0.0
+        self._ff_alpha   = 0.0   # feedforward desired alpha (rad)
+        self._ff_beta    = 0.0   # feedforward desired beta  (rad)
+        self.create_subscription(
+            TwistStamped, '/tcp/lissajous_vel', self._tcp_vel_cb, 10)
+        self.create_subscription(
+            Vector3, '/tcp/lissajous_ff_tilt', self._tcp_ff_cb, 10)
 
         self._odom_sub = self.create_subscription(
             Odometry, '/marble/odom', self._odom_cb, 10)
@@ -395,6 +405,16 @@ class MarbleServoController(Node):
         self._homing = False
         self.get_logger().info('Robot at home — ready for new marble.')
 
+    def _tcp_vel_cb(self, msg: TwistStamped):
+        """Receive TCP linear velocity from tcp_lissajous_node."""
+        self._tcp_lin_x = msg.twist.linear.x
+        self._tcp_lin_y = msg.twist.linear.y
+
+    def _tcp_ff_cb(self, msg: Vector3):
+        """Receive feedforward tilt from tcp_lissajous_node."""
+        self._ff_alpha = msg.x
+        self._ff_beta  = msg.y
+
     def _desired_cb(self, msg: Point):
         """Update desired marble position from Lissajous node (or any setpoint publisher)."""
         self._desired[0] = msg.x
@@ -417,6 +437,10 @@ class MarbleServoController(Node):
         error = self._state.copy()
         error[0] -= self._desired[0]   # x error
         error[2] -= self._desired[1]   # y error
+        # Feedforward tilt from TCP Lissajous: shift desired plate angle so LQR
+        # pre-compensates the pseudo-forces induced by TCP acceleration.
+        error[4] -= self._ff_alpha     # desired alpha offset
+        error[6] -= self._ff_beta      # desired beta offset
         u = -self._K @ error
         omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))   # no negation
         omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))  # negation needed (kinematic asymmetry at home config)
@@ -429,9 +453,12 @@ class MarbleServoController(Node):
         # Rotation around world X (angular.x) → tilts plate so +Y side goes up → marble in -Y → controls beta
         # Rotation around world Y (angular.y) → tilts plate so +X side goes up → marble in -X → controls alpha
         # No manual yaw rotation: servo handles base_link → plate_tcp transform via TF
-        msg.header.frame_id = 'base_link'
-        msg.twist.angular.x = omega_beta_cmd    # world X rotation → beta → Y dynamics
-        msg.twist.angular.y = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
+        msg.header.frame_id  = 'base_link'
+        msg.twist.angular.x  = omega_beta_cmd    # world X rotation → beta → Y dynamics
+        msg.twist.angular.y  = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
+        # TCP Lissajous linear motion (zeros when tcp_lissajous_node is not running)
+        msg.twist.linear.x   = self._tcp_lin_x
+        msg.twist.linear.y   = self._tcp_lin_y
 
         # self.get_logger().info(
         #     f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '

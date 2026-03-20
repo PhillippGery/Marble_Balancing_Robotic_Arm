@@ -29,6 +29,9 @@ def generate_launch_description():
     lissajous_arg = DeclareLaunchArgument(
         'lissajous', default_value='false',
         description='Set to true to drive the marble along a Lissajous curve')
+    tcp_lissajous_arg = DeclareLaunchArgument(
+        'tcp_lissajous', default_value='false',
+        description='Set to true to move the TCP along a Lissajous curve while balancing')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -171,6 +174,27 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('lissajous')),
     )
 
+    # ── 10. TCP Lissajous node (optional) ─────────────────────────────────────
+    # Moves the robot TCP along a Lissajous curve in XY while marble stays balanced.
+    # Publishes TCP linear velocity + feedforward tilt; activates after marble lands.
+    tcp_lissajous_node = Node(
+        package='marble_balancer',
+        executable='tcp_lissajous',
+        name='tcp_lissajous_node',
+        parameters=[{
+            'amplitude_x':  0.04,
+            'amplitude_y':  0.04,
+            'period':       20.0,
+            'fa':           1,
+            'fb':           2,
+            'delta':        1.5707963,   # pi/2
+            'ff_gain':      1.0,
+            'publish_rate': 30.0,
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('tcp_lissajous')),
+    )
+
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
     #  ur_sim ──► move_group + servo_node
@@ -204,13 +228,14 @@ def generate_launch_description():
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node, mux_node, plotter_node, lissajous_node],
+            on_exit=[pilot_node, mux_node, plotter_node, lissajous_node, tcp_lissajous_node],
         )
     )
 
     return LaunchDescription([
         record_arg,
         lissajous_arg,
+        tcp_lissajous_arg,
         ur_sim,
         move_group_node,
         servo_node,

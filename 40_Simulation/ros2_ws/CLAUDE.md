@@ -35,8 +35,10 @@ source install/setup.bash
 ros2 launch marble_balancer servo_balancer.launch.py
 # With data recording:
 ros2 launch marble_balancer servo_balancer.launch.py plot:=true
-# With Lissajous tracking:
+# With marble Lissajous tracking:
 ros2 launch marble_balancer servo_balancer.launch.py lissajous:=true plot:=true
+# With TCP Lissajous (arm traces figure-eight while balancing):
+ros2 launch marble_balancer servo_balancer.launch.py tcp_lissajous:=true plot:=true
 ```
 
 ### Test
@@ -50,10 +52,12 @@ colcon test-result --verbose
 | Node | File | Purpose |
 |------|------|---------|
 | `marble_servo_controller` | `marble_servo_controller.py` | 30 Hz LQR controller; main control loop |
+| `mux_controller` | `mux_controller.py` | Priority mux: manual overrides LQR; reverts after 0.5 s timeout |
 | `go_to_pose` | `go_to_pose.py` | Homing to balanced start position |
 | `marble_spawner` | `marble_spawner.py` | Spawns marble above plate via Gazebo service |
 | `marble_plotter` | `marble_plotter.py` | Records CSV + generates trajectory plots |
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
+| `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes velocity + feedforward tilt |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
 
 ## Key Topics / Services
@@ -62,9 +66,14 @@ colcon test-result --verbose
 |-------|------|-----------|
 | `/marble/odom` | `nav_msgs/Odometry` | Gazebo → controller (50 Hz) |
 | `/joint_states` | `sensor_msgs/JointState` | Gazebo → controller (100 Hz) |
-| `/servo_node/delta_twist_cmds` | `geometry_msgs/TwistStamped` | controller → MoveIt Servo (30 Hz) |
+| `/marble_servo/delta_twist_cmds` | `geometry_msgs/TwistStamped` | LQR controller → mux_controller (30 Hz) |
+| `/manual/delta_twist_cmds` | `geometry_msgs/TwistStamped` | operator → mux_controller (any rate) |
+| `/servo_node/delta_twist_cmds` | `geometry_msgs/TwistStamped` | mux_controller → MoveIt Servo (30 Hz) |
+| `/mux_controller/mode` | `std_msgs/String` | mux status: `"manual"` or `"auto"` |
 | `/marble/landed` / `/marble/fell_off` | `std_msgs/Empty` | spawner → plotter/lissajous (TRANSIENT_LOCAL) |
 | `/marble/desired_pos` | `geometry_msgs/Point` | lissajous → controller |
+| `/tcp/lissajous_vel` | `geometry_msgs/TwistStamped` | tcp_lissajous → controller (linear.x/y) |
+| `/tcp/lissajous_ff_tilt` | `geometry_msgs/Vector3` | tcp_lissajous → controller (feedforward tilt) |
 
 Services: `/spawn_entity`, `/delete_entity` (Gazebo), `/compute_ik` (MoveIt), `/servo_node/start_servo`
 
@@ -80,7 +89,7 @@ Services: `/spawn_entity`, `/delete_entity` (Gazebo), `/compute_ik` (MoveIt), `/
 See: `marble_servo_controller.py:control_callback`, `lqr_math.py:build_system_matrices`
 
 ## Launch Sequence
-Event-driven (not time-based): UR sim → MoveIt nodes → `go_to_pose` → `marble_spawner` → controller/plotter/lissajous
+Event-driven (not time-based): UR sim → MoveIt nodes → `go_to_pose` → `marble_spawner` → controller + mux + plotter/lissajous
 See: `launch/servo_balancer.launch.py`
 
 ## Additional Documentation
