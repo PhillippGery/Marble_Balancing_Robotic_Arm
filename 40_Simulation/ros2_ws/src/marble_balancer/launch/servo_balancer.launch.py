@@ -132,10 +132,22 @@ def generate_launch_description():
     )
 
     # ── 7. LQR marble balancing controller ───────────────────────────────────
+    # Output remapped so mux_controller sits between it and servo_node.
     pilot_node = Node(
         package='marble_balancer',
         executable='marble_servo_controller',
         name='marble_servo_controller',
+        remappings=[('/servo_node/delta_twist_cmds', '/marble_servo/delta_twist_cmds')],
+        output='screen',
+    )
+
+    # ── 7b. Mux: manual commands take priority over LQR ──────────────────────
+    # Listens on /manual/delta_twist_cmds; falls back to LQR after manual_timeout.
+    mux_node = Node(
+        package='marble_balancer',
+        executable='mux_controller',
+        name='mux_controller',
+        parameters=[{'manual_timeout': 0.5, 'publish_rate': 30.0}],
         output='screen',
     )
 
@@ -192,7 +204,7 @@ def generate_launch_description():
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node, plotter_node, lissajous_node],
+            on_exit=[pilot_node, mux_node, plotter_node, lissajous_node],
         )
     )
 

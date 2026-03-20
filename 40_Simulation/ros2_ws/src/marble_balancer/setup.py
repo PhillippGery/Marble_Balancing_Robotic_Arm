@@ -38,6 +38,7 @@ setup(
             'marble_spawner = marble_balancer.marble_spawner:main',
             'marble_plotter = marble_balancer.marble_plotter:main',
             'marble_lissajous = marble_balancer.marble_lissajous_node:main',
+            'mux_controller = marble_balancer.mux_controller:main',
         ],
     },
 )
