@@ -1,0 +1,25 @@
+[0.004s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz': CMAKE_PREFIX_PATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz:/opt/ros/humble /usr/bin/cmake --build /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz -- -j28 -l28
+[0.028s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz:/opt/ros/humble /usr/bin/cmake --build /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz -- -j28 -l28
+[0.029s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz': CMAKE_PREFIX_PATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz:/opt/ros/humble /usr/bin/cmake --install /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz
+[0.033s] -- Install configuration: ""
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/config
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/config/ur_controllers.yaml
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/launch
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_control.launch.py
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_moveit.launch.py
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ament_index/resource_index/package_run_dependencies/ur_simulation_gz
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ament_index/resource_index/parent_prefix_path/ur_simulation_gz
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.sh
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.dsv
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.sh
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.dsv
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.bash
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.sh
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.zsh
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.dsv
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/package.dsv
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ament_index/resource_index/packages/ur_simulation_gz
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig.cmake
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig-version.cmake
+[0.033s] -- Up-to-date: /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz/share/ur_simulation_gz/package.xml
+[0.034s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_description:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/install/ur_simulation_gz:/opt/ros/humble /usr/bin/cmake --install /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/cs558/build/ur_simulation_gz
