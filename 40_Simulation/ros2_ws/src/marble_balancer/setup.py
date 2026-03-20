@@ -40,6 +40,7 @@ setup(
             'marble_lissajous = marble_balancer.marble_lissajous_node:main',
             'mux_controller = marble_balancer.mux_controller:main',
             'tcp_lissajous  = marble_balancer.tcp_lissajous_node:main',
+            'marble_visualizer = marble_balancer.marble_visualizer:main',
         ],
     },
 )

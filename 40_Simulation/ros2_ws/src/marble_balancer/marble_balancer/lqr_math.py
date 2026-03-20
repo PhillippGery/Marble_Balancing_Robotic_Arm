@@ -108,7 +108,17 @@ def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
 
 
 # ── Default weights ───────────────────────────────────────────────────────────
-#  Position/velocity errors penalised heavily; angle/rate moderate; inputs = 1
-#  State:   [x, xd, y, yd, alpha, omega_alpha, beta, omega_beta]
-DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5])
+#  State:   [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
+#
+#  Tuning guide (see CLAUDE.md for full procedure):
+#    Q[0]/Q[2]  (x, y position)     — larger = tighter centering, more overshoot risk
+#    Q[1]/Q[3]  (vx, vy velocity)   — larger = more damping, reduces oscillation
+#    Q[4]/Q[6]  (alpha, beta angle) — larger = plate tilts less, slower response
+#    Q[5]/Q[7]  (omega_alpha/beta)  — larger = smoother rate changes
+#    R diagonal                     — larger = less aggressive overall, both axes
+#
+#  Y axis (vy/omega_beta) uses higher weights than X because the TCP Lissajous
+#  drives Y at 2× frequency (fb=2), producing 4× the pseudo-force vs X.
+DEFAULT_Q = np.diag([100.0, 100.0, 200.0, 400.0, 5.0, 0.5, 5.0, 1.0])
+#                     x      vx     y      vy↑    α    ωα   β    ωβ↑
 DEFAULT_R = np.eye(2) * 5.0

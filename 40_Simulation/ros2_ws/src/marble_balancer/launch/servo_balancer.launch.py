@@ -182,13 +182,13 @@ def generate_launch_description():
         executable='tcp_lissajous',
         name='tcp_lissajous_node',
         parameters=[{
-            'amplitude_x':  0.04,
-            'amplitude_y':  0.04,
-            'period':       20.0,
+            'amplitude_x':  0.30, #was 0.4 both
+            'amplitude_y':  0.30,
+            'period':       12.0,
             'fa':           1,
             'fb':           2,
             'delta':        1.5707963,   # pi/2
-            'ff_gain':      1.0,
+            'ff_gain':      0.0,   # start at 0 (disabled); try -1.0 if oscillation worsens with 1.0
             'publish_rate': 30.0,
         }],
         output='screen',
@@ -225,10 +225,20 @@ def generate_launch_description():
         )
     )
 
+    # ── 11. Real-time 2D marble position visualizer ───────────────────────────
+    visualizer_node = Node(
+        package='marble_balancer',
+        executable='marble_visualizer',
+        name='marble_visualizer',
+        parameters=[{'trail_length': 200, 'update_rate': 20.0}],
+        output='screen',
+    )
+
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node, mux_node, plotter_node, lissajous_node, tcp_lissajous_node],
+            on_exit=[pilot_node, mux_node, visualizer_node,
+                     plotter_node, lissajous_node, tcp_lissajous_node],
         )
     )
 

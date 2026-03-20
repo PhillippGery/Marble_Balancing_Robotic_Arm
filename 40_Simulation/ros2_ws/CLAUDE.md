@@ -39,6 +39,11 @@ ros2 launch marble_balancer servo_balancer.launch.py plot:=true
 ros2 launch marble_balancer servo_balancer.launch.py lissajous:=true plot:=true
 # With TCP Lissajous (arm traces figure-eight while balancing):
 ros2 launch marble_balancer servo_balancer.launch.py tcp_lissajous:=true plot:=true
+# Override TCP Lissajous parameters at launch time:
+ros2 launch marble_balancer servo_balancer.launch.py tcp_lissajous:=true --ros-args -p tcp_lissajous_node:amplitude_x:=0.10 -p tcp_lissajous_node:amplitude_y:=0.10 -p tcp_lissajous_node:period:=10.0
+# Tune while running (takes effect next tick — parameters are read at startup only):
+# ros2 param set /tcp_lissajous_node amplitude_x 0.10
+# ros2 param set /tcp_lissajous_node period 10.0
 ```
 
 ### Test
@@ -58,6 +63,7 @@ colcon test-result --verbose
 | `marble_plotter` | `marble_plotter.py` | Records CSV + generates trajectory plots |
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
 | `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes velocity + feedforward tilt |
+| `marble_visualizer` | `marble_visualizer.py` | Live 2D matplotlib window: ball position, 200-pt trail, plate boundary, setpoint |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
 
 ## Key Topics / Services
@@ -91,6 +97,40 @@ See: `marble_servo_controller.py:control_callback`, `lqr_math.py:build_system_ma
 ## Launch Sequence
 Event-driven (not time-based): UR sim → MoveIt nodes → `go_to_pose` → `marble_spawner` → controller + mux + plotter/lissajous
 See: `launch/servo_balancer.launch.py`
+
+## Controller Tuning
+
+All LQR weights are in `lqr_math.py:DEFAULT_Q` and `DEFAULT_R` (lines ~113-114).
+Rebuild required after any change: `colcon build --symlink-install --packages-select marble_balancer`
+
+### Q diagonal — state cost weights
+```
+Index:  0      1      2      3      4     5      6     7
+State:  x      vx     y      vy     α     ωα     β     ωβ
+```
+| Weight | Effect of increasing |
+|--------|----------------------|
+| Q[0]/Q[2] (position) | Tighter centering, more overshoot risk |
+| Q[1]/Q[3] (velocity) | More damping — **raise Q[3] to fix Y oscillation** |
+| Q[4]/Q[6] (angle) | Plate tilts less aggressively, slower response |
+| Q[5]/Q[7] (rate) | Smoother rate changes |
+
+**Y axis (Q[3], Q[7]) uses higher weights** because TCP Lissajous drives Y at 2× frequency (`fb=2`), producing 4× the pseudo-force vs X.
+
+### R — control effort cost
+`DEFAULT_R = np.eye(2) * 5.0` — increase to reduce aggressiveness on both axes simultaneously.
+
+### Feedforward gain (`ff_gain` in `servo_balancer.launch.py`)
+Scales the tilt pre-compensation for TCP acceleration. Start at `0.0` to disable; try `1.0` or `-1.0` to find correct sign. At slow speeds the effect is tiny (<0.05°).
+
+### Velocity filter (`OMEGA_LPF_TC` in `marble_servo_controller.py:76`)
+Low-pass time constant for velocity estimation. Increase (0.08 → 0.12) if oscillation looks high-frequency/twitchy. Do not exceed ~0.20 s (PT1 limit T_ROBOT = 0.35 s).
+
+### Tuning order for Y oscillation
+1. Set `ff_gain: 0.0` → test (isolates feedforward as cause)
+2. Raise `Q[3]`: 200 → 300 → 400 (one step at a time)
+3. If both axes slow: raise `R`: 5.0 → 8.0
+4. If twitchy: raise `OMEGA_LPF_TC`: 0.08 → 0.12
 
 ## Additional Documentation
 - `.claude/docs/architectural_patterns.md` — PT1 model, Jacobian velocity, event-driven launch, LQR design, QoS patterns
