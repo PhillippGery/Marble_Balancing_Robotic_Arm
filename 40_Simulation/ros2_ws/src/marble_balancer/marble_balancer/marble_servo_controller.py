@@ -29,7 +29,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import TwistStamped, Point, Vector3
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Float64MultiArray
 from std_srvs.srv import Trigger
 import numpy as np
 import tf2_ros
@@ -148,6 +148,9 @@ class MarbleServoController(Node):
         # ── Publishers / subscribers ──────────────────────────────────────────
         self._twist_pub = self.create_publisher(
             TwistStamped, '/servo_node/delta_twist_cmds', 10)
+        # LQR state published for rl_residual_node (8-D + 2-D LQR output = 10 floats)
+        self._state_pub = self.create_publisher(
+            Float64MultiArray, '/marble/lqr_state', 10)
         self._plate_omega_pub = self.create_publisher(
             TwistStamped, '/marble/plate_omega', 10)
         self._fell_off_pub = self.create_publisher(
@@ -468,6 +471,11 @@ class MarbleServoController(Node):
         
 
         self._twist_pub.publish(msg)
+
+        # Publish state + LQR output for rl_residual_node (10 floats)
+        state_msg = Float64MultiArray()
+        state_msg.data = list(self._state) + [omega_alpha_cmd, omega_beta_cmd]
+        self._state_pub.publish(state_msg)
 
 
 def main(args=None):

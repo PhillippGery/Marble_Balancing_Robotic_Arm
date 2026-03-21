@@ -64,6 +64,7 @@ colcon test-result --verbose
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
 | `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes velocity + feedforward tilt |
 | `marble_visualizer` | `marble_visualizer.py` | Live 2D matplotlib window: ball position, 200-pt trail, plate boundary, setpoint |
+| `rl_residual` | `rl_residual_node.py` | SAC residual controller: loads trained policy, adds Δω to LQR output |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
 
 ## Key Topics / Services
@@ -98,6 +99,54 @@ See: `marble_servo_controller.py:control_callback`, `lqr_math.py:build_system_ma
 Event-driven (not time-based): UR sim → MoveIt nodes → `go_to_pose` → `marble_spawner` → controller + mux + plotter/lissajous
 See: `launch/servo_balancer.launch.py`
 
+## Reinforcement Learning (Residual Controller)
+
+Training files are in `src/marble_balancer/rl_training/` — run standalone, no ROS needed.
+
+### Install deps (once)
+```bash
+pip install gymnasium stable-baselines3[extra] tensorboard
+pip install --upgrade matplotlib   # system matplotlib is NumPy-1.x compiled; must upgrade
+```
+
+### Train
+```bash
+cd src/marble_balancer/rl_training
+python train.py                          # 600k steps, 4 envs, starts at stage 0
+python train.py --timesteps 1000000 --envs 8
+python train.py --load models/best_model.zip  # continue training
+# Monitor: tensorboard --logdir tensorboard/
+```
+
+### Evaluate
+```bash
+python eval.py --model models/best_model.zip --norm models/vec_normalize.pkl
+```
+
+### Deploy in Gazebo
+```bash
+ros2 launch marble_balancer servo_balancer.launch.py \
+  rl:=true \
+  rl_model:=$(pwd)/src/marble_balancer/rl_training/models/best_model.zip \
+  rl_norm:=$(pwd)/src/marble_balancer/rl_training/models/vec_normalize.pkl \
+  rl_stage:=3
+```
+
+### Architecture
+- `ball_plate_env.py` — Gymnasium env: PT1 physics + Coulomb/viscous friction + domain randomisation
+- `train.py` — SAC + curriculum callback (4 stages, clip ±2→±20°/s)
+- `rl_residual_node.py` — ROS2 node: loads policy, publishes LQR+residual to `/marble_servo_rl/delta_twist_cmds`
+- `marble_servo_controller.py` publishes 10-D state on `/marble/lqr_state` for the RL node
+- When `rl:=true`, `mux_controller` subscribes to `/marble_servo_rl/` instead of `/marble_servo/`
+
+### Curriculum stages
+| Stage | Residual clip | Lissajous | Perturbations |
+|-------|--------------|-----------|---------------|
+| 0 | ±2°/s | off | off |
+| 1 | ±5°/s | off | on |
+| 2 | ±10°/s | on | on |
+| 3 | ±20°/s | on | on |
+
 ## Controller Tuning
 
 All LQR weights are in `lqr_math.py:DEFAULT_Q` and `DEFAULT_R` (lines ~113-114).
@@ -116,6 +165,9 @@ State:  x      vx     y      vy     α     ωα     β     ωβ
 | Q[5]/Q[7] (rate) | Smoother rate changes |
 
 **Y axis (Q[3], Q[7]) uses higher weights** because TCP Lissajous drives Y at 2× frequency (`fb=2`), producing 4× the pseudo-force vs X.
+
+**Original (baseline) values:** `[100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5]`
+**Current values:** `[100.0, 100.0, 200.0, 400.0, 5.0, 0.5, 5.0, 1.0]` — Q[2] and Q[3] raised for Y, Q[7] raised for roll rate damping
 
 ### R — control effort cost
 `DEFAULT_R = np.eye(2) * 5.0` — increase to reduce aggressiveness on both axes simultaneously.

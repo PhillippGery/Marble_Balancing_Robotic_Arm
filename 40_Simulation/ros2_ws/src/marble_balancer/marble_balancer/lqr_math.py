@@ -119,6 +119,7 @@ def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
 #
 #  Y axis (vy/omega_beta) uses higher weights than X because the TCP Lissajous
 #  drives Y at 2× frequency (fb=2), producing 4× the pseudo-force vs X.
+# Original values: DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5])
 DEFAULT_Q = np.diag([100.0, 100.0, 200.0, 400.0, 5.0, 0.5, 5.0, 1.0])
 #                     x      vx     y      vy↑    α    ωα   β    ωβ↑
 DEFAULT_R = np.eye(2) * 5.0

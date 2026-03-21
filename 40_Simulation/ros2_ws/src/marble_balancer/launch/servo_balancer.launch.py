@@ -32,6 +32,18 @@ def generate_launch_description():
     tcp_lissajous_arg = DeclareLaunchArgument(
         'tcp_lissajous', default_value='false',
         description='Set to true to move the TCP along a Lissajous curve while balancing')
+    rl_arg = DeclareLaunchArgument(
+        'rl', default_value='false',
+        description='Set to true to enable the SAC residual controller')
+    rl_model_arg = DeclareLaunchArgument(
+        'rl_model', default_value='',
+        description='Path to trained SAC model .zip file')
+    rl_norm_arg = DeclareLaunchArgument(
+        'rl_norm', default_value='',
+        description='Path to VecNormalize stats .pkl file')
+    rl_stage_arg = DeclareLaunchArgument(
+        'rl_stage', default_value='3',
+        description='Curriculum stage (0-3) controlling residual clip budget')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -225,7 +237,38 @@ def generate_launch_description():
         )
     )
 
-    # ── 11. Real-time 2D marble position visualizer ───────────────────────────
+    # ── 11. SAC residual controller (optional) ────────────────────────────────
+    # Subscribes to /marble/lqr_state, adds RL residual, publishes to
+    # /marble_servo_rl/delta_twist_cmds. mux_controller auto_topic is remapped
+    # to /marble_servo_rl/delta_twist_cmds when rl:=true.
+    rl_residual_node = Node(
+        package='marble_balancer',
+        executable='rl_residual',
+        name='rl_residual_node',
+        parameters=[{
+            'rl_model': LaunchConfiguration('rl_model'),
+            'rl_norm':  LaunchConfiguration('rl_norm'),
+            'rl_stage': LaunchConfiguration('rl_stage'),
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('rl')),
+    )
+
+    # When RL is active, mux listens to RL output instead of raw LQR
+    mux_node_rl = Node(
+        package='marble_balancer',
+        executable='mux_controller',
+        name='mux_controller',
+        parameters=[{
+            'manual_timeout': 0.5,
+            'publish_rate':   30.0,
+            'auto_topic':     '/marble_servo_rl/delta_twist_cmds',
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('rl')),
+    )
+
+    # ── 12. Real-time 2D marble position visualizer ───────────────────────────
     visualizer_node = Node(
         package='marble_balancer',
         executable='marble_visualizer',
@@ -237,7 +280,8 @@ def generate_launch_description():
     on_marble_spawned = RegisterEventHandler(
         OnProcessExit(
             target_action=marble_spawn,
-            on_exit=[pilot_node, mux_node, visualizer_node,
+            on_exit=[pilot_node, mux_node, mux_node_rl,
+                     rl_residual_node, visualizer_node,
                      plotter_node, lissajous_node, tcp_lissajous_node],
         )
     )
@@ -246,6 +290,10 @@ def generate_launch_description():
         record_arg,
         lissajous_arg,
         tcp_lissajous_arg,
+        rl_arg,
+        rl_model_arg,
+        rl_norm_arg,
+        rl_stage_arg,
         ur_sim,
         move_group_node,
         servo_node,

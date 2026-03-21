@@ -27,9 +27,11 @@ class MuxController(Node):
 
         self.declare_parameter('manual_timeout', 0.5)
         self.declare_parameter('publish_rate', 30.0)
+        self.declare_parameter('auto_topic', '/marble_servo/delta_twist_cmds')
 
         self._manual_timeout = self.get_parameter('manual_timeout').value
         publish_rate = self.get_parameter('publish_rate').value
+        auto_topic   = self.get_parameter('auto_topic').value
 
         self._last_auto_msg: TwistStamped | None = None
         self._last_manual_msg: TwistStamped | None = None
@@ -38,7 +40,7 @@ class MuxController(Node):
 
         self.create_subscription(
             TwistStamped,
-            '/marble_servo/delta_twist_cmds',
+            auto_topic,
             self._auto_cb,
             10,
         )
