@@ -205,7 +205,7 @@ The continuous system is discretized at $\Delta t = 1/30\,\mathrm{s}$ using the 
   \label{eq:zoh}
 \end{equation}
 %
-implemented via \texttt{scipy.linalg.expm}.
+
 
 \subsubsection{LQR Gain Computation}
 The discrete-time LQR gain $\mathbf{K} \in \mathbb{R}^{2\times 8}$ is computed once at node startup by
@@ -255,19 +255,19 @@ The following describes observed system behavior during initial simulation runs.
 \textbf{Homing and spawning:} The arm reliably reaches the home pose (TCP at approximately
 $[0.233,\;0.25,\;0.8]\,\mathrm{m}$ in the world frame) before the marble is dropped. The TF-based spawn
 calculation correctly places the marble $80\,\mathrm{mm}$ above the plate surface regardless of minor home
-pose variation. Landing detection — 5 consecutive odometry ticks within $\pm3\,\mathrm{cm}$ of the plate
+pose variation. Landing detection — 5 consecutive odometry ticks within $\pm1\,\mathrm{cm}$ of the plate
 surface with $|\dot{z}| < 0.50\,\mathrm{m/s}$ — triggers Servo activation reliably without false
 positives.
 
 \textbf{Stabilization — baseline LQR:} With the default Q/R weights and no trajectory tracking, the LQR
 controller successfully stabilizes the marble near the plate center. The marble settles from an initial
-drop within approximately 2--3 seconds, with residual oscillation on the order of $\pm1$--$2\,\mathrm{cm}$
+drop within approximately 2 seconds, with residual oscillation on the order of $1 \mathrm{cm}$
 in steady state. Both $X$ and $Y$ axes stabilize, confirming correct state estimation and sign conventions
 on both channels.
 
 \textbf{Fell-off recovery:} When the marble rolls off the plate edge, the system correctly detects the
 fall (marble $z$ drops more than $5\,\mathrm{cm}$ below the plate surface), stops Servo, re-homes the arm,
-and re-spawns the marble autonomously. This recovery cycle completes in approximately 8--10 seconds.
+and re-spawns the marble is possible. This recovery cycle completes in approximately 8--10 seconds, and is a preparation for future steps.
 
 % =============================================================================
 \section{Extensions}
@@ -349,6 +349,14 @@ in $X$ for equal amplitudes, placing a significantly higher disturbance load on 
 \section{Future Work}
 % =============================================================================
 
+\subsection{Kalman Filter for State Estimation}
+Marble velocity and plate angular velocity are currently estimated by differentiating position measurements
+and filtering with a simple exponential moving average. A planned improvement replaces this with a
+\textbf{Kalman Filter} or \textbf{Extended Kalman Filter} that fuses odometry, joint state, and TF data
+using the ball-plate PT1 model as the process model. This will provide optimal state estimates under
+Gaussian noise assumptions, reduce derivative noise without adding excessive phase lag, and improve
+controller performance.
+
 \subsection{Reinforcement Learning Residual Controller}
 A Soft Actor-Critic (SAC) residual policy is partially implemented. The training environment
 (\texttt{ball\_plate\_env.py}) simulates the PT1 ball-plate physics with Coulomb/viscous friction and
@@ -357,26 +365,14 @@ of increasing residual authority ($\pm 2 \to \pm 20\,^\circ/\mathrm{s}$) with Li
 external perturbations added progressively. The next step is to complete training, evaluate transfer to
 Gazebo, and tune the LQR + RL blending.
 
-\subsection{Nonlinear / Adaptive Control}
-The linear model assumes small plate angles and ignores rolling friction. At higher TCP velocities or
-Lissajous amplitudes these nonlinearities become significant. A planned extension is either to add a
-friction compensation term using identified Coulomb and viscous friction coefficients, or to switch to a
-nonlinear model predictive controller (NMPC) that handles large-angle kinematics.
 
-\subsection{Hardware Transfer}
+\subsection{Hardware Transfer (Optional)}
 The simulation is designed to match real UR5e hardware: the PT1 delay model uses a measured actuator time
 constant, and \texttt{libgazebo\_ros\_p3d} is replaceable with a physical vision system (e.g., overhead
 camera with blob detection). The next milestone will validate the controller on a physical UR5e arm,
 assessing whether the PT1 model adequately captures real actuator dynamics and whether the LQR gains
 transfer without retuning.
 
-\subsection{Kalman Filter for State Estimation}
-Marble velocity and plate angular velocity are currently estimated by differentiating position measurements
-and filtering with a simple exponential moving average. A planned improvement replaces this with a
-\textbf{Kalman Filter} or \textbf{Extended Kalman Filter} that fuses odometry, joint state, and TF data
-using the ball-plate PT1 model as the process model. This will provide optimal state estimates under
-Gaussian noise assumptions, reduce derivative noise without adding excessive phase lag, and improve
-controller performance.
 
 \subsection{Quantitative Performance Metrics}
 Current evaluation is qualitative. Future work will compute RMS centering error, mean time to stabilize
