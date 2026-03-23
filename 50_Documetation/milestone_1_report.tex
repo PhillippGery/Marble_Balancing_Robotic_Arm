@@ -73,11 +73,7 @@ macros. A $0.70\,\mathrm{m} \times 0.70\,\mathrm{m} \times 5\,\mathrm{mm}$ plate
 $0.15\,\mathrm{kg}$) is rigidly attached to the robot's \texttt{tool0} link. A virtual frame
 \texttt{plate\_tcp} sits at the plate's top surface and serves as the MoveIt Servo control reference frame.
 
-The robot home configuration is defined in the SRDF as joint angles
-$[0,\,-\pi/2,\,\pi/2,\,-\pi/2,\,-\pi/2,\,0]$, which guarantees zero roll and zero pitch on the plate at
-startup. The \texttt{go\_to\_pose} node commands the arm directly to these joint angles (rather than using
-IK) to avoid tilted-plate solutions that the KDL solver returns when the orientation constraint is applied
-to the wrong frame.
+The robot home configuration is defined in the SRDF as joint angles $[0,\,-\pi/2,\,\pi/2,\,-\pi/2,\,-\pi/2,\,0]$, which guarantees zero roll and zero pitch on the plate at startup. The \texttt{go\_to\_pose} node computes the corresponding inverse kinematics solution via MoveIt and commands the arm to this home position, which serves as the initial pose for placing the marble as well as the recovery position the robot returns to after each failure.
 
 \subsubsection{Marble}
 The marble is a $15\,\mathrm{mm}$ radius, $50\,\mathrm{g}$ sphere defined in SDF format. Gazebo's ODE
