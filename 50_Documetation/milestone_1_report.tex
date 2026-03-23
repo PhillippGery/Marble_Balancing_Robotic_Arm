@@ -1,0 +1,315 @@
+\documentclass[journal]{IEEEtran}
+
+\usepackage{cite}
+\ifCLASSINFOpdf
+  \usepackage[pdftex]{graphicx}
+\else
+  \usepackage[dvips]{graphicx}
+\fi
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+
+\title{Dynamic Spatial Stabilization and Trajectory Tracking of a Spherical Agent on a 6-DOF Robotic Platform}
+
+\author{Phillipp Gery (pgery), Kevin Biju Mathew (kb)%
+  \thanks{College of Engineering, Purdue University, Indiana, USA.}}
+
+\markboth{Course Project Milestone 1: Robotics Control, March~2026}%
+{Gery \MakeLowercase{\textit{et al.}}: Autonomous Marble Balancing}
+
+\maketitle
+
+\begin{abstract}
+  This report presents the implementation of a real-time discrete-time Linear Quadratic Regulator (LQR)
+  controller for stabilizing a marble on the end-effector plate of a UR5e 6-DOF robotic arm in simulation.
+  The simulation environment is built on Gazebo Classic, ROS2 Humble, and MoveIt2 Servo. An 8-dimensional
+  state-space model captures the coupled ball-plate dynamics and the robot's first-order (PT1) actuator lag.
+  The LQR gain is computed offline via the Discrete Algebraic Riccati Equation and applied at 30\,Hz.
+  Preliminary results demonstrate successful marble stabilization, autonomous recovery after plate departure,
+  and Lissajous trajectory tracking. Future work includes a Soft Actor-Critic residual policy, feedforward
+  tilt compensation, and hardware transfer to a physical UR5e arm.
+\end{abstract}
+
+\begin{IEEEkeywords}
+  ROS 2, Gazebo, LQR, MoveIt Servo, UR5e, Trajectory Tracking, Ball-Plate System.
+\end{IEEEkeywords}
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+\IEEEPARstart{P}{recision} stabilization of unconstrained objects is a fundamental challenge in robotics.
+This project implements real-time feedback control of a UR5e 6-DOF robotic arm that balances a marble on a
+flat plate rigidly attached to the robot's end-effector. The arm tilts the plate via small angular velocity
+commands, keeping the marble centered. The full system operates in simulation using
+\textbf{Gazebo Classic}, \textbf{ROS2 Humble}, and \textbf{MoveIt2 Servo}.
+
+The problem couples two dynamical systems: the rolling dynamics of the marble on the plate, and the servo
+dynamics of the arm responding to velocity commands. Marble acceleration depends on plate tilt angle, while
+the arm's response to commands is subject to inherent actuator lag. A classical discrete-time
+\textbf{Linear Quadratic Regulator (LQR)} serves as the primary controller, designed around a physics model
+that explicitly captures both the ball-plate coupling and the robot's first-order (PT1) delay.
+
+Unlike traditional ``Labyrinth'' setups where the board orientation is directly actuated, this project
+employs \textit{active surface control}: a 6-DOF arm adjusts end-effector orientation in real time while
+simultaneously being capable of tracing arbitrary 3D paths with the TCP. Optional modes extend the base
+system to trajectory tracking: the marble can follow a Lissajous curve setpoint, the robot TCP can trace a
+figure-eight path, and a Soft Actor-Critic (SAC) residual controller can augment the LQR output. This
+report covers the simulation setup and LQR classical controller constituting Milestone 1.
+
+% =============================================================================
+\section{Methods}
+% =============================================================================
+
+\subsection{Simulation Environment}
+
+\subsubsection{Robot and World}
+The UR5e arm is loaded into Gazebo Classic via a URDF xacro that uses the standard \texttt{ur\_description}
+macros. A $0.40\,\mathrm{m} \times 0.40\,\mathrm{m} \times 5\,\mathrm{mm}$ acrylic plate is rigidly
+attached to the robot's \texttt{tool0} link. A virtual frame \texttt{plate\_tcp} sits at the plate's top
+surface and serves as the control reference frame. The simulated world contains only the robot, the plate,
+and the marble.
+
+\subsubsection{Marble}
+The marble is a $15\,\mathrm{mm}$ radius, $50\,\mathrm{g}$ sphere defined in SDF format. Gazebo's ODE
+physics engine simulates rolling contact on the plate with a friction coefficient of 0.6. The marble is
+dynamically spawned above the plate after the arm reaches its home pose via the \texttt{/spawn\_entity}
+Gazebo service. The spawn position is computed at runtime from a TF lookup of the \texttt{plate\_tcp}
+frame, so no coordinates are hardcoded.
+
+\subsubsection{State Sensing}
+Three sensing channels provide the full 8-D state:
+
+\begin{itemize}
+  \item \textbf{Marble position and velocity:} The \texttt{libgazebo\_ros\_p3d} Gazebo plugin publishes
+    ground-truth odometry at 50\,Hz on \texttt{/marble/odom}. Velocity is estimated by numerically
+    differentiating successive positions and filtering with an exponential moving average
+    ($\tau = 0.08\,\mathrm{s}$).
+  \item \textbf{Plate orientation:} Obtained by querying the TF tree for the
+    \texttt{world} $\rightarrow$ \texttt{plate\_tcp} transform and converting the quaternion to roll/pitch
+    Euler angles at the odometry rate ($\approx$50\,Hz).
+  \item \textbf{Plate angular velocity:} Computed by numerically differentiating the TF-derived Euler
+    angles ($\alpha$, $\beta$) in the same 50\,Hz odometry callback and smoothed with the same exponential
+    moving average. An earlier Jacobian-based approach ($\mathbf{J}_\mathrm{rot}\,\dot{\mathbf{q}}$ from
+    100\,Hz joint states) was abandoned because it produced a sign inconsistency relative to the TF-derived
+    angles at the robot's home configuration, causing oscillation in the pitch channel.
+\end{itemize}
+
+\subsubsection{Initialization Sequence}
+The system uses an event-driven launch sequence (no fixed time delays). After Gazebo and MoveIt load, a
+\texttt{go\_to\_pose} node commands the arm to its home Cartesian pose via inverse kinematics and a
+\texttt{JointTrajectoryController} action. When that node exits, the \texttt{marble\_spawner} fires, drops
+the marble, and exits — triggering the controller and auxiliary nodes via ROS2 \texttt{OnProcessExit}
+launch event handlers.
+
+% -----------------------------------------------------------------------------
+\subsection{Classical Controller: Discrete-Time LQR}
+% -----------------------------------------------------------------------------
+
+\subsubsection{Physical Model}
+The ball-plate system is modeled as a planar coupled system. Under the small-angle rolling assumption for a
+solid sphere, ball acceleration along each axis is proportional to plate tilt:
+%
+\begin{equation}
+  a_\mathrm{ball} = -C\,\theta_\mathrm{plate}, \qquad
+  C = \frac{Mg}{M + I/r^2} \approx 7.0\,\mathrm{m/s^2},
+  \label{eq:ball_accel}
+\end{equation}
+%
+where $M = 0.05\,\mathrm{kg}$, $I = \tfrac{2}{5}Mr^2$, $r = 0.015\,\mathrm{m}$, and
+$g = 9.81\,\mathrm{m/s^2}$.
+
+The robot arm's response to angular velocity commands is modeled as a first-order (PT1) lag with time
+constant $T_\mathrm{robot} = 0.35\,\mathrm{s}$:
+%
+\begin{equation}
+  \dot{\omega} = -\frac{\omega - \omega_\mathrm{cmd}}{T_\mathrm{robot}}.
+  \label{eq:pt1}
+\end{equation}
+%
+This captures the combined effect of communication latency, controller bandwidth, and joint servo dynamics.
+
+\subsubsection{State Vector (8-D)}
+The full state vector is:
+%
+\begin{equation}
+  \mathbf{x} = \begin{bmatrix}
+    x & v_x & y & v_y & \alpha & \omega_\alpha & \beta & \omega_\beta
+  \end{bmatrix}^\top,
+  \label{eq:state}
+\end{equation}
+%
+where $(x,y)$ are marble positions on the plate, $(v_x, v_y)$ are marble velocities, $\alpha$ (pitch)
+and $\beta$ (roll) are plate tilt angles governing $x$- and $y$-ball motion respectively, and
+$\omega_\alpha$, $\omega_\beta$ are their rates of change (PT1 states). The two axes are decoupled in the
+model, forming an $8\times 8$ system.
+
+\subsubsection{Continuous-Time System Matrices}
+The continuous-time state-space matrices $\mathbf{A} \in \mathbb{R}^{8\times 8}$ and
+$\mathbf{B} \in \mathbb{R}^{8\times 2}$ are:
+%
+\begin{equation}
+  \mathbf{A} = \begin{bmatrix}
+    0 & 1 & 0 & 0 &  0    & 0 &  0    & 0 \\
+    0 & 0 & 0 & 0 & -C    & 0 &  0    & 0 \\
+    0 & 0 & 0 & 1 &  0    & 0 &  0    & 0 \\
+    0 & 0 & 0 & 0 &  0    & 0 & -C    & 0 \\
+    0 & 0 & 0 & 0 &  0    & 1 &  0    & 0 \\
+    0 & 0 & 0 & 0 & -1/T  & 0 &  0    & 0 \\
+    0 & 0 & 0 & 0 &  0    & 0 &  0    & 1 \\
+    0 & 0 & 0 & 0 &  0    & 0 & -1/T  & 0
+  \end{bmatrix},
+  \label{eq:A}
+\end{equation}
+%
+\begin{equation}
+  \mathbf{B} = \begin{bmatrix}
+    0 & 0 \\ 0 & 0 \\ 0 & 0 \\ 0 & 0 \\
+    0 & 0 \\ 1/T & 0 \\ 0 & 0 \\ 0 & 1/T
+  \end{bmatrix},
+  \label{eq:B}
+\end{equation}
+%
+where $T = T_\mathrm{robot}$. Control inputs
+$\mathbf{u} = [\omega_{\alpha,\mathrm{cmd}},\; \omega_{\beta,\mathrm{cmd}}]^\top$ are angular velocity
+commands sent to MoveIt Servo.
+
+\subsubsection{Discretization (Zero-Order Hold)}
+The continuous system is discretized using the matrix-exponential method at $\Delta t = 1/30\,\mathrm{s}$:
+%
+\begin{equation}
+  \begin{bmatrix} \mathbf{A}_d & \mathbf{B}_d \\ \mathbf{0} & \mathbf{0} \end{bmatrix}
+  = \exp\!\left(
+    \begin{bmatrix} \mathbf{A} & \mathbf{B} \\ \mathbf{0} & \mathbf{0} \end{bmatrix} \Delta t
+  \right),
+  \label{eq:zoh}
+\end{equation}
+%
+implemented via \texttt{scipy.linalg.expm}, ensuring accurate discretization of the coupled dynamics.
+
+\subsubsection{LQR Gain Computation}
+The discrete-time LQR gain $\mathbf{K}$ is found by solving the Discrete Algebraic Riccati Equation
+(DARE):
+%
+\begin{align}
+  \mathbf{P} &= \texttt{solve\_discrete\_are}(\mathbf{A}_d, \mathbf{B}_d, \mathbf{Q}, \mathbf{R}), \\
+  \mathbf{K} &= (\mathbf{R} + \mathbf{B}_d^\top \mathbf{P}\, \mathbf{B}_d)^{-1}
+                 \mathbf{B}_d^\top \mathbf{P}\, \mathbf{A}_d.
+  \label{eq:dare}
+\end{align}
+%
+The gain $\mathbf{K} \in \mathbb{R}^{2\times 8}$ is computed once at node startup.
+
+\textbf{Cost matrices:}
+%
+\begin{align}
+  \mathbf{Q} &= \mathrm{diag}(100,\;100,\;200,\;400,\;5,\;0.5,\;5,\;1), \label{eq:Q} \\
+  \mathbf{R} &= 5.0\,\mathbf{I}_{2\times 2}. \label{eq:R}
+\end{align}
+%
+Position weights ($Q_0, Q_2$) penalize centering error. Velocity weights ($Q_1, Q_3$) provide damping;
+$Q_3 = 400$ is elevated relative to $Q_1$ because the Y axis is driven at twice the frequency in TCP
+Lissajous mode, requiring stronger damping. Angle and rate weights ($Q_4$--$Q_7$) are kept small to allow
+aggressive plate tilting without excessive control effort cost.
+
+\subsubsection{Online Control Loop (30\,Hz)}
+At each control tick the node:
+\begin{enumerate}
+  \item Assembles the 8-D state from filtered odometry and TF data.
+  \item Computes the state error $\mathbf{e} = \mathbf{x} - \mathbf{x}_\mathrm{des}$ (setpoint is zero by
+    default, or a Lissajous point).
+  \item Applies LQR: $\mathbf{u} = -\mathbf{K}\,\mathbf{e}$.
+  \item Saturates: $\mathbf{u} = \mathrm{clip}(\mathbf{u},\,-45^\circ/\mathrm{s},\,+45^\circ/\mathrm{s})$.
+  \item Publishes as a \texttt{TwistStamped} angular velocity command to MoveIt Servo via the mux.
+\end{enumerate}
+MoveIt Servo converts the Cartesian angular velocity command into joint velocity commands at 30\,Hz,
+which are then tracked by the UR5e's \texttt{JointTrajectoryController}.
+
+\subsubsection{Mux Controller}
+A priority multiplexer sits between the LQR controller and Servo. Manual operator commands override LQR
+output, reverting to automatic control after 0.5\,s of inactivity. This allows safe operator intervention
+without restarting the system.
+
+% =============================================================================
+\section{Preliminary Experiment Results}
+% =============================================================================
+
+The following describes observed system behavior during initial simulation runs.
+
+\textbf{Homing and spawning:} The arm reliably reaches the home pose
+(TCP at approximately $[0.233,\;0.25,\;0.8]\,\mathrm{m}$ in the world frame) via inverse kinematics before
+the marble is dropped. The TF-based spawn calculation correctly places the marble 80\,mm above the plate
+surface regardless of minor home pose variation. Landing detection (5 consecutive odometry ticks within
+$\pm3\,\mathrm{cm}$ of the plate surface) triggers Servo activation without false positives.
+
+\textbf{Stabilization — baseline LQR:} With default Q/R weights and no trajectory tracking, the LQR
+controller successfully stabilizes the marble near the plate center. The marble settles from an initial drop
+within approximately 2--3 seconds, with residual oscillation on the order of $\pm1$--$2\,\mathrm{cm}$ in
+steady state. Both X and Y axes stabilize, though Y shows slightly more oscillation in early runs.
+
+\textbf{Y-axis oscillation:} When the TCP Lissajous mode is active (the robot TCP traces a figure-eight at
+amplitude 0.30\,m, period 12\,s, with Y at $2\times$ frequency), the increased plate acceleration in the Y
+direction drives the marble further off center. Raising $Q_3$ (marble Y velocity cost) from 100 to 400
+reduced this oscillation significantly. Raising $Q_2$ (marble Y position cost) to 200 further improved
+centering. These changes are reflected in the current default weights.
+
+\textbf{Lissajous trajectory tracking:} With marble Lissajous setpoints enabled, the controller
+successfully causes the marble to follow a figure-eight pattern on the plate. Tracking error increases with
+setpoint amplitude and frequency, as expected from the linear model's neglect of large-angle nonlinearities.
+
+\textbf{Fell-off recovery:} When the marble rolls off the plate edge, the system correctly detects the fall
+(marble $z$ drops more than 5\,cm below the plate surface), stops Servo, re-homes the arm, and re-spawns
+the marble autonomously. This cycle completes in approximately 8--10 seconds.
+
+% =============================================================================
+\section{Future Work}
+% =============================================================================
+
+\subsection{Reinforcement Learning Residual Controller}
+A Soft Actor-Critic (SAC) residual policy is partially implemented. The training environment
+(\texttt{ball\_plate\_env.py}) simulates the same PT1 ball-plate physics with Coulomb/viscous friction and
+domain randomization (mass, friction, time constant). A curriculum trains the agent through four stages of
+increasing difficulty (residual authority $\pm2 \rightarrow \pm20\,^\circ/\mathrm{s}$, with Lissajous and
+perturbations added progressively). The next step is to complete training, evaluate transfer to the Gazebo
+simulation, and tune the LQR + RL blending.
+
+\subsection{Feedforward Tilt Compensation}
+The TCP Lissajous node computes and publishes a feedforward tilt vector (\texttt{/tcp/lissajous\_ff\_tilt})
+intended to pre-compensate the pseudo-force the marble experiences during TCP acceleration. The feedforward
+gain is currently disabled. The correct sign and magnitude need to be verified experimentally by comparing
+marble trajectory error with and without compensation.
+
+\subsection{Nonlinear / Adaptive Control}
+The linear model assumes small plate angles and ignores friction. At higher TCP velocities or Lissajous
+amplitudes these nonlinearities become significant. A planned extension is either to add a friction
+compensation term using identified static and kinetic friction coefficients, or to switch to a nonlinear
+model predictive controller (NMPC) that handles large-angle kinematics.
+
+\subsection{Hardware Transfer}
+The simulation is designed to match real UR5e hardware: the PT1 delay model uses a measured actuator time
+constant, and \texttt{libgazebo\_ros\_p3d} is replaceable with a physical vision system (e.g., an overhead
+camera with blob detection). The next milestone will involve validating the controller on a physical UR5e
+arm, assessing whether the PT1 model adequately captures real actuator dynamics and whether the LQR gains
+transfer without retuning.
+
+\subsection{Kalman Filter for State Estimation}
+Marble velocity and plate angular velocity are currently estimated by numerically differentiating position
+measurements filtered with a simple exponential moving average. A planned improvement replaces this with a
+\textbf{Kalman Filter (KF)} or \textbf{Extended Kalman Filter (EKF)} that fuses odometry, joint state, and
+TF data using the ball-plate PT1 model as the process model. This will provide optimal state estimates under
+Gaussian noise assumptions, reduce derivative noise without adding excessive lag, and improve controller
+performance — particularly for velocity terms that currently require high Q weights to compensate for
+estimation error.
+
+\subsection{Quantitative Performance Metrics}
+Current evaluation is qualitative. Future work will compute: RMS centering error, mean time to stabilize
+from drop, maximum stable Lissajous amplitude, and a comparative analysis of LQR-only versus LQR+RL
+performance on identical disturbance sequences.
+
+% =============================================================================
+\end{document}
