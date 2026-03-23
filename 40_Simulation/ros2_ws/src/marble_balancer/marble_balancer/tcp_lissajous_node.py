@@ -128,6 +128,9 @@ class TcpLissajousNode(Node):
         alpha_ff = -ax / G * self._ff_gain
         beta_ff  = -ay / G * self._ff_gain
 
+        alpha_ff = 0.0
+        beta_ff  = 0.0
+
         vel_msg = TwistStamped()
         vel_msg.header.stamp    = now
         vel_msg.header.frame_id = 'base_link'
@@ -140,6 +143,7 @@ class TcpLissajousNode(Node):
 
         self._pub_vel.publish(vel_msg)
         self._pub_ff.publish(ff_msg)
+
 
         self._t += self._dt
 
