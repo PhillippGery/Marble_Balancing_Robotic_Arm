@@ -58,7 +58,7 @@ class MarbleLissajousNode(Node):
         self.declare_parameter('amplitude_y',  0.12)
         self.declare_parameter('freq_a',       1)
         self.declare_parameter('freq_b',       2)
-        self.declare_parameter('base_freq_hz', 0.20)
+        self.declare_parameter('base_freq_hz', 0.05)
         self.declare_parameter('phase_delta',  math.pi / 2.0)
 
         self._amp_x  = float(self.get_parameter('amplitude_x').value)

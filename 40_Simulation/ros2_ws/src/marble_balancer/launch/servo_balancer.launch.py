@@ -32,6 +32,21 @@ def generate_launch_description():
     tcp_lissajous_arg = DeclareLaunchArgument(
         'tcp_lissajous', default_value='false',
         description='Set to true to move the TCP along a Lissajous curve while balancing')
+    tcp_circle_arg = DeclareLaunchArgument(
+        'tcp_circle', default_value='false',
+        description='Set to true to move the TCP along a circle while balancing')
+    tcp_circle_radius_arg = DeclareLaunchArgument(
+        'tcp_circle_radius', default_value='0.04',
+        description='Circle radius in metres (default 0.04)')
+    tcp_circle_period_arg = DeclareLaunchArgument(
+        'tcp_circle_period', default_value='20.0',
+        description='Circle period in seconds (default 20.0)')
+    tcp_circle_phase_arg = DeclareLaunchArgument(
+        'tcp_circle_phase', default_value='0.0',
+        description='Initial phase offset in radians (default 0.0)')
+    tcp_circle_ff_gain_arg = DeclareLaunchArgument(
+        'tcp_circle_ff_gain', default_value='0.0',
+        description='Feedforward tilt gain (0=off, 1=full; default 0.0)')
     rl_arg = DeclareLaunchArgument(
         'rl', default_value='false',
         description='Set to true to enable the SAC residual controller')
@@ -207,6 +222,24 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('tcp_lissajous')),
     )
 
+    # ── 11. TCP Circle node (optional) ────────────────────────────────────────
+    # Moves the robot TCP along a circle in XY while marble stays balanced.
+    # Publishes TCP linear velocity + optional feedforward tilt; activates after marble lands.
+    tcp_circle_node = Node(
+        package='marble_balancer',
+        executable='tcp_circle',
+        name='tcp_circle_node',
+        parameters=[{
+            'radius':       LaunchConfiguration('tcp_circle_radius'),
+            'period':       LaunchConfiguration('tcp_circle_period'),
+            'phase':        LaunchConfiguration('tcp_circle_phase'),
+            'ff_gain':      LaunchConfiguration('tcp_circle_ff_gain'),
+            'publish_rate': 30.0,
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('tcp_circle')),
+    )
+
     # ── Event-driven sequencing ───────────────────────────────────────────────
     #
     #  ur_sim ──► move_group + servo_node
@@ -282,7 +315,7 @@ def generate_launch_description():
             target_action=marble_spawn,
             on_exit=[pilot_node, mux_node, mux_node_rl,
                      rl_residual_node, visualizer_node,
-                     plotter_node, lissajous_node, tcp_lissajous_node],
+                     plotter_node, lissajous_node, tcp_lissajous_node, tcp_circle_node],
         )
     )
 
@@ -290,6 +323,11 @@ def generate_launch_description():
         record_arg,
         lissajous_arg,
         tcp_lissajous_arg,
+        tcp_circle_arg,
+        tcp_circle_radius_arg,
+        tcp_circle_period_arg,
+        tcp_circle_phase_arg,
+        tcp_circle_ff_gain_arg,
         rl_arg,
         rl_model_arg,
         rl_norm_arg,

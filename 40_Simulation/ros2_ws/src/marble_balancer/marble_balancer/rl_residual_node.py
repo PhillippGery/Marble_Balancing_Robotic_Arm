@@ -67,11 +67,13 @@ class RLResidualNode(Node):
         self.declare_parameter('rl_model', '')
         self.declare_parameter('rl_norm',  '')
         self.declare_parameter('rl_stage', 3)
+        self.declare_parameter('use_rl',   True)
 
-        model_path = self.get_parameter('rl_model').value
-        norm_path  = self.get_parameter('rl_norm').value
-        stage      = int(self.get_parameter('rl_stage').value)
-        self._clip = _CLIP_BUDGETS[min(stage, len(_CLIP_BUDGETS) - 1)]
+        model_path    = self.get_parameter('rl_model').value
+        norm_path     = self.get_parameter('rl_norm').value
+        stage         = int(self.get_parameter('rl_stage').value)
+        self._clip    = _CLIP_BUDGETS[min(stage, len(_CLIP_BUDGETS) - 1)]
+        self._enabled = self.get_parameter('use_rl').value
 
         # ── Load policy ───────────────────────────────────────────────────────
         self._model     = None
@@ -133,10 +135,25 @@ class RLResidualNode(Node):
         self._pub = self.create_publisher(
             TwistStamped, '/marble_servo_rl/delta_twist_cmds', 10)
 
+        self.add_on_set_parameters_callback(self._on_param_change)
+
         mode = 'SAC residual' if self._use_rl else 'LQR passthrough'
         self.get_logger().info(
             f'RL residual node ready — mode={mode}  '
-            f'stage={stage}  clip=±{math.degrees(self._clip):.0f}°/s')
+            f'stage={stage}  clip=±{math.degrees(self._clip):.0f}°/s  '
+            f'use_rl={self._enabled}')
+
+    # ── Parameter callback ────────────────────────────────────────────────────
+
+    def _on_param_change(self, params):
+        from rcl_interfaces.msg import SetParametersResult
+        for p in params:
+            if p.name == 'use_rl':
+                self._enabled = bool(p.value)
+                self.get_logger().info(
+                    f'use_rl set to {self._enabled} — '
+                    f'{"SAC residual active" if self._enabled and self._use_rl else "LQR passthrough"}')
+        return SetParametersResult(successful=True)
 
     # ── Callbacks ─────────────────────────────────────────────────────────────
 
@@ -149,13 +166,13 @@ class RLResidualNode(Node):
             y_err  = state[2] - self._desired[1]
             self._err_hist.append(np.array([x_err, y_err]))
 
-            if self._use_rl and self._landed:
+            if self._use_rl and self._enabled and self._landed:
                 self._compute_and_publish(state, lqr_u)
 
     def _lqr_twist_cb(self, msg: TwistStamped):
         self._last_twist = msg
-        if not self._use_rl or not self._landed:
-            # Passthrough: RL disabled or marble not landed
+        if not (self._use_rl and self._enabled) or not self._landed:
+            # Passthrough: RL disabled/toggled off or marble not landed
             self._pub.publish(msg)
 
     def _desired_cb(self, msg: Point):

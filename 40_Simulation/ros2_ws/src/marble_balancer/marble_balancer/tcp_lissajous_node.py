@@ -128,8 +128,8 @@ class TcpLissajousNode(Node):
         alpha_ff = -ax / G * self._ff_gain
         beta_ff  = -ay / G * self._ff_gain
 
-        alpha_ff = 0.0
-        beta_ff  = 0.0
+        # alpha_ff = 0.0
+        # beta_ff  = 0.0
 
         vel_msg = TwistStamped()
         vel_msg.header.stamp    = now
