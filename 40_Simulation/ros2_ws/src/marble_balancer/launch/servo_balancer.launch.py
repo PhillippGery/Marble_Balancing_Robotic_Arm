@@ -35,6 +35,9 @@ def generate_launch_description():
     tcp_lissajous_arg = DeclareLaunchArgument(
         'tcp_lissajous', default_value='false',
         description='Set to true to move the TCP along a Lissajous curve while balancing')
+    tcp_keyboard_arg = DeclareLaunchArgument(
+        'tcp_keyboard', default_value='false',
+        description='Set to true to control TCP linear velocity with WASD/arrow keys')
     rl_arg = DeclareLaunchArgument(
         'rl', default_value='false',
         description='Set to true to enable the SAC residual controller')
@@ -252,6 +255,23 @@ def generate_launch_description():
         )
     )
 
+    # ── 10b. TCP keyboard control (optional) ──────────────────────────────────
+    # Publishes TCP linear velocity on /tcp/lissajous_vel from WASD/arrow keys.
+    # Use instead of tcp_lissajous — not both simultaneously.
+    tcp_keyboard_node = Node(
+        package='marble_balancer',
+        executable='tcp_keyboard',
+        name='tcp_keyboard_node',
+        parameters=[{
+            'max_vel':      0.30,
+            'accel':        0.25,
+            'decel':        0.50,
+            'publish_rate': 30.0,
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('tcp_keyboard')),
+    )
+
     # ── 11. SAC residual controller (optional) ────────────────────────────────
     # Subscribes to /marble/lqr_state, adds RL residual, publishes to
     # /marble_servo_rl/delta_twist_cmds. mux_controller auto_topic is remapped
@@ -297,7 +317,8 @@ def generate_launch_description():
             target_action=marble_spawn,
             on_exit=[pilot_node, mux_node, mux_node_rl,
                      rl_residual_node, visualizer_node,
-                     plotter_node, lissajous_node, square_node, tcp_lissajous_node],
+                     plotter_node, lissajous_node, square_node,
+                     tcp_lissajous_node, tcp_keyboard_node],
         )
     )
 
@@ -306,6 +327,7 @@ def generate_launch_description():
         lissajous_arg,
         square_arg,
         tcp_lissajous_arg,
+        tcp_keyboard_arg,
         rl_arg,
         rl_model_arg,
         rl_norm_arg,

@@ -38,7 +38,8 @@ Gazebo (UR5e + marble)
 | `marble_plotter` | Records CSV + generates plots on marble fall-off or Ctrl-C |
 | `marble_lissajous_node` | Publishes Lissajous figure-eight setpoints on `/marble/desired_pos` |
 | `marble_square_node` | Publishes 4-corner square step-response pattern for LQR tuning |
-| `tcp_lissajous_node` | Moves TCP along figure-eight while balancing; publishes feedforward tilt |
+| `tcp_lissajous_node` | Moves TCP along a figure-eight while balancing |
+| `tcp_keyboard_node` | WASD/arrow keys control TCP XYZ velocity while balancing |
 | `rl_residual_node` | Loads trained SAC policy; adds residual correction to LQR output |
 
 ---
@@ -136,6 +137,11 @@ DEFAULT_R = diag([2.5e-5, 2.5e-5, 1e-8, 1e-8])
 - `ur_description`, `ur_simulation_gazebo`, `ur_moveit_config`
 - Python: `numpy`, `scipy`
 
+### Optional (keyboard TCP control)
+```bash
+pip install pynput
+```
+
 ### Optional (RL training only)
 ```bash
 pip install gymnasium stable-baselines3[extra] tensorboard
@@ -207,8 +213,46 @@ ros2 launch marble_balancer servo_balancer.launch.py square:=true \
 ### TCP motion while balancing
 
 ```bash
+# Autonomous figure-eight TCP motion
 ros2 launch marble_balancer servo_balancer.launch.py tcp_lissajous:=true plot:=true
+
+# Manual keyboard TCP control (WASD / arrow keys / R-F for Z)
+ros2 launch marble_balancer servo_balancer.launch.py tcp_keyboard:=true
 ```
+
+**Keyboard controls** (active only after marble lands):
+
+| Key | Action |
+|-----|--------|
+| W / ↑ | TCP +X |
+| S / ↓ | TCP −X |
+| A / ← | TCP +Y |
+| D / → | TCP −Y |
+| R | TCP +Z (up) |
+| F | TCP −Z (down) |
+| SPACE | Hard brake (all axes) |
+| Q / ESC | Quit node |
+
+Holding a key accelerates (0.25 m/s²); releasing decelerates back to zero (0.50 m/s²).
+Do not combine `tcp_keyboard:=true` and `tcp_lissajous:=true` — both publish to the same topic.
+
+### Drop a new marble
+
+The marble can be re-spawned at any time while the simulation is running, without restarting the launch:
+
+```bash
+# In a second terminal:
+source /opt/ros/humble/setup.bash
+source ~/Marble_Balancing_Robotic_Arm/40_Simulation/ros2_ws/install/setup.bash
+ros2 run marble_balancer marble_spawner
+```
+
+The spawner will:
+1. Delete the existing marble
+2. Wait 0.6 s for Gazebo to flush the old physics body
+3. Read the current `plate_tcp` TF position
+4. Drop a new marble 10 cm above the plate centre
+5. Monitor `/marble/odom` to confirm the marble stays on the plate (retries up to 3× if it falls through)
 
 ### SAC residual controller
 
@@ -288,7 +332,8 @@ ros2_ws/src/
 │   │   ├── marble_plotter.py          # CSV recorder + offline plotter
 │   │   ├── marble_lissajous_node.py   # Lissajous setpoint publisher
 │   │   ├── marble_square_node.py      # 4-corner square step-response pattern
-│   │   ├── tcp_lissajous_node.py      # TCP figure-eight + feedforward tilt
+│   │   ├── tcp_lissajous_node.py      # TCP figure-eight motion
+│   │   ├── tcp_keyboard_node.py       # WASD/arrow-key TCP XYZ velocity control
 │   │   └── rl_residual_node.py        # SAC residual policy inference
 │   ├── rl_training/
 │   │   ├── ball_plate_env.py          # Gymnasium env (PT1 + friction + randomisation)
@@ -327,7 +372,7 @@ ros2_ws/src/
 
 - **Hardware transfer** — Deploy on physical UR5e with camera-based marble tracking; tune EKF `DEFAULT_R` for actual camera noise
 - **EKF for camera** — Raise `DEFAULT_R[0,0]`/`[1,1]` to match camera noise level; EKF then provides clean position and velocity estimates
-- **Feedforward compensation** — Validate and tune tilt pre-compensation for TCP Lissajous acceleration
+- **RL TCP compensation** — Train SAC residual policy to compensate marble disturbances from TCP acceleration
 - **Nonlinear control** — Add friction compensation or switch to NMPC for large-angle operation
 
 ---

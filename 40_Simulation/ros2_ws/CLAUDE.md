@@ -62,7 +62,7 @@ colcon test-result --verbose
 | `marble_spawner` | `marble_spawner.py` | Spawns marble above plate via Gazebo service |
 | `marble_plotter` | `marble_plotter.py` | Records CSV + generates trajectory plots |
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
-| `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes velocity + feedforward tilt |
+| `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes linear velocity on `/tcp/lissajous_vel` |
 | `marble_visualizer` | `marble_visualizer.py` | Live 2D matplotlib window: ball position, 200-pt trail, plate boundary, setpoint |
 | `rl_residual` | `rl_residual_node.py` | SAC residual controller: loads trained policy, adds Δω to LQR output |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
@@ -80,7 +80,6 @@ colcon test-result --verbose
 | `/marble/landed` / `/marble/fell_off` | `std_msgs/Empty` | spawner → plotter/lissajous (TRANSIENT_LOCAL) |
 | `/marble/desired_pos` | `geometry_msgs/Point` | lissajous → controller |
 | `/tcp/lissajous_vel` | `geometry_msgs/TwistStamped` | tcp_lissajous → controller (linear.x/y) |
-| `/tcp/lissajous_ff_tilt` | `geometry_msgs/Vector3` | tcp_lissajous → controller (feedforward tilt) |
 
 Services: `/spawn_entity`, `/delete_entity` (Gazebo), `/compute_ik` (MoveIt), `/servo_node/start_servo`
 
@@ -172,17 +171,13 @@ State:  x      vx     y      vy     α     ωα     β     ωβ
 ### R — control effort cost
 `DEFAULT_R = np.eye(2) * 5.0` — increase to reduce aggressiveness on both axes simultaneously.
 
-### Feedforward gain (`ff_gain` in `servo_balancer.launch.py`)
-Scales the tilt pre-compensation for TCP acceleration. Start at `0.0` to disable; try `1.0` or `-1.0` to find correct sign. At slow speeds the effect is tiny (<0.05°).
-
 ### Velocity filter (`OMEGA_LPF_TC` in `marble_servo_controller.py:76`)
 Low-pass time constant for velocity estimation. Increase (0.08 → 0.12) if oscillation looks high-frequency/twitchy. Do not exceed ~0.20 s (PT1 limit T_ROBOT = 0.35 s).
 
 ### Tuning order for Y oscillation
-1. Set `ff_gain: 0.0` → test (isolates feedforward as cause)
-2. Raise `Q[3]`: 200 → 300 → 400 (one step at a time)
-3. If both axes slow: raise `R`: 5.0 → 8.0
-4. If twitchy: raise `OMEGA_LPF_TC`: 0.08 → 0.12
+1. Raise `Q[3]`: 200 → 300 → 400 (one step at a time)
+2. If both axes slow: raise `R`: 5.0 → 8.0
+3. If twitchy: raise `OMEGA_LPF_TC`: 0.08 → 0.12
 
 ## Additional Documentation
 - `.claude/docs/architectural_patterns.md` — PT1 model, Jacobian velocity, event-driven launch, LQR design, QoS patterns

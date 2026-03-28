@@ -41,6 +41,7 @@ setup(
             'marble_square    = marble_balancer.marble_square_node:main',
             'mux_controller = marble_balancer.mux_controller:main',
             'tcp_lissajous  = marble_balancer.tcp_lissajous_node:main',
+            'tcp_keyboard   = marble_balancer.tcp_keyboard_node:main',
             'marble_visualizer = marble_balancer.marble_visualizer:main',
             'rl_residual       = marble_balancer.rl_residual_node:main',
         ],

@@ -20,7 +20,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TwistStamped, Point, Vector3
+from geometry_msgs.msg import TwistStamped, Point
 from std_msgs.msg import Empty, Float64MultiArray
 from std_srvs.srv import Trigger
 import numpy as np
@@ -65,11 +65,10 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 
 # ── Tunable parameters ────────────────────────────────────────────────────────
 CONTROL_HZ = 30.0
-MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
+MAX_RATE   = np.deg2rad(60.0)     # max angular rate command to servo (rad/s)
 OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
-USE_EKF    = True                 # True = EKF omega,  False = Jacobian omega
-                                  # smaller = faster response but noisier
-                                  # larger  = smoother but more lag (PT1 limit)
+USE_EKF    = True                 # True  = EKF marble pos/vel + Jacobian omega
+                                  # False = EMA marble vel  + Jacobian omega (Gazebo baseline)
 
 # Landing detection — relaxed so marble is detected even when sliding on arrival
 LAND_Z_MARGIN  = 0.030    # ±3 cm z-window around plate top
@@ -162,15 +161,12 @@ class MarbleServoController(Node):
         self._desired_sub = self.create_subscription(
             Point, '/marble/desired_pos', self._desired_cb, 10)
 
-        # TCP Lissajous — linear velocity to blend into servo command + feedforward tilt
+        # TCP linear velocity blended into servo command (from tcp_lissajous or tcp_keyboard)
         self._tcp_lin_x  = 0.0
         self._tcp_lin_y  = 0.0
-        self._ff_alpha   = 0.0   # feedforward desired alpha (rad)
-        self._ff_beta    = 0.0   # feedforward desired beta  (rad)
+        self._tcp_lin_z  = 0.0
         self.create_subscription(
             TwistStamped, '/tcp/lissajous_vel', self._tcp_vel_cb, 10)
-        self.create_subscription(
-            Vector3, '/tcp/lissajous_ff_tilt', self._tcp_ff_cb, 10)
 
         self._odom_sub = self.create_subscription(
             Odometry, '/marble/odom', self._odom_cb, 10)
@@ -330,12 +326,20 @@ class MarbleServoController(Node):
         beta  = roll
 
         if USE_EKF:
-            # ── All 8 states from EKF ─────────────────────────────────────────
+            # ── EKF for marble position + velocity; Jacobian for omega ────────
+            # EKF omega estimate oscillates in Gazebo (inferred from noisy angle
+            # changes rather than encoder velocity).  Override omega states with
+            # the Jacobian after every update — on hardware the Jacobian is
+            # accurate from encoder velocities; in Gazebo it gives ~0 which is
+            # exactly what the stable non-EKF path uses.
             dt_odom = (t_now - self._last_meas_t) if self._last_meas_t is not None else 0.02
             self._last_meas_t = t_now
             self._ekf.predict(self._u_ekf, dt_odom)
             self._ekf.update(np.array([mx, my, alpha, beta]))
             self._state[:] = self._ekf.x
+            # Keep EKF internal state consistent with what we feed to LQR
+            self._ekf.x[5] = self._state[5] = self._omega_alpha_actual
+            self._ekf.x[7] = self._state[7] = self._omega_beta_actual
         else:
             # ── Direct measurements + EMA velocity + Jacobian omega ───────────
             if self._prev_odom_t is not None:
@@ -422,14 +426,10 @@ class MarbleServoController(Node):
         self.get_logger().info('Robot at home — ready for new marble.')
 
     def _tcp_vel_cb(self, msg: TwistStamped):
-        """Receive TCP linear velocity from tcp_lissajous_node."""
+        """Receive TCP linear velocity from tcp_lissajous_node or tcp_keyboard_node."""
         self._tcp_lin_x = msg.twist.linear.x
         self._tcp_lin_y = msg.twist.linear.y
-
-    def _tcp_ff_cb(self, msg: Vector3):
-        """Receive feedforward tilt from tcp_lissajous_node."""
-        self._ff_alpha = msg.x
-        self._ff_beta  = msg.y
+        self._tcp_lin_z = msg.twist.linear.z
 
     def _desired_cb(self, msg: Point):
         """Update desired marble position from Lissajous node (or any setpoint publisher)."""
@@ -452,10 +452,6 @@ class MarbleServoController(Node):
         error = self._state.copy()
         error[0] -= self._desired[0]   # x error
         error[2] -= self._desired[1]   # y error
-        # Feedforward tilt from TCP Lissajous: shift desired plate angle so LQR
-        # pre-compensates the pseudo-forces induced by TCP acceleration.
-        error[4] -= self._ff_alpha     # desired alpha offset
-        error[6] -= self._ff_beta      # desired beta offset
         u_clip = np.clip(-self._K @ error, -MAX_RATE, MAX_RATE)
         omega_alpha_cmd = -float(u_clip[0])   # negate for plate_tcp yaw≈180°
         omega_beta_cmd  = -float(u_clip[1])
@@ -467,9 +463,10 @@ class MarbleServoController(Node):
         # angular.y (world Y) → pitch → alpha → X marble dynamics
         msg.twist.angular.x  = omega_beta_cmd
         msg.twist.angular.y  = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
-        # TCP Lissajous linear motion (zeros when tcp_lissajous_node is not running)
+        # TCP linear motion (zeros when no tcp node is running)
         msg.twist.linear.x   = self._tcp_lin_x
         msg.twist.linear.y   = self._tcp_lin_y
+        msg.twist.linear.z   = self._tcp_lin_z
 
         # self.get_logger().info(
         #     f'u: ωα={np.rad2deg(omega_alpha_cmd):+.1f}°/s '
