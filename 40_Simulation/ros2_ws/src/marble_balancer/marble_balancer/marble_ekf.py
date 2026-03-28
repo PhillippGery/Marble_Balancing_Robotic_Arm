@@ -129,10 +129,10 @@ class MarbleEKF:
     ])
 
     DEFAULT_R = np.diag([
-        1e-4,   # x marble  (odom, ~1 mm noise)
-        1e-4,   # y marble
-        1e-6,   # alpha     (TF, very accurate)
-        1e-6,   # beta
+        1e-8,   # x marble  — near-zero for Gazebo perfect odom → raise to ~1e-3 for real camera
+        1e-8,   # y marble  — same
+        1e-8,   # alpha     (TF accurate — keep small on real hardware too)
+        1e-8,   # beta
     ])
 
     def __init__(

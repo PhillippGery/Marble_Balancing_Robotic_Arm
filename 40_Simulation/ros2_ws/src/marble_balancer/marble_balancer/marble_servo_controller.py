@@ -329,35 +329,31 @@ class MarbleServoController(Node):
         alpha = pitch
         beta  = roll
 
-        # ── EMA marble velocity (same as pre-EKF — proven performance) ──────────
-        if self._prev_odom_t is not None:
-            dt_odom_ema = t_now - self._prev_odom_t
-            if 0.0 < dt_odom_ema < 0.5:
-                vx_raw = (mx - self._prev_mx) / dt_odom_ema
-                vy_raw = (my - self._prev_my) / dt_odom_ema
-                vf = dt_odom_ema / (OMEGA_LPF_TC + dt_odom_ema)
-                self._state[1] += vf * (vx_raw - self._state[1])
-                self._state[3] += vf * (vy_raw - self._state[3])
-        self._prev_mx     = mx
-        self._prev_my     = my
-        self._prev_odom_t = t_now
-
-        # Direct measurements
-        self._state[0] = mx
-        self._state[2] = my
-        self._state[4] = alpha
-        self._state[6] = beta
-
-        # ── Omega estimation ──────────────────────────────────────────────────
         if USE_EKF:
+            # ── All 8 states from EKF ─────────────────────────────────────────
             dt_odom = (t_now - self._last_meas_t) if self._last_meas_t is not None else 0.02
             self._last_meas_t = t_now
             self._ekf.predict(self._u_ekf, dt_odom)
             self._ekf.update(np.array([mx, my, alpha, beta]))
-            self._state[5] = self._ekf.x[5]
-            self._state[7] = self._ekf.x[7]
+            self._state[:] = self._ekf.x
         else:
-            self._state[5] = self._omega_alpha_actual   # Jacobian
+            # ── Direct measurements + EMA velocity + Jacobian omega ───────────
+            if self._prev_odom_t is not None:
+                dt_ema = t_now - self._prev_odom_t
+                if 0.0 < dt_ema < 0.5:
+                    vx_raw = (mx - self._prev_mx) / dt_ema
+                    vy_raw = (my - self._prev_my) / dt_ema
+                    vf = dt_ema / (OMEGA_LPF_TC + dt_ema)
+                    self._state[1] += vf * (vx_raw - self._state[1])
+                    self._state[3] += vf * (vy_raw - self._state[3])
+            self._prev_mx     = mx
+            self._prev_my     = my
+            self._prev_odom_t = t_now
+            self._state[0] = mx
+            self._state[2] = my
+            self._state[4] = alpha
+            self._state[6] = beta
+            self._state[5] = self._omega_alpha_actual
             self._state[7] = self._omega_beta_actual
 
         if self._landed:
