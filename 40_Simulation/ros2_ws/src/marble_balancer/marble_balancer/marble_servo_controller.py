@@ -35,6 +35,7 @@ _LATCHED = QoSProfile(
 )
 
 from marble_balancer.lqr_math import compute_dlqr, DEFAULT_Q, DEFAULT_R, T_ROBOT
+from marble_balancer.marble_ekf import MarbleEKF
 from sensor_msgs.msg import JointState
 
 
@@ -66,6 +67,7 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 CONTROL_HZ = 30.0
 MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
 OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
+USE_EKF    = False                 # True = EKF omega,  False = Jacobian omega
                                   # smaller = faster response but noisier
                                   # larger  = smoother but more lag (PT1 limit)
 
@@ -105,19 +107,27 @@ class MarbleServoController(Node):
 
         self._dt = dt
 
+        self.get_logger().info(f'Omega source: {"EKF" if USE_EKF else "Jacobian"}')
+
         # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
 
-        # Plate angular velocities — set by _js_cb via rotational Jacobian × q_dot
-        self._omega_alpha_actual = 0.0   # world-Y angular velocity (pitch rate)
-        self._omega_beta_actual  = 0.0   # world-X angular velocity (roll rate)
+        # EKF — omega estimation only (vx/vy use proven EMA below)
+        self._ekf        = MarbleEKF()
+        self._u_ekf      = np.zeros(2)   # last hardware-sense command fed to EKF predict
+        self._last_meas_t = None          # timestamp of last EKF update (s)
 
-        # Marble position history for velocity differentiation
+        # Jacobian omega fallback (used when use_ekf:=false)
+        self._omega_alpha_actual = 0.0
+        self._omega_beta_actual  = 0.0
+
+        # Marble position history for EMA velocity differentiation (unchanged from pre-EKF)
         self._prev_odom_t = None
         self._prev_mx     = 0.0
         self._prev_my     = 0.0
 
         # Joint state for Jacobian: q_dot from velocity field or position differentiation
+        # (Jacobian omega published to /marble/plate_omega for diagnostics only)
         self._q_dot      = np.zeros(6)
         self._q_prev     = None
         self._q_prev_t   = None
@@ -243,8 +253,8 @@ class MarbleServoController(Node):
         self._q_dot = alpha_f * q_dot_raw + (1.0 - alpha_f) * self._q_dot
         omega = self._compute_plate_omega()
         if omega is not None:
-            self._omega_beta_actual  = omega[0]   # world X → β̇ (roll rate)
-            self._omega_alpha_actual = omega[1]   # world Y → α̇ (pitch rate)
+            self._omega_alpha_actual = omega[1]   # world Y → α̇
+            self._omega_beta_actual  = omega[0]   # world X → β̇
             om_msg = TwistStamped()
             om_msg.header.stamp    = msg.header.stamp
             om_msg.header.frame_id = 'world'
@@ -310,21 +320,6 @@ class MarbleServoController(Node):
         # ── Marble position relative to plate centre (world frame) ────────────
         mx = (msg.pose.pose.position.x - plate_x) * -1.0   # invert X: plate_tcp yaw≈180° at home
         my = (msg.pose.pose.position.y - plate_y)
-        # Differentiate world-frame position for marble velocity
-        # (p3d body-frame twist is unreliable as the marble spins)
-        if self._prev_odom_t is not None:
-            dt_odom = t_now - self._prev_odom_t
-            if 0.0 < dt_odom < 0.5:
-                vx_raw = (mx - self._prev_mx) / dt_odom
-                vy_raw = (my - self._prev_my) / dt_odom
-                vf = dt_odom / (OMEGA_LPF_TC + dt_odom)
-                self._state[1] += vf * (vx_raw - self._state[1])
-                self._state[3] += vf * (vy_raw - self._state[3])
-        self._prev_mx     = mx
-        self._prev_my     = my
-        self._prev_odom_t = t_now
-        self._state[0] = mx
-        self._state[2] = my
 
         # ── Plate roll/pitch from TF quaternion ───────────────────────────────
         # alpha = pitch (Y-axis rotation) → controls X ball motion  (dxd/dt = -C*alpha)
@@ -334,25 +329,45 @@ class MarbleServoController(Node):
         alpha = pitch
         beta  = roll
 
+        # ── EMA marble velocity (same as pre-EKF — proven performance) ──────────
+        if self._prev_odom_t is not None:
+            dt_odom_ema = t_now - self._prev_odom_t
+            if 0.0 < dt_odom_ema < 0.5:
+                vx_raw = (mx - self._prev_mx) / dt_odom_ema
+                vy_raw = (my - self._prev_my) / dt_odom_ema
+                vf = dt_odom_ema / (OMEGA_LPF_TC + dt_odom_ema)
+                self._state[1] += vf * (vx_raw - self._state[1])
+                self._state[3] += vf * (vy_raw - self._state[3])
+        self._prev_mx     = mx
+        self._prev_my     = my
+        self._prev_odom_t = t_now
+
+        # Direct measurements
+        self._state[0] = mx
+        self._state[2] = my
         self._state[4] = alpha
-        self._state[5] = self._omega_alpha_actual
         self._state[6] = beta
-        self._state[7] = self._omega_beta_actual
+
+        # ── Omega estimation ──────────────────────────────────────────────────
+        if USE_EKF:
+            dt_odom = (t_now - self._last_meas_t) if self._last_meas_t is not None else 0.02
+            self._last_meas_t = t_now
+            self._ekf.predict(self._u_ekf, dt_odom)
+            self._ekf.update(np.array([mx, my, alpha, beta]))
+            self._state[5] = self._ekf.x[5]
+            self._state[7] = self._ekf.x[7]
+        else:
+            self._state[5] = self._omega_alpha_actual   # Jacobian
+            self._state[7] = self._omega_beta_actual
 
         if self._landed:
-            # self.get_logger().info(
-            #     f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
-            #     f'vx:{self._state[1]:+.4f} vy:{self._state[3]:+.4f}  '
-            #     f'α:{np.rad2deg(alpha):+.2f}° β:{np.rad2deg(beta):+.2f}°  '
-            #     f'ωα:{np.rad2deg(self._omega_alpha_actual):+.2f}°/s '
-            #     f'ωβ:{np.rad2deg(self._omega_beta_actual):+.2f}°/s',
-            #     throttle_duration_sec=0.5)
-
-            self.get_logger().info(f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}',
+            self.get_logger().info(
+                f'err x:{self._state[0]:+.4f} y:{self._state[2]:+.4f}  '
+                f'ωα:{np.rad2deg(self._state[5]):+.1f}°/s '
+                f'ωβ:{np.rad2deg(self._state[7]):+.1f}°/s',
                 throttle_duration_sec=1.0)
-            
-          
-        
+
+
 
         # Landing detection
         marble_in_z = (
@@ -365,6 +380,10 @@ class MarbleServoController(Node):
                 self._land_ticks += 1
                 if self._land_ticks >= LAND_CONFIRM:
                     self._landed = True
+                    # Warm-start EKF with current measurements
+                    x0_ekf = np.array([mx, 0.0, my, 0.0, alpha, 0.0, beta, 0.0])
+                    self._ekf.reset(x0_ekf)
+                    self._u_ekf[:] = 0.0
                     self._landed_pub.publish(Empty())
                     self.get_logger().info(
                         f'Marble landed at z={self._marble_z:.4f} m — '
@@ -379,8 +398,11 @@ class MarbleServoController(Node):
                 self._landed     = False
                 self._homing     = True
                 self._land_ticks = 0
+                self._ekf.reset()
+                self._u_ekf[:] = 0.0
                 self._omega_alpha_actual = 0.0
                 self._omega_beta_actual  = 0.0
+                self._prev_odom_t = None   # reset EMA velocity history
 
                 # Notify plotter to save & plot
                 self._fell_off_pub.publish(Empty())
@@ -438,9 +460,12 @@ class MarbleServoController(Node):
         # pre-compensates the pseudo-forces induced by TCP acceleration.
         error[4] -= self._ff_alpha     # desired alpha offset
         error[6] -= self._ff_beta      # desired beta offset
-        u = -self._K @ error
-        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))
-        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
+        u_clip = np.clip(-self._K @ error, -MAX_RATE, MAX_RATE)
+        omega_alpha_cmd = -float(u_clip[0])   # negate for plate_tcp yaw≈180°
+        omega_beta_cmd  = -float(u_clip[1])
+        # EKF input: hardware-sense commands (= actual alpha_dot direction, matches TF-diff)
+        self._u_ekf[0] = omega_alpha_cmd
+        self._u_ekf[1] = omega_beta_cmd
 
         # ── World-frame twist (base_link) — servo resolves transform to plate_tcp via TF ─
         # angular.x (world X) → roll  → beta  → Y marble dynamics

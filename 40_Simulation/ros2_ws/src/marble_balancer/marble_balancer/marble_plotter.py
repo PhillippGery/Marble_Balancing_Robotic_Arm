@@ -43,10 +43,12 @@ LOG_DIR = Path.home() / 'marble_logs'
 FIELDNAMES = [
     'time',
     'x', 'vx', 'y', 'vy',            # marble pos / vel  (state[0..3])
-    'alpha_deg', 'omega_alpha_deg',   # plate pitch + rate (state[4..5])
-    'beta_deg',  'omega_beta_deg',    # plate roll  + rate (state[6..7])
+    'alpha_deg', 'omega_alpha_deg',   # plate pitch + rate (state[4..5]) — EKF
+    'beta_deg',  'omega_beta_deg',    # plate roll  + rate (state[6..7]) — EKF
     'cmd_omega_alpha_deg',            # LQR output u[0]   (state[8])
     'cmd_omega_beta_deg',             # LQR output u[1]   (state[9])
+    'omega_alpha_jacobian_deg',        # Jacobian omega_alpha — hardware-compatible comparison
+    'omega_beta_jacobian_deg',         # Jacobian omega_beta  — hardware-compatible comparison
     'desired_x', 'desired_y',         # setpoint from lissajous / square node
     'marble_z_abs',                   # raw z for diagnostics
 ]
@@ -80,10 +82,12 @@ def plot_from_csv(csv_path: str):
     my         = np.array([r['y']               for r in rows])
     alpha_deg  = np.array([r['alpha_deg']        for r in rows])
     beta_deg   = np.array([r['beta_deg']         for r in rows])
-    omega_alpha_actual = np.array([r['omega_alpha_deg']     for r in rows])
-    omega_beta_actual  = np.array([r['omega_beta_deg']      for r in rows])
-    cmd_alpha_deg      = np.array([r['cmd_omega_alpha_deg'] for r in rows])
-    cmd_beta_deg       = np.array([r['cmd_omega_beta_deg']  for r in rows])
+    omega_alpha_ekf      = np.array([r['omega_alpha_deg']                    for r in rows])
+    omega_beta_ekf       = np.array([r['omega_beta_deg']                     for r in rows])
+    cmd_alpha_deg        = np.array([r['cmd_omega_alpha_deg']                for r in rows])
+    cmd_beta_deg         = np.array([r['cmd_omega_beta_deg']                 for r in rows])
+    omega_alpha_jacobian = np.array([r.get('omega_alpha_jacobian_deg', 0.0)  for r in rows])
+    omega_beta_jacobian  = np.array([r.get('omega_beta_jacobian_deg',  0.0)  for r in rows])
 
     # # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
     # fig1, ax1 = plt.subplots(figsize=(7, 7))
@@ -117,20 +121,24 @@ def plot_from_csv(csv_path: str):
 
     ax2a.plot(t, cmd_alpha_deg,       label='ω_alpha commanded',
               color='tab:blue',   lw=1.5)
-    ax2a.plot(t, omega_alpha_actual, label='ω_alpha actual (Jacobian)',
-              color='tab:orange', lw=1.0, alpha=0.85)
+    ax2a.plot(t, omega_alpha_ekf,      label='ω_alpha EKF estimate',
+              color='tab:orange', lw=1.2)
+    ax2a.plot(t, omega_alpha_jacobian, label='ω_alpha Jacobian',
+              color='tab:green',  lw=1.0, alpha=0.7, ls='--')
     ax2a.axhline( MAX_RATE_DEG, color='red', lw=0.8, ls='--', label='±clamp')
     ax2a.axhline(-MAX_RATE_DEG, color='red', lw=0.8, ls='--')
     ax2a.axhline(0, color='gray', lw=0.4)
     ax2a.set_ylabel('ω_alpha (°/s)')
-    ax2a.set_title('Commanded vs actual plate angular velocity')
+    ax2a.set_title('Commanded vs EKF estimate vs Jacobian')
     ax2a.legend(fontsize=8)
     ax2a.grid(True, alpha=0.3)
 
-    ax2b.plot(t, cmd_beta_deg,        label='ω_beta commanded',
-              color='tab:green', lw=1.5)
-    ax2b.plot(t, omega_beta_actual, label='ω_beta actual (Jacobian)',
-              color='tab:red',   lw=1.0, alpha=0.85)
+    ax2b.plot(t, cmd_beta_deg,       label='ω_beta commanded',
+              color='tab:blue',  lw=1.5)
+    ax2b.plot(t, omega_beta_ekf,      label='ω_beta EKF estimate',
+              color='tab:orange', lw=1.2)
+    ax2b.plot(t, omega_beta_jacobian, label='ω_beta Jacobian',
+              color='tab:green',  lw=1.0, alpha=0.7, ls='--')
     ax2b.axhline( MAX_RATE_DEG, color='red', lw=0.8, ls='--', label='±clamp')
     ax2b.axhline(-MAX_RATE_DEG, color='red', lw=0.8, ls='--')
     ax2b.axhline(0, color='gray', lw=0.4)
@@ -253,14 +261,19 @@ def record_node(default_output: Path):
             self._desired_x  = 0.0
             self._desired_y  = 0.0
             self._marble_z   = 0.0
+            self._omega_alpha_jacobian = 0.0   # Jacobian omega — hardware-compatible comparison
+            self._omega_beta_jacobian  = 0.0
 
             from std_msgs.msg import Float64MultiArray
+            from geometry_msgs.msg import TwistStamped
             self.create_subscription(
                 Float64MultiArray, '/marble/lqr_state', self._lqr_cb, 10)
             self.create_subscription(
                 Odometry, '/marble/odom', self._odom_z_cb, 10)
             self.create_subscription(
                 Point, '/marble/desired_pos', self._desired_cb, 10)
+            self.create_subscription(
+                TwistStamped, '/marble/plate_omega', self._plate_omega_cb, 10)
             self.create_subscription(
                 Empty, '/marble/landed',   self._landed_cb,   _LATCHED)
             self.create_subscription(
@@ -332,6 +345,11 @@ def record_node(default_output: Path):
             self.get_logger().info(response.message)
             return response
 
+        def _plate_omega_cb(self, msg):
+            """Receive Jacobian omega from controller (hardware-compatible comparison with EKF)."""
+            self._omega_alpha_jacobian = math.degrees(msg.twist.angular.y)
+            self._omega_beta_jacobian  = math.degrees(msg.twist.angular.x)
+
         def _desired_cb(self, msg: Point):
             self._desired_x = msg.x
             self._desired_y = msg.y
@@ -358,8 +376,10 @@ def record_node(default_output: Path):
                 'omega_alpha_deg':    math.degrees(s[5]),
                 'beta_deg':           math.degrees(s[6]),
                 'omega_beta_deg':     math.degrees(s[7]),
-                'cmd_omega_alpha_deg': math.degrees(s[8]),
-                'cmd_omega_beta_deg':  math.degrees(s[9]),
+                'cmd_omega_alpha_deg':      math.degrees(s[8]),
+                'cmd_omega_beta_deg':       math.degrees(s[9]),
+                'omega_alpha_jacobian_deg':  self._omega_alpha_jacobian,
+                'omega_beta_jacobian_deg':   self._omega_beta_jacobian,
                 'desired_x':          self._desired_x,
                 'desired_y':          self._desired_y,
                 'marble_z_abs':       self._marble_z,
