@@ -64,7 +64,7 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 
 # ── Tunable parameters ────────────────────────────────────────────────────────
 CONTROL_HZ = 30.0
-MAX_RATE   = np.deg2rad(90.0)     # max angular rate command to servo (rad/s)
+MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
 OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
                                   # smaller = faster response but noisier
                                   # larger  = smoother but more lag (PT1 limit)
@@ -108,7 +108,7 @@ class MarbleServoController(Node):
         # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
 
-        # Plate angular velocities — differentiated from TF angles in _odom_cb (proven accurate)
+        # Plate angular velocities — set by _js_cb via rotational Jacobian × q_dot
         self._omega_alpha_actual = 0.0   # world-Y angular velocity (pitch rate)
         self._omega_beta_actual  = 0.0   # world-X angular velocity (roll rate)
 
@@ -334,7 +334,6 @@ class MarbleServoController(Node):
         alpha = pitch
         beta  = roll
 
-        # omega_alpha/beta are kept up-to-date by _js_cb (Jacobian × q_dot) at 100 Hz
         self._state[4] = alpha
         self._state[5] = self._omega_alpha_actual
         self._state[6] = beta

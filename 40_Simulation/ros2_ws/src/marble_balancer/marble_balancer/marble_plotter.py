@@ -38,18 +38,17 @@ PLATE_HALF_SIZE = 0.35   # 30 × 30 cm plate assumed
 # Default log directory
 LOG_DIR = Path.home() / 'marble_logs'
 
-# CSV columns
+# CSV columns — all state/cmd fields come directly from /marble/lqr_state
+# so the plotter always shows exactly what the LQR sees.
 FIELDNAMES = [
     'time',
-    'marble_x_rel', 'marble_y_rel', 'marble_z_abs',
-    'desired_x', 'desired_y',        # setpoint from lissajous / square node
-    'tcp_x', 'tcp_y', 'tcp_z',
-    'plate_alpha_deg',                # pitch (Y-axis rotation → controls X)
-    'plate_beta_deg',                 # roll  (X-axis rotation → controls Y)
-    'cmd_ang_x_deg',                  # angular.x sent to Servo (→ ω_beta cmd)
-    'cmd_ang_y_deg',                  # angular.y sent to Servo (→ ω_alpha cmd)
-    'actual_omega_alpha_deg',         # Jacobian ω_alpha from /marble/plate_omega
-    'actual_omega_beta_deg',          # Jacobian ω_beta  from /marble/plate_omega
+    'x', 'vx', 'y', 'vy',            # marble pos / vel  (state[0..3])
+    'alpha_deg', 'omega_alpha_deg',   # plate pitch + rate (state[4..5])
+    'beta_deg',  'omega_beta_deg',    # plate roll  + rate (state[6..7])
+    'cmd_omega_alpha_deg',            # LQR output u[0]   (state[8])
+    'cmd_omega_beta_deg',             # LQR output u[1]   (state[9])
+    'desired_x', 'desired_y',         # setpoint from lissajous / square node
+    'marble_z_abs',                   # raw z for diagnostics
 ]
 
 
@@ -77,21 +76,14 @@ def plot_from_csv(csv_path: str):
         return
 
     t  = np.array([r['time'] for r in rows]);  t -= t[0]
-    mx = np.array([r['marble_x_rel'] for r in rows])
-    my = np.array([r['marble_y_rel'] for r in rows])
-
-    tcp_x = np.array([r['tcp_x'] for r in rows])
-    tcp_y = np.array([r['tcp_y'] for r in rows])
-    tcp_z = np.array([r['tcp_z'] for r in rows])
-
-    alpha_deg = np.array([r['plate_alpha_deg'] for r in rows])   # pitch
-    beta_deg  = np.array([r['plate_beta_deg']  for r in rows])   # roll
-    cmd_x_deg = np.array([r['cmd_ang_x_deg']   for r in rows])   # → ω_beta
-    cmd_y_deg = np.array([r['cmd_ang_y_deg']   for r in rows])   # → ω_alpha
-
-    # Actual plate angular velocities from Jacobian (recorded from /marble/plate_omega)
-    omega_alpha_actual = np.array([r['actual_omega_alpha_deg'] for r in rows])
-    omega_beta_actual  = np.array([r['actual_omega_beta_deg']  for r in rows])
+    mx         = np.array([r['x']               for r in rows])
+    my         = np.array([r['y']               for r in rows])
+    alpha_deg  = np.array([r['alpha_deg']        for r in rows])
+    beta_deg   = np.array([r['beta_deg']         for r in rows])
+    omega_alpha_actual = np.array([r['omega_alpha_deg']     for r in rows])
+    omega_beta_actual  = np.array([r['omega_beta_deg']      for r in rows])
+    cmd_alpha_deg      = np.array([r['cmd_omega_alpha_deg'] for r in rows])
+    cmd_beta_deg       = np.array([r['cmd_omega_beta_deg']  for r in rows])
 
     # # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
     # fig1, ax1 = plt.subplots(figsize=(7, 7))
@@ -123,7 +115,7 @@ def plot_from_csv(csv_path: str):
     MAX_RATE_DEG = math.degrees(np.deg2rad(45))   # show clamp line (update if changed)
     fig2, (ax2a, ax2b) = plt.subplots(2, 1, figsize=(11, 6), sharex=True)
 
-    ax2a.plot(t, cmd_y_deg,          label='ω_alpha commanded (angular.y)',
+    ax2a.plot(t, cmd_alpha_deg,       label='ω_alpha commanded',
               color='tab:blue',   lw=1.5)
     ax2a.plot(t, omega_alpha_actual, label='ω_alpha actual (Jacobian)',
               color='tab:orange', lw=1.0, alpha=0.85)
@@ -135,7 +127,7 @@ def plot_from_csv(csv_path: str):
     ax2a.legend(fontsize=8)
     ax2a.grid(True, alpha=0.3)
 
-    ax2b.plot(t, cmd_x_deg,         label='ω_beta commanded (angular.x)',
+    ax2b.plot(t, cmd_beta_deg,        label='ω_beta commanded',
               color='tab:green', lw=1.5)
     ax2b.plot(t, omega_beta_actual, label='ω_beta actual (Jacobian)',
               color='tab:red',   lw=1.0, alpha=0.85)
@@ -190,8 +182,8 @@ def plot_from_csv(csv_path: str):
     fig3.tight_layout()
 
     # ── Console summary ───────────────────────────────────────────────────────
-    sat_alpha = np.sum(np.abs(cmd_y_deg) >= MAX_RATE_DEG * 0.99)
-    sat_beta  = np.sum(np.abs(cmd_x_deg) >= MAX_RATE_DEG * 0.99)
+    sat_alpha = np.sum(np.abs(cmd_alpha_deg) >= MAX_RATE_DEG * 0.99)
+    sat_beta  = np.sum(np.abs(cmd_beta_deg) >= MAX_RATE_DEG * 0.99)
     print(f'\n=== Run summary  ({len(rows)} samples, {t[-1]:.1f} s) ===')
     print(f'Marble range — X: [{mx.min():.3f}, {mx.max():.3f}] m  '
           f'Y: [{my.min():.3f}, {my.max():.3f}] m')
@@ -223,10 +215,9 @@ def record_node(default_output: Path):
     from rclpy.node import Node
     from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
     from nav_msgs.msg import Odometry
-    from geometry_msgs.msg import TwistStamped, Point
+    from geometry_msgs.msg import Point
     from std_msgs.msg import Empty
     from std_srvs.srv import Trigger
-    import tf2_ros
 
     _LATCHED = QoSProfile(
         depth=1,
@@ -258,22 +249,16 @@ def record_node(default_output: Path):
                 Path(self.get_parameter('output').get_parameter_value().string_value))
 
             self._recording_active = False   # only True while marble is on the plate
-            self._cmd_ang_x_deg        = 0.0
-            self._cmd_ang_y_deg        = 0.0
-            self._actual_omega_alpha   = 0.0
-            self._actual_omega_beta    = 0.0
-            self._desired_x            = 0.0
-            self._desired_y            = 0.0
+            self._lqr_state  = [0.0] * 10   # [x,vx,y,vy,α,ωα,β,ωβ, cmd_α,cmd_β]
+            self._desired_x  = 0.0
+            self._desired_y  = 0.0
+            self._marble_z   = 0.0
 
-            self._tf_buf = tf2_ros.Buffer()
-            self._tf_lis = tf2_ros.TransformListener(self._tf_buf, self)
-
+            from std_msgs.msg import Float64MultiArray
             self.create_subscription(
-                Odometry, '/marble/odom', self._odom_cb, 10)
+                Float64MultiArray, '/marble/lqr_state', self._lqr_cb, 10)
             self.create_subscription(
-                TwistStamped, '/servo_node/delta_twist_cmds', self._cmd_cb, 10)
-            self.create_subscription(
-                TwistStamped, '/marble/plate_omega', self._omega_cb, 10)
+                Odometry, '/marble/odom', self._odom_z_cb, 10)
             self.create_subscription(
                 Point, '/marble/desired_pos', self._desired_cb, 10)
             self.create_subscription(
@@ -351,47 +336,33 @@ def record_node(default_output: Path):
             self._desired_x = msg.x
             self._desired_y = msg.y
 
-        def _cmd_cb(self, msg: TwistStamped):
-            self._cmd_ang_x_deg = math.degrees(msg.twist.angular.x)
-            self._cmd_ang_y_deg = math.degrees(msg.twist.angular.y)
+        def _odom_z_cb(self, msg: Odometry):
+            self._marble_z = msg.pose.pose.position.z
 
-        def _omega_cb(self, msg: TwistStamped):
-            self._actual_omega_alpha = math.degrees(msg.twist.angular.y)  # α̇
-            self._actual_omega_beta  = math.degrees(msg.twist.angular.x)  # β̇
-
-        def _odom_cb(self, msg: Odometry):
+        def _lqr_cb(self, msg):
+            """Record one row per lqr_state message — exactly what the LQR sees."""
             if not self._recording_active:
                 return
-            try:
-                tf = self._tf_buf.lookup_transform(
-                    'world', 'plate_tcp', rclpy.time.Time())
-            except Exception:
+            if len(msg.data) < 10:
                 return
-
-            q = tf.transform.rotation
-            roll, pitch, _ = _quat_to_rpy(q.x, q.y, q.z, q.w)
-
-            plate_x = tf.transform.translation.x
-            plate_y = tf.transform.translation.y
-            plate_z = tf.transform.translation.z
-            t_sec   = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
-
+            s = msg.data
+            t_sec = self.get_clock().now().nanoseconds * 1e-9
+            self._lqr_state = list(s)
             self._writer.writerow({
-                'time':            t_sec,
-                'marble_x_rel':    msg.pose.pose.position.x - plate_x,
-                'marble_y_rel':    msg.pose.pose.position.y - plate_y,
-                'marble_z_abs':    msg.pose.pose.position.z,
-                'desired_x':       self._desired_x,
-                'desired_y':       self._desired_y,
-                'tcp_x':           plate_x,
-                'tcp_y':           plate_y,
-                'tcp_z':           plate_z,
-                'plate_alpha_deg': math.degrees(pitch),
-                'plate_beta_deg':  math.degrees(roll),
-                'cmd_ang_x_deg':         self._cmd_ang_x_deg,
-                'cmd_ang_y_deg':         self._cmd_ang_y_deg,
-                'actual_omega_alpha_deg': self._actual_omega_alpha,
-                'actual_omega_beta_deg':  self._actual_omega_beta,
+                'time':               t_sec,
+                'x':                  s[0],
+                'vx':                 s[1],
+                'y':                  s[2],
+                'vy':                 s[3],
+                'alpha_deg':          math.degrees(s[4]),
+                'omega_alpha_deg':    math.degrees(s[5]),
+                'beta_deg':           math.degrees(s[6]),
+                'omega_beta_deg':     math.degrees(s[7]),
+                'cmd_omega_alpha_deg': math.degrees(s[8]),
+                'cmd_omega_beta_deg':  math.degrees(s[9]),
+                'desired_x':          self._desired_x,
+                'desired_y':          self._desired_y,
+                'marble_z_abs':       self._marble_z,
             })
             self._row_count += 1
 
