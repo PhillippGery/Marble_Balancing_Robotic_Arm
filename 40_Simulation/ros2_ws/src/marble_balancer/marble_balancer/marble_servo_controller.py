@@ -67,7 +67,7 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 CONTROL_HZ = 30.0
 MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
 OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
-USE_EKF    = False                 # True = EKF omega,  False = Jacobian omega
+USE_EKF    = True                 # True = EKF omega,  False = Jacobian omega
                                   # smaller = faster response but noisier
                                   # larger  = smoother but more lag (PT1 limit)
 
@@ -463,9 +463,8 @@ class MarbleServoController(Node):
         u_clip = np.clip(-self._K @ error, -MAX_RATE, MAX_RATE)
         omega_alpha_cmd = -float(u_clip[0])   # negate for plate_tcp yaw≈180°
         omega_beta_cmd  = -float(u_clip[1])
-        # EKF input: hardware-sense commands (= actual alpha_dot direction, matches TF-diff)
-        self._u_ekf[0] = omega_alpha_cmd
-        self._u_ekf[1] = omega_beta_cmd
+        # EKF input: model-frame command (pre-negation) — consistent with LQR design
+        self._u_ekf[:] = u_clip
 
         # ── World-frame twist (base_link) — servo resolves transform to plate_tcp via TF ─
         # angular.x (world X) → roll  → beta  → Y marble dynamics
