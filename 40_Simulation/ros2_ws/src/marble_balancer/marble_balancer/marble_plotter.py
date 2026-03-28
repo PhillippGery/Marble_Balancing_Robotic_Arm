@@ -26,6 +26,9 @@ from pathlib import Path
 from datetime import datetime
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')   # non-interactive: always works, no display/Tk needed
+                        # figures are saved as PNG and opened with xdg-open
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -39,13 +42,14 @@ LOG_DIR = Path.home() / 'marble_logs'
 FIELDNAMES = [
     'time',
     'marble_x_rel', 'marble_y_rel', 'marble_z_abs',
+    'desired_x', 'desired_y',        # setpoint from lissajous / square node
     'tcp_x', 'tcp_y', 'tcp_z',
-    'plate_alpha_deg',       # pitch (Y-axis rotation → controls X)
-    'plate_beta_deg',        # roll  (X-axis rotation → controls Y)
-    'cmd_ang_x_deg',         # angular.x sent to Servo (→ ω_beta cmd)
-    'cmd_ang_y_deg',         # angular.y sent to Servo (→ ω_alpha cmd)
-    'actual_omega_alpha_deg', # Jacobian ω_alpha from /marble/plate_omega
-    'actual_omega_beta_deg',  # Jacobian ω_beta  from /marble/plate_omega
+    'plate_alpha_deg',                # pitch (Y-axis rotation → controls X)
+    'plate_beta_deg',                 # roll  (X-axis rotation → controls Y)
+    'cmd_ang_x_deg',                  # angular.x sent to Servo (→ ω_beta cmd)
+    'cmd_ang_y_deg',                  # angular.y sent to Servo (→ ω_alpha cmd)
+    'actual_omega_alpha_deg',         # Jacobian ω_alpha from /marble/plate_omega
+    'actual_omega_beta_deg',          # Jacobian ω_beta  from /marble/plate_omega
 ]
 
 
@@ -89,31 +93,31 @@ def plot_from_csv(csv_path: str):
     omega_alpha_actual = np.array([r['actual_omega_alpha_deg'] for r in rows])
     omega_beta_actual  = np.array([r['actual_omega_beta_deg']  for r in rows])
 
-    # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
-    fig1, ax1 = plt.subplots(figsize=(7, 7))
-    ax1.set_aspect('equal')
+    # # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
+    # fig1, ax1 = plt.subplots(figsize=(7, 7))
+    # ax1.set_aspect('equal')
 
-    # Plate boundary
-    s = PLATE_HALF_SIZE
-    ax1.add_patch(plt.Rectangle((-s, -s), 2 * s, 2 * s,
-                                fill=False, edgecolor='steelblue',
-                                linewidth=2, linestyle='--', label='Plate boundary'))
-    ax1.axhline(0, color='gray', lw=0.5, ls=':')
-    ax1.axvline(0, color='gray', lw=0.5, ls=':')
-    ax1.plot(0, 0, '+', color='black', ms=12, mew=2, label='Center target')
+    # # Plate boundary
+    # s = PLATE_HALF_SIZE
+    # ax1.add_patch(plt.Rectangle((-s, -s), 2 * s, 2 * s,
+    #                             fill=False, edgecolor='steelblue',
+    #                             linewidth=2, linestyle='--', label='Plate boundary'))
+    # ax1.axhline(0, color='gray', lw=0.5, ls=':')
+    # ax1.axvline(0, color='gray', lw=0.5, ls=':')
+    # ax1.plot(0, 0, '+', color='black', ms=12, mew=2, label='Center target')
 
-    sc = ax1.scatter(mx, my, c=t, cmap='plasma', s=8, zorder=3)
-    ax1.plot(mx[0],  my[0],  'go', ms=10, label='Start', zorder=4)
-    ax1.plot(mx[-1], my[-1], 'rs', ms=10, label='End',   zorder=4)
+    # sc = ax1.scatter(mx, my, c=t, cmap='plasma', s=8, zorder=3)
+    # ax1.plot(mx[0],  my[0],  'go', ms=10, label='Start', zorder=4)
+    # ax1.plot(mx[-1], my[-1], 'rs', ms=10, label='End',   zorder=4)
 
-    plt.colorbar(sc, ax=ax1, label='Time (s)')
-    ax1.set_xlabel('X on plate (m)')
-    ax1.set_ylabel('Y on plate (m)')
-    ax1.set_title("Marble trajectory — bird's-eye view")
-    ax1.legend(loc='upper right')
-    ax1.set_xlim(-s * 1.5, s * 1.5)
-    ax1.set_ylim(-s * 1.5, s * 1.5)
-    fig1.tight_layout()
+    # plt.colorbar(sc, ax=ax1, label='Time (s)')
+    # ax1.set_xlabel('X on plate (m)')
+    # ax1.set_ylabel('Y on plate (m)')
+    # ax1.set_title("Marble trajectory — bird's-eye view")
+    # ax1.legend(loc='upper right')
+    # ax1.set_xlim(-s * 1.5, s * 1.5)
+    # ax1.set_ylim(-s * 1.5, s * 1.5)
+    # fig1.tight_layout()
 
     # ── Figure 2: Commanded vs actual ω ──────────────────────────────────────
     MAX_RATE_DEG = math.degrees(np.deg2rad(45))   # show clamp line (update if changed)
@@ -145,27 +149,71 @@ def plot_from_csv(csv_path: str):
 
     fig2.tight_layout()
 
-    # ── Figure 3: TCP XYZ position ────────────────────────────────────────────
-    # fig3, ax3 = plt.subplots(figsize=(11, 4))
-    # ax3.plot(t, tcp_x, label='TCP X', lw=1.5)
-    # ax3.plot(t, tcp_y, label='TCP Y', lw=1.5)
-    # ax3.plot(t, tcp_z, label='TCP Z', lw=1.5)
-    # ax3.set_xlabel('Time (s)')
-    # ax3.set_ylabel('Position (m)')
-    # ax3.set_title('TCP (plate_tcp) position in world frame')
-    # ax3.legend()
-    # ax3.grid(True, alpha=0.3)
-    # fig3.tight_layout()
+    # ── Figure 3: Step response — marble position vs setpoint ────────────────
+    desired_x = np.array([r['desired_x'] for r in rows])
+    desired_y = np.array([r['desired_y'] for r in rows])
 
-    # print(f'\nLoaded {len(rows)} samples  ({t[-1]:.1f} s)\n'
-    #       f'Marble range — X: [{mx.min():.3f}, {mx.max():.3f}] m  '
-    #       f'Y: [{my.min():.3f}, {my.max():.3f}] m\n'
-    #       f'Max |α|: {np.abs(alpha_deg).max():.1f}°   '
-    #       f'Max |β|: {np.abs(beta_deg).max():.1f}°\n'
-    #       f'Saturation events α: {np.sum(np.abs(cmd_y_deg) >= MAX_RATE_DEG * 0.99)}  '
-    #       f'β: {np.sum(np.abs(cmd_x_deg) >= MAX_RATE_DEG * 0.99)}')
+    fig3, (ax3a, ax3b, ax3c, ax3d) = plt.subplots(4, 1, figsize=(11, 10), sharex=True)
+    fig3.suptitle('LQR Step Response', fontsize=13)
 
-    plt.show()
+    ax3a.plot(t, mx,        label='x actual',  color='tab:blue',   lw=1.5)
+    ax3a.plot(t, desired_x, label='x desired', color='tab:blue',   lw=1.0, ls='--', alpha=0.7)
+    ax3a.axhline(0, color='gray', lw=0.4)
+    ax3a.set_ylabel('X (m)')
+    ax3a.legend(fontsize=8, loc='upper right')
+    ax3a.grid(True, alpha=0.3)
+
+    ax3b.plot(t, my,        label='y actual',  color='tab:orange', lw=1.5)
+    ax3b.plot(t, desired_y, label='y desired', color='tab:orange', lw=1.0, ls='--', alpha=0.7)
+    ax3b.axhline(0, color='gray', lw=0.4)
+    ax3b.set_ylabel('Y (m)')
+    ax3b.legend(fontsize=8, loc='upper right')
+    ax3b.grid(True, alpha=0.3)
+
+    ax3c.plot(t, alpha_deg, label='α (pitch, controls X)', color='tab:green',  lw=1.2)
+    ax3c.plot(t, beta_deg,  label='β (roll,  controls Y)', color='tab:purple', lw=1.2)
+    ax3c.axhline(0, color='gray', lw=0.4)
+    ax3c.set_ylabel('Plate angle (°)')
+    ax3c.legend(fontsize=8, loc='upper right')
+    ax3c.grid(True, alpha=0.3)
+
+    err_x = mx - desired_x
+    err_y = my - desired_y
+    ax3d.plot(t, err_x, label='error X', color='tab:blue',   lw=1.2)
+    ax3d.plot(t, err_y, label='error Y', color='tab:orange', lw=1.2)
+    ax3d.axhline(0, color='gray', lw=0.4)
+    ax3d.set_ylabel('Error (m)')
+    ax3d.set_xlabel('Time (s)')
+    ax3d.legend(fontsize=8, loc='upper right')
+    ax3d.grid(True, alpha=0.3)
+
+    fig3.tight_layout()
+
+    # ── Console summary ───────────────────────────────────────────────────────
+    sat_alpha = np.sum(np.abs(cmd_y_deg) >= MAX_RATE_DEG * 0.99)
+    sat_beta  = np.sum(np.abs(cmd_x_deg) >= MAX_RATE_DEG * 0.99)
+    print(f'\n=== Run summary  ({len(rows)} samples, {t[-1]:.1f} s) ===')
+    print(f'Marble range — X: [{mx.min():.3f}, {mx.max():.3f}] m  '
+          f'Y: [{my.min():.3f}, {my.max():.3f}] m')
+    print(f'Max |α|: {np.abs(alpha_deg).max():.1f}°   '
+          f'Max |β|: {np.abs(beta_deg).max():.1f}°')
+    print(f'Rate saturation events — α: {sat_alpha}  β: {sat_beta}')
+    rms_x = np.sqrt(np.mean(err_x**2))
+    rms_y = np.sqrt(np.mean(err_y**2))
+    print(f'RMS error — X: {rms_x*100:.1f} cm  Y: {rms_y*100:.1f} cm')
+
+    # Save PNGs and open with system image viewer (xdg-open)
+    base = Path(csv_path).with_suffix('')
+    paths = [base.parent / (base.name + '_omega.png'),
+             base.parent / (base.name + '_step.png')]
+    fig2.savefig(paths[0], dpi=120)
+    fig3.savefig(paths[1], dpi=120)
+    plt.close('all')
+    for p in paths:
+        print(f'Saved: {p}')
+        subprocess.Popen(['xdg-open', str(p)],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
 
 
 # ── RECORD (ROS 2 node) ───────────────────────────────────────────────────────
@@ -175,7 +223,7 @@ def record_node(default_output: Path):
     from rclpy.node import Node
     from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
     from nav_msgs.msg import Odometry
-    from geometry_msgs.msg import TwistStamped
+    from geometry_msgs.msg import TwistStamped, Point
     from std_msgs.msg import Empty
     from std_srvs.srv import Trigger
     import tf2_ros
@@ -214,6 +262,8 @@ def record_node(default_output: Path):
             self._cmd_ang_y_deg        = 0.0
             self._actual_omega_alpha   = 0.0
             self._actual_omega_beta    = 0.0
+            self._desired_x            = 0.0
+            self._desired_y            = 0.0
 
             self._tf_buf = tf2_ros.Buffer()
             self._tf_lis = tf2_ros.TransformListener(self._tf_buf, self)
@@ -224,6 +274,8 @@ def record_node(default_output: Path):
                 TwistStamped, '/servo_node/delta_twist_cmds', self._cmd_cb, 10)
             self.create_subscription(
                 TwistStamped, '/marble/plate_omega', self._omega_cb, 10)
+            self.create_subscription(
+                Point, '/marble/desired_pos', self._desired_cb, 10)
             self.create_subscription(
                 Empty, '/marble/landed',   self._landed_cb,   _LATCHED)
             self.create_subscription(
@@ -257,9 +309,7 @@ def record_node(default_output: Path):
             self.get_logger().info(
                 f'Marble fell off — saved {self._row_count} rows → {saved}')
 
-            # Open plots in a separate process (non-blocking).
-            # Use the installed binary so the Python path is correct; pass the
-            # full environment so DISPLAY is available for the GUI backend.
+            # Spawn plot in a detached session so it survives ros2 launch shutdown.
             cmd = ([_plot_bin, '--plot', str(saved)] if _use_bin
                    else [sys.executable, _plot_bin, '--plot', str(saved)])
             log_path = saved.with_suffix('.plot.log')
@@ -269,6 +319,7 @@ def record_node(default_output: Path):
                     env=os.environ.copy(),
                     stdout=log_f,
                     stderr=log_f,
+                    start_new_session=True,   # detach from launch process group
                 )
             self.get_logger().info(
                 f'Plot process started (pid {proc.pid}), log → {log_path}')
@@ -286,12 +337,19 @@ def record_node(default_output: Path):
             self._file.flush()
             cmd = ([_plot_bin, '--plot', str(self._csv_path)] if _use_bin
                    else [sys.executable, _plot_bin, '--plot', str(self._csv_path)])
-            subprocess.Popen(cmd, env=os.environ.copy(),
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            log_path = self._csv_path.with_suffix('.plot.log')
+            with log_path.open('w') as log_f:
+                subprocess.Popen(cmd, env=os.environ.copy(),
+                                 stdout=log_f, stderr=log_f,
+                                 start_new_session=True)
             response.success = True
             response.message = f'Plotting {self._row_count} rows from {self._csv_path}'
             self.get_logger().info(response.message)
             return response
+
+        def _desired_cb(self, msg: Point):
+            self._desired_x = msg.x
+            self._desired_y = msg.y
 
         def _cmd_cb(self, msg: TwistStamped):
             self._cmd_ang_x_deg = math.degrees(msg.twist.angular.x)
@@ -323,6 +381,8 @@ def record_node(default_output: Path):
                 'marble_x_rel':    msg.pose.pose.position.x - plate_x,
                 'marble_y_rel':    msg.pose.pose.position.y - plate_y,
                 'marble_z_abs':    msg.pose.pose.position.z,
+                'desired_x':       self._desired_x,
+                'desired_y':       self._desired_y,
                 'tcp_x':           plate_x,
                 'tcp_y':           plate_y,
                 'tcp_z':           plate_z,
@@ -362,9 +422,11 @@ def record_node(default_output: Path):
         node.destroy_node()
         rclpy.shutdown()
 
-    # On Ctrl-C: plot whatever was in the current (last) CSV
+    # On Ctrl-C: spawn a detached plot process so it outlives this node
     if last_csv.exists() and last_csv.stat().st_size > 0:
-        plot_from_csv(str(last_csv))
+        cmd = ([_plot_bin, '--plot', str(last_csv)] if _use_bin
+               else [sys.executable, _plot_bin, '--plot', str(last_csv)])
+        subprocess.Popen(cmd, env=os.environ.copy(), start_new_session=True)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────

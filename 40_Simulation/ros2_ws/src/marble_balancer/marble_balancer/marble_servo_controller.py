@@ -4,22 +4,14 @@ marble_servo_controller.py
 Real-time LQR marble balancing controller with PT1 robot delay model.
 
 State vector: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
-  alpha/beta     — plate tilt angles read from TF (world → plate_tcp)
-  omega_alpha/beta — actual plate angular velocities, estimated via PT1
+  alpha/beta         — plate tilt angles from plate_tcp TF quaternion (ZYX Euler)
+  omega_alpha/beta   — plate angular velocities from rotational Jacobian × q_dot
 
 Control inputs: [omega_alpha_cmd, omega_beta_cmd]  (rad/s velocity commands)
 
-The LQR output is in world frame (alpha around world-X, beta around world-Y).
-Before sending to MoveIt Servo (which operates in plate_tcp frame), the
-commands are rotated by the plate yaw angle extracted from TF.
-
-World-frame convention:
-  omega_x_world =  omega_beta_cmd   (tilt around world X → marble moves in -Y)
-  omega_y_world = -omega_alpha_cmd  (tilt around world Y → marble moves in +X)
-
-Then rotate into plate_tcp frame:
-  angular.x_plate =  omega_x_world * cos(yaw) + omega_y_world * sin(yaw)
-  angular.y_plate = -omega_x_world * sin(yaw) + omega_y_world * cos(yaw)
+Servo command frame: base_link — MoveIt Servo resolves the transform to plate_tcp via TF.
+  angular.x = omega_beta_cmd   (world X rotation → controls Y marble dynamics)
+  angular.y = omega_alpha_cmd  (world Y rotation → controls X marble dynamics)
 """
 
 import math
@@ -72,8 +64,8 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 
 # ── Tunable parameters ────────────────────────────────────────────────────────
 CONTROL_HZ = 30.0
-MAX_RATE   = np.deg2rad(45.0)     # max angular rate command to servo (rad/s)
-OMEGA_LPF_TC = 0.08               # low-pass filter time constant for Jacobian omega (s)
+MAX_RATE   = np.deg2rad(90.0)     # max angular rate command to servo (rad/s)
+OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
                                   # smaller = faster response but noisier
                                   # larger  = smoother but more lag (PT1 limit)
 
@@ -116,22 +108,19 @@ class MarbleServoController(Node):
         # State: [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
         self._state = np.zeros(8)
 
-        # Plate angular velocities — differentiated from TF angles (sign-consistent by construction)
-        self._omega_alpha_actual = 0.0   # d(alpha)/dt = d(pitch)/dt
-        self._omega_beta_actual  = 0.0   # d(beta)/dt  = d(roll)/dt
-        self._prev_alpha  = None
-        self._prev_beta   = None
-        self._prev_tf_t   = None
+        # Plate angular velocities — differentiated from TF angles in _odom_cb (proven accurate)
+        self._omega_alpha_actual = 0.0   # world-Y angular velocity (pitch rate)
+        self._omega_beta_actual  = 0.0   # world-X angular velocity (roll rate)
+
+        # Marble position history for velocity differentiation
+        self._prev_odom_t = None
         self._prev_mx     = 0.0
         self._prev_my     = 0.0
 
-        # Joint velocities (kept for Jacobian publication to plotter)
+        # Joint state for Jacobian: q_dot from velocity field or position differentiation
         self._q_dot      = np.zeros(6)
         self._q_prev     = None
         self._q_prev_t   = None
-
-        # Last command sent (kept for PT1 reference in lqr_math but not used in state)
-        self._u_prev = np.zeros(2)
 
         # ── TF ────────────────────────────────────────────────────────────────
         self._tf_buffer   = tf2_ros.Buffer()
@@ -219,21 +208,39 @@ class MarbleServoController(Node):
             self.get_logger().warn('stop_servo service not available.')
 
     def _js_cb(self, msg: JointState):
-        """Compute joint velocities from position differentiation, then publish plate omega."""
+        """Compute q_dot, then update plate angular velocity via rotational Jacobian.
+
+        Velocity source priority:
+          1. msg.velocity  — encoder-based, available on real UR5e driver and Gazebo
+          2. Position differentiation — fallback if velocity field is empty
+        """
         pos_map = dict(zip(msg.name, msg.position))
         q_new = np.array([pos_map.get(j, 0.0) for j in _JOINT_NAMES])
         t_new = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
 
-        if self._q_prev is not None:
-            dt = t_new - self._q_prev_t
-            if 0.0 < dt < 0.5:
-                q_dot_raw = (q_new - self._q_prev) / dt
-                # Exponential low-pass filter: smooth out differentiation noise
-                # while keeping real plate motion information
-                alpha_f = dt / (OMEGA_LPF_TC + dt)
-                self._q_dot = alpha_f * q_dot_raw + (1.0 - alpha_f) * self._q_dot
+        # dt for LPF (computed before updating history)
+        if self._q_prev_t is not None:
+            dt_js = (t_new - self._q_prev_t)
+        else:
+            dt_js = 1.0 / CONTROL_HZ
+
+        
+
+        # Prefer velocity field (no differentiation noise); fall back to position diff
+        if msg.velocity and len(msg.velocity) == len(msg.name):
+            vel_map = dict(zip(msg.name, msg.velocity))
+            q_dot_raw = np.array([vel_map.get(j, 0.0) for j in _JOINT_NAMES])
+        elif self._q_prev is not None and 0.0 < dt_js < 0.5:
+            q_dot_raw = (q_new - self._q_prev) / dt_js
+        else:
+            q_dot_raw = np.zeros(6)
+
         self._q_prev   = q_new
         self._q_prev_t = t_new
+
+        # EMA low-pass to smooth Jacobian output
+        alpha_f = dt_js / (OMEGA_LPF_TC + dt_js)
+        self._q_dot = alpha_f * q_dot_raw + (1.0 - alpha_f) * self._q_dot
         omega = self._compute_plate_omega()
         if omega is not None:
             self._omega_beta_actual  = omega[0]   # world X → β̇ (roll rate)
@@ -297,24 +304,25 @@ class MarbleServoController(Node):
         plate_x = tf.transform.translation.x
         plate_y = tf.transform.translation.y
 
-        # Timestamp from odom message (used for all differentiations below)
+        # Timestamp from odom message
         t_now = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
 
         # ── Marble position relative to plate centre (world frame) ────────────
-        mx = (msg.pose.pose.position.x - plate_x)*-1.0   # invert X to match plate tilt directions (world frame)
+        mx = (msg.pose.pose.position.x - plate_x) * -1.0   # invert X: plate_tcp yaw≈180° at home
         my = (msg.pose.pose.position.y - plate_y)
         # Differentiate world-frame position for marble velocity
-        # (avoids body-frame twist issue from p3d plugin)
-        if self._prev_tf_t is not None:
-            dt_odom = t_now - self._prev_tf_t
+        # (p3d body-frame twist is unreliable as the marble spins)
+        if self._prev_odom_t is not None:
+            dt_odom = t_now - self._prev_odom_t
             if 0.0 < dt_odom < 0.5:
                 vx_raw = (mx - self._prev_mx) / dt_odom
                 vy_raw = (my - self._prev_my) / dt_odom
                 vf = dt_odom / (OMEGA_LPF_TC + dt_odom)
                 self._state[1] += vf * (vx_raw - self._state[1])
                 self._state[3] += vf * (vy_raw - self._state[3])
-        self._prev_mx = mx
-        self._prev_my = my
+        self._prev_mx     = mx
+        self._prev_my     = my
+        self._prev_odom_t = t_now
         self._state[0] = mx
         self._state[2] = my
 
@@ -322,22 +330,11 @@ class MarbleServoController(Node):
         # alpha = pitch (Y-axis rotation) → controls X ball motion  (dxd/dt = -C*alpha)
         # beta  = roll  (X-axis rotation) → controls Y ball motion  (dyd/dt = -C*beta)
         q = tf.transform.rotation
-        roll, pitch, yaw = _quat_to_rpy(q.x, q.y, q.z, q.w)
+        roll, pitch, _ = _quat_to_rpy(q.x, q.y, q.z, q.w)
         alpha = pitch
         beta  = roll
 
-        # Differentiate TF angles → omega sign-consistent with alpha/beta by construction
-        if self._prev_alpha is not None:
-            if 0.0 < dt_odom < 0.5:
-                af = dt_odom / (OMEGA_LPF_TC + dt_odom)
-                self._omega_alpha_actual += af * ((alpha - self._prev_alpha) / dt_odom
-                                                   - self._omega_alpha_actual)
-                self._omega_beta_actual  += af * ((beta  - self._prev_beta)  / dt_odom
-                                                   - self._omega_beta_actual)
-        self._prev_alpha = alpha
-        self._prev_beta  = beta
-        self._prev_tf_t  = t_now
-
+        # omega_alpha/beta are kept up-to-date by _js_cb (Jacobian × q_dot) at 100 Hz
         self._state[4] = alpha
         self._state[5] = self._omega_alpha_actual
         self._state[6] = beta
@@ -385,7 +382,6 @@ class MarbleServoController(Node):
                 self._land_ticks = 0
                 self._omega_alpha_actual = 0.0
                 self._omega_beta_actual  = 0.0
-                self._u_prev[:]          = 0.0
 
                 # Notify plotter to save & plot
                 self._fell_off_pub.publish(Empty())
@@ -428,10 +424,9 @@ class MarbleServoController(Node):
     def _control_cb(self):
         msg = TwistStamped()
         msg.header.stamp    = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'plate_tcp'
+        msg.header.frame_id = 'base_link'
 
         if not self._landed:
-            self._u_prev[:] = 0.0
             if not self._homing:
                 self._twist_pub.publish(msg)   # zero twist keeps Servo happy
             return
@@ -445,19 +440,13 @@ class MarbleServoController(Node):
         error[4] -= self._ff_alpha     # desired alpha offset
         error[6] -= self._ff_beta      # desired beta offset
         u = -self._K @ error
-        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))   # no negation
-        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))  # negation needed (kinematic asymmetry at home config)
+        omega_alpha_cmd = -float(np.clip(u[0], -MAX_RATE, MAX_RATE))
+        omega_beta_cmd  = -float(np.clip(u[1], -MAX_RATE, MAX_RATE))
 
-        # Update PT1 state with the new command
-        self._u_prev[0] = omega_alpha_cmd
-        self._u_prev[1] = omega_beta_cmd
-
-        # ── World-frame twist (base_link) — servo transforms to plate_tcp frame ─
-        # Rotation around world X (angular.x) → tilts plate so +Y side goes up → marble in -Y → controls beta
-        # Rotation around world Y (angular.y) → tilts plate so +X side goes up → marble in -X → controls alpha
-        # No manual yaw rotation: servo handles base_link → plate_tcp transform via TF
-        msg.header.frame_id  = 'base_link'
-        msg.twist.angular.x  = omega_beta_cmd    # world X rotation → beta → Y dynamics
+        # ── World-frame twist (base_link) — servo resolves transform to plate_tcp via TF ─
+        # angular.x (world X) → roll  → beta  → Y marble dynamics
+        # angular.y (world Y) → pitch → alpha → X marble dynamics
+        msg.twist.angular.x  = omega_beta_cmd
         msg.twist.angular.y  = omega_alpha_cmd   # world Y rotation → alpha → X dynamics
         # TCP Lissajous linear motion (zeros when tcp_lissajous_node is not running)
         msg.twist.linear.x   = self._tcp_lin_x

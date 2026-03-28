@@ -29,6 +29,9 @@ def generate_launch_description():
     lissajous_arg = DeclareLaunchArgument(
         'lissajous', default_value='false',
         description='Set to true to drive the marble along a Lissajous curve')
+    square_arg = DeclareLaunchArgument(
+        'square', default_value='false',
+        description='Set to true to drive the marble through a 4-corner square step pattern')
     tcp_lissajous_arg = DeclareLaunchArgument(
         'tcp_lissajous', default_value='false',
         description='Set to true to move the TCP along a Lissajous curve while balancing')
@@ -186,6 +189,18 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('lissajous')),
     )
 
+    # ── 9b. Square step-response setpoint node (optional) ────────────────────
+    # Cycles the desired marble position through 4 square corners with a
+    # configurable dwell time — useful for step-response tuning.
+    square_node = Node(
+        package='marble_balancer',
+        executable='marble_square',
+        name='marble_square_node',
+        parameters=[{'half_side': 0.13, 'dwell_time': 6.0}],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('square')),
+    )
+
     # ── 10. TCP Lissajous node (optional) ─────────────────────────────────────
     # Moves the robot TCP along a Lissajous curve in XY while marble stays balanced.
     # Publishes TCP linear velocity + feedforward tilt; activates after marble lands.
@@ -282,13 +297,14 @@ def generate_launch_description():
             target_action=marble_spawn,
             on_exit=[pilot_node, mux_node, mux_node_rl,
                      rl_residual_node, visualizer_node,
-                     plotter_node, lissajous_node, tcp_lissajous_node],
+                     plotter_node, lissajous_node, square_node, tcp_lissajous_node],
         )
     )
 
     return LaunchDescription([
         record_arg,
         lissajous_arg,
+        square_arg,
         tcp_lissajous_arg,
         rl_arg,
         rl_model_arg,
