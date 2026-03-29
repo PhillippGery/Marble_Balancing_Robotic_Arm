@@ -54,6 +54,11 @@ def generate_launch_description():
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
 
+    # ── Plate geometry — single source of truth ───────────────────────────────
+    # Change PLATE_DIAMETER here to resize the plate in both Gazebo and the
+    # visualizer simultaneously.  Unit: metres (circumscribed circle diameter).
+    PLATE_DIAMETER = 0.26
+
     # ── 1. Robot description via xacro ────────────────────────────────────────
     robot_description_content = ParameterValue(
         Command([
@@ -67,6 +72,7 @@ def generate_launch_description():
             ' ur_type:=ur5e',
             ' name:=ur',
             ' safety_limits:=true',
+            f' plate_diameter:={PLATE_DIAMETER}',
         ]),
         value_type=str,
     )
@@ -308,7 +314,7 @@ def generate_launch_description():
         package='marble_balancer',
         executable='marble_visualizer',
         name='marble_visualizer',
-        parameters=[{'trail_length': 200, 'update_rate': 20.0}],
+        parameters=[{'trail_length': 200, 'update_rate': 20.0, 'plate_diameter': PLATE_DIAMETER}],
         output='screen',
     )
 

@@ -67,7 +67,7 @@ def _quat_to_rot(qx, qy, qz, qw) -> np.ndarray:
 CONTROL_HZ = 30.0
 MAX_RATE   = np.deg2rad(60.0)     # max angular rate command to servo (rad/s)
 OMEGA_LPF_TC = 0.01               # low-pass filter time constant for Jacobian omega (s)
-USE_EKF    = True                 # True  = EKF marble pos/vel + Jacobian omega
+USE_EKF    = False                 # True  = EKF marble pos/vel + Jacobian omega
                                   # False = EMA marble vel  + Jacobian omega (Gazebo baseline)
 
 # Landing detection — relaxed so marble is detected even when sliding on arrival

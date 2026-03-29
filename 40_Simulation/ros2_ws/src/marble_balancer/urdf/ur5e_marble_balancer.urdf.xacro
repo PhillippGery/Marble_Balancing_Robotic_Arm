@@ -136,44 +136,50 @@
     </gazebo>
   </xacro:if>
 
-  ═══════════════════════════════════════════════════════════════════════════
-       MARBLE BALANCING PLATE  
-       ───────────────────────────────────────────────────────────────────────────
-       The plate is fixed to tool0 (the UR TCP frame).
-       Adjust xyz/rpy origin and box size to match the physical plate.
+  <!-- ── Marble balancing plate ────────────────────────────────────────────── -->
+  <!-- Diameter is passed from servo_balancer.launch.py so Gazebo and the      -->
+  <!-- visualizer always use the same value.  Change it there, not here.       -->
+  <xacro:arg     name="plate_diameter"    default="0.26"/>  <!-- circumscribed circle, metres -->
+  <xacro:property name="plate_diameter"   value="$(arg plate_diameter)"/>
+  <xacro:property name="plate_thickness"  value="0.005"/>
+  <xacro:property name="plate_half_t"     value="${plate_thickness / 2.0}"/>
 
   <link name="marble_plate">
     <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.20 0.20 0.005"/>
+        <!-- Physical-dimension mesh: R=0.13m, H=0.0025m (no scale needed) -->
+        <mesh filename="$(find marble_balancer)/urdf/plate_octagon.stl"/>
       </geometry>
       <material name="plate_white"><color rgba="0.9 0.9 0.9 1.0"/></material>
     </visual>
     <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.20 0.20 0.005"/>
+        <mesh filename="$(find marble_balancer)/urdf/plate_octagon.stl"/>
       </geometry>
     </collision>
     <inertial>
       <mass value="0.15"/>
-      <inertia ixx="5.0e-4" ixy="0" ixz="0"
-               iyy="5.0e-4" iyz="0"
-               izz="1.0e-3"/>
+      <inertia ixx="6.2e-4" ixy="0" ixz="0"
+               iyy="6.2e-4" iyz="0"
+               izz="1.24e-3"/>
     </inertial>
   </link>
 
+  <!-- Bottom face of plate sits flush on tool0 -->
   <joint name="tool0_to_marble_plate" type="fixed">
     <parent link="tool0"/>
     <child  link="marble_plate"/>
-    <origin xyz="0 0 0.0025" rpy="0 0 0"/>
+    <origin xyz="0 0 ${plate_half_t}" rpy="0 0 0"/>
   </joint>
 
+  <!-- plate_tcp — control frame at top surface of plate -->
   <link name="plate_tcp"/>
   <joint name="marble_plate_to_tcp" type="fixed">
     <parent link="marble_plate"/>
     <child  link="plate_tcp"/>
-    <origin xyz="0 0 0.0025" rpy="0 0 0"/>
+    <origin xyz="0 0 ${plate_half_t}" rpy="0 0 0"/>
   </joint>
-  ═══════════════════════════════════════════════════════════════════════════
 
 </robot>
