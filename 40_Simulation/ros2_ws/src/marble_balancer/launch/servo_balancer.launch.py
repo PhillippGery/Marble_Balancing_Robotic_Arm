@@ -57,7 +57,7 @@ def generate_launch_description():
     # ── Plate geometry — single source of truth ───────────────────────────────
     # Change PLATE_DIAMETER here to resize the plate in both Gazebo and the
     # visualizer simultaneously.  Unit: metres (circumscribed circle diameter).
-    PLATE_DIAMETER = 0.99
+    PLATE_DIAMETER = 0.40
 
     # ── 1. Robot description via xacro ────────────────────────────────────────
     robot_description_content = ParameterValue(

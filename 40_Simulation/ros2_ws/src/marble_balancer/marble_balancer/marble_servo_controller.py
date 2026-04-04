@@ -71,9 +71,9 @@ USE_EKF    = False                 # True  = EKF marble pos/vel + Jacobian omega
                                   # False = EMA marble vel  + Jacobian omega (Gazebo baseline)
 
 # Landing detection — relaxed so marble is detected even when sliding on arrival
-LAND_Z_MARGIN  = 0.030    # ±3 cm z-window around plate top
+LAND_Z_MARGIN  = 0.040    # ±4 cm z-window around plate top
 LAND_VZ_MAX    = 0.50     # allow sliding marble (only blocks free-falling marble)
-LAND_CONFIRM   = 5        # 5 consecutive odom ticks ≈ 0.17 s at 30 Hz
+LAND_CONFIRM   = 3        # 3 consecutive odom ticks ≈ 0.10 s at 30 Hz
 # ─────────────────────────────────────────────────────────────────────────────
 
 MARBLE_RADIUS   = 0.015

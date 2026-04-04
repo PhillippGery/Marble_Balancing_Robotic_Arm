@@ -89,31 +89,31 @@ def plot_from_csv(csv_path: str):
     omega_alpha_jacobian = np.array([r.get('omega_alpha_jacobian_deg', 0.0)  for r in rows])
     omega_beta_jacobian  = np.array([r.get('omega_beta_jacobian_deg',  0.0)  for r in rows])
 
-    # # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
-    # fig1, ax1 = plt.subplots(figsize=(7, 7))
-    # ax1.set_aspect('equal')
+    # ── Figure 1: Bird's-eye view ─────────────────────────────────────────────
+    fig1, ax1 = plt.subplots(figsize=(7, 7))
+    ax1.set_aspect('equal')
 
-    # # Plate boundary
-    # s = PLATE_HALF_SIZE
-    # ax1.add_patch(plt.Rectangle((-s, -s), 2 * s, 2 * s,
-    #                             fill=False, edgecolor='steelblue',
-    #                             linewidth=2, linestyle='--', label='Plate boundary'))
-    # ax1.axhline(0, color='gray', lw=0.5, ls=':')
-    # ax1.axvline(0, color='gray', lw=0.5, ls=':')
-    # ax1.plot(0, 0, '+', color='black', ms=12, mew=2, label='Center target')
+    # Plate boundary
+    s = PLATE_HALF_SIZE
+    ax1.add_patch(plt.Rectangle((-s, -s), 2 * s, 2 * s,
+                                fill=False, edgecolor='steelblue',
+                                linewidth=2, linestyle='--', label='Plate boundary'))
+    ax1.axhline(0, color='gray', lw=0.5, ls=':')
+    ax1.axvline(0, color='gray', lw=0.5, ls=':')
+    ax1.plot(0, 0, '+', color='black', ms=12, mew=2, label='Center target')
 
-    # sc = ax1.scatter(mx, my, c=t, cmap='plasma', s=8, zorder=3)
-    # ax1.plot(mx[0],  my[0],  'go', ms=10, label='Start', zorder=4)
-    # ax1.plot(mx[-1], my[-1], 'rs', ms=10, label='End',   zorder=4)
+    sc = ax1.scatter(mx, my, c=t, cmap='plasma', s=8, zorder=3)
+    ax1.plot(mx[0],  my[0],  'go', ms=10, label='Start', zorder=4)
+    ax1.plot(mx[-1], my[-1], 'rs', ms=10, label='End',   zorder=4)
 
-    # plt.colorbar(sc, ax=ax1, label='Time (s)')
-    # ax1.set_xlabel('X on plate (m)')
-    # ax1.set_ylabel('Y on plate (m)')
-    # ax1.set_title("Marble trajectory — bird's-eye view")
-    # ax1.legend(loc='upper right')
-    # ax1.set_xlim(-s * 1.5, s * 1.5)
-    # ax1.set_ylim(-s * 1.5, s * 1.5)
-    # fig1.tight_layout()
+    plt.colorbar(sc, ax=ax1, label='Time (s)')
+    ax1.set_xlabel('X on plate (m)')
+    ax1.set_ylabel('Y on plate (m)')
+    ax1.set_title("Marble trajectory — bird's-eye view")
+    ax1.legend(loc='upper right')
+    ax1.set_xlim(-s * 1.5, s * 1.5)
+    ax1.set_ylim(-s * 1.5, s * 1.5)
+    fig1.tight_layout()
 
     # ── Figure 2: Commanded vs actual ω ──────────────────────────────────────
     MAX_RATE_DEG = math.degrees(np.deg2rad(45))   # show clamp line (update if changed)
