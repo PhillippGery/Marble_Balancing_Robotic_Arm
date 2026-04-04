@@ -57,7 +57,7 @@ def generate_launch_description():
     # ── Plate geometry — single source of truth ───────────────────────────────
     # Change PLATE_DIAMETER here to resize the plate in both Gazebo and the
     # visualizer simultaneously.  Unit: metres (circumscribed circle diameter).
-    PLATE_DIAMETER = 0.26
+    PLATE_DIAMETER = 0.99
 
     # ── 1. Robot description via xacro ────────────────────────────────────────
     robot_description_content = ParameterValue(
@@ -80,8 +80,8 @@ def generate_launch_description():
     # ── 2. Gazebo + UR5e + controllers ────────────────────────────────────────
     ur_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare('ur_simulation_gazebo'),
-            '/launch/ur_sim_control.launch.py',
+            FindPackageShare('marble_balancer'),
+            '/launch/ur_sim_control_marble.launch.py',
         ]),
         launch_arguments={
             'ur_type':                  'ur5e',
@@ -91,6 +91,7 @@ def generate_launch_description():
             'runtime_config_package':   'marble_balancer',
             'controllers_file':         'ur_controllers.yaml',
             'initial_joint_controller': 'ur7e_arm_controller',
+            'plate_diameter':           str(PLATE_DIAMETER),
         }.items(),
     )
 

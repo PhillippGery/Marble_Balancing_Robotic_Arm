@@ -33,7 +33,7 @@ IB = (2.0 / 5.0) * MB * RB**2
 C  = MB * G / (MB + IB / RB**2)   # ≈ (5/7)*g ≈ 7.0 m/s²
 
 # Robot PT1 time constant (s) — tune if robot responds faster/slower
-T_ROBOT = 0.35
+T_ROBOT = 0.05
 
 
 # ── Continuous-time A, B (with PT1 robot model) ───────────────────────────────
