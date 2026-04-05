@@ -29,24 +29,15 @@ def generate_launch_description():
     lissajous_arg = DeclareLaunchArgument(
         'lissajous', default_value='false',
         description='Set to true to drive the marble along a Lissajous curve')
+    square_arg = DeclareLaunchArgument(
+        'square', default_value='false',
+        description='Set to true to drive the marble through a 4-corner square step pattern')
     tcp_lissajous_arg = DeclareLaunchArgument(
         'tcp_lissajous', default_value='false',
         description='Set to true to move the TCP along a Lissajous curve while balancing')
-    tcp_circle_arg = DeclareLaunchArgument(
-        'tcp_circle', default_value='false',
-        description='Set to true to move the TCP along a circle while balancing')
-    tcp_circle_radius_arg = DeclareLaunchArgument(
-        'tcp_circle_radius', default_value='0.04',
-        description='Circle radius in metres (default 0.04)')
-    tcp_circle_period_arg = DeclareLaunchArgument(
-        'tcp_circle_period', default_value='20.0',
-        description='Circle period in seconds (default 20.0)')
-    tcp_circle_phase_arg = DeclareLaunchArgument(
-        'tcp_circle_phase', default_value='0.0',
-        description='Initial phase offset in radians (default 0.0)')
-    tcp_circle_ff_gain_arg = DeclareLaunchArgument(
-        'tcp_circle_ff_gain', default_value='0.0',
-        description='Feedforward tilt gain (0=off, 1=full; default 0.0)')
+    tcp_keyboard_arg = DeclareLaunchArgument(
+        'tcp_keyboard', default_value='false',
+        description='Set to true to control TCP linear velocity with WASD/arrow keys')
     rl_arg = DeclareLaunchArgument(
         'rl', default_value='false',
         description='Set to true to enable the SAC residual controller')
@@ -63,6 +54,11 @@ def generate_launch_description():
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
 
+    # ── Plate geometry — single source of truth ───────────────────────────────
+    # Change PLATE_DIAMETER here to resize the plate in both Gazebo and the
+    # visualizer simultaneously.  Unit: metres (circumscribed circle diameter).
+    PLATE_DIAMETER = 0.40
+
     # ── 1. Robot description via xacro ────────────────────────────────────────
     robot_description_content = ParameterValue(
         Command([
@@ -76,6 +72,7 @@ def generate_launch_description():
             ' ur_type:=ur5e',
             ' name:=ur',
             ' safety_limits:=true',
+            f' plate_diameter:={PLATE_DIAMETER}',
         ]),
         value_type=str,
     )
@@ -83,8 +80,8 @@ def generate_launch_description():
     # ── 2. Gazebo + UR5e + controllers ────────────────────────────────────────
     ur_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
-            FindPackageShare('ur_simulation_gazebo'),
-            '/launch/ur_sim_control.launch.py',
+            FindPackageShare('marble_balancer'),
+            '/launch/ur_sim_control_marble.launch.py',
         ]),
         launch_arguments={
             'ur_type':                  'ur5e',
@@ -94,6 +91,7 @@ def generate_launch_description():
             'runtime_config_package':   'marble_balancer',
             'controllers_file':         'ur_controllers.yaml',
             'initial_joint_controller': 'ur7e_arm_controller',
+            'plate_diameter':           str(PLATE_DIAMETER),
         }.items(),
     )
 
@@ -201,6 +199,18 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('lissajous')),
     )
 
+    # ── 9b. Square step-response setpoint node (optional) ────────────────────
+    # Cycles the desired marble position through 4 square corners with a
+    # configurable dwell time — useful for step-response tuning.
+    square_node = Node(
+        package='marble_balancer',
+        executable='marble_square',
+        name='marble_square_node',
+        parameters=[{'half_side': 0.13, 'dwell_time': 6.0}],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('square')),
+    )
+
     # ── 10. TCP Lissajous node (optional) ─────────────────────────────────────
     # Moves the robot TCP along a Lissajous curve in XY while marble stays balanced.
     # Publishes TCP linear velocity + feedforward tilt; activates after marble lands.
@@ -270,6 +280,23 @@ def generate_launch_description():
         )
     )
 
+    # ── 10b. TCP keyboard control (optional) ──────────────────────────────────
+    # Publishes TCP linear velocity on /tcp/lissajous_vel from WASD/arrow keys.
+    # Use instead of tcp_lissajous — not both simultaneously.
+    tcp_keyboard_node = Node(
+        package='marble_balancer',
+        executable='tcp_keyboard',
+        name='tcp_keyboard_node',
+        parameters=[{
+            'max_vel':      0.30,
+            'accel':        0.25,
+            'decel':        0.50,
+            'publish_rate': 30.0,
+        }],
+        output='screen',
+        condition=IfCondition(LaunchConfiguration('tcp_keyboard')),
+    )
+
     # ── 11. SAC residual controller (optional) ────────────────────────────────
     # Subscribes to /marble/lqr_state, adds RL residual, publishes to
     # /marble_servo_rl/delta_twist_cmds. mux_controller auto_topic is remapped
@@ -306,7 +333,7 @@ def generate_launch_description():
         package='marble_balancer',
         executable='marble_visualizer',
         name='marble_visualizer',
-        parameters=[{'trail_length': 200, 'update_rate': 20.0}],
+        parameters=[{'trail_length': 200, 'update_rate': 20.0, 'plate_diameter': PLATE_DIAMETER}],
         output='screen',
     )
 
@@ -315,19 +342,17 @@ def generate_launch_description():
             target_action=marble_spawn,
             on_exit=[pilot_node, mux_node, mux_node_rl,
                      rl_residual_node, visualizer_node,
-                     plotter_node, lissajous_node, tcp_lissajous_node, tcp_circle_node],
+                     plotter_node, lissajous_node, square_node,
+                     tcp_lissajous_node, tcp_keyboard_node],
         )
     )
 
     return LaunchDescription([
         record_arg,
         lissajous_arg,
+        square_arg,
         tcp_lissajous_arg,
-        tcp_circle_arg,
-        tcp_circle_radius_arg,
-        tcp_circle_period_arg,
-        tcp_circle_phase_arg,
-        tcp_circle_ff_gain_arg,
+        tcp_keyboard_arg,
         rl_arg,
         rl_model_arg,
         rl_norm_arg,

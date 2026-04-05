@@ -4,15 +4,15 @@ marble_visualizer.py
 Real-time 2D matplotlib window showing the marble's position on the plate.
 
 Visual elements:
-  - Grey square plate boundary (0.40 × 0.40 m)
+  - Octagon plate boundary (diameter controlled by plate_diameter parameter)
   - Thin crosshair at plate centre (0, 0)
-  - Fading trail of the last N marble positions (age-based transparency)
+  - Fading trail of the last N marble positions
   - Red filled circle for current marble position (true radius: 0.015 m)
   - Green X marker for desired setpoint (when Lissajous node is active)
   - Title showing ACTIVE / WAITING state
 
-Plate dimensions: 0.40 × 0.40 m  (ur5e_marble_balancer.urdf.xacro)
-Ball radius:      0.015 m          (urdf/marble.sdf)
+Plate diameter: 0.26 m  (circumscribed circle, matches ur5e_marble_balancer.urdf.xacro)
+Ball radius:    0.015 m  (urdf/marble.sdf)
 
 Position convention (matches marble_servo_controller.py):
   mx = -(marble_world_x - plate_x)
@@ -42,9 +42,7 @@ _LATCHED = QoSProfile(
     history=HistoryPolicy.KEEP_LAST,
 )
 
-PLATE_HALF  = 0.20    # m  (plate is 0.40 × 0.40 m)
 BALL_RADIUS = 0.015   # m
-AXIS_LIMIT  = 0.22    # m  (slight margin beyond plate edge)
 
 
 class MarbleVisualizer(Node):
@@ -52,11 +50,16 @@ class MarbleVisualizer(Node):
     def __init__(self):
         super().__init__('marble_visualizer')
 
-        self.declare_parameter('trail_length', 200)
-        self.declare_parameter('update_rate',  20.0)
+        self.declare_parameter('trail_length',   200)
+        self.declare_parameter('update_rate',    20.0)
+        self.declare_parameter('plate_diameter', 0.26)  # m — must match URDF xacro
 
-        trail_length = self.get_parameter('trail_length').value
+        trail_length        = self.get_parameter('trail_length').value
         self._update_period = 1.0 / self.get_parameter('update_rate').value
+        plate_diameter      = self.get_parameter('plate_diameter').value
+
+        self._plate_radius  = plate_diameter / 2.0
+        self._axis_limit    = self._plate_radius * 1.12   # slight margin
 
         # ── TF ────────────────────────────────────────────────────────────────
         self._tf_buffer   = tf2_ros.Buffer()
@@ -90,9 +93,12 @@ class MarbleVisualizer(Node):
     # ── Static background elements (drawn once) ────────────────────────────
 
     def _setup_static_elements(self):
-        ax = self._ax
-        ax.set_xlim(-AXIS_LIMIT, AXIS_LIMIT)
-        ax.set_ylim(-AXIS_LIMIT, AXIS_LIMIT)
+        ax   = self._ax
+        R    = self._plate_radius
+        lim  = self._axis_limit
+
+        ax.set_xlim(-lim, lim)
+        ax.set_ylim(-lim, lim)
         ax.set_aspect('equal')
         ax.set_xlabel('X (m)')
         ax.set_ylabel('Y (m)')
@@ -104,18 +110,27 @@ class MarbleVisualizer(Node):
         for spine in ax.spines.values():
             spine.set_edgecolor('#444466')
 
-        # Plate boundary
-        plate_rect = patches.Rectangle(
-            (-PLATE_HALF, -PLATE_HALF), 2 * PLATE_HALF, 2 * PLATE_HALF,
-            linewidth=2, edgecolor='#8888cc', facecolor='none', zorder=1)
-        ax.add_patch(plate_rect)
+        # Octagon plate boundary — vertices at (k+0.5)*45° matching the STL mesh
+        oct_angles = np.array([(k + 0.5) * np.pi / 4 for k in range(9)])  # 9th closes the polygon
+        oct_x = R * np.cos(oct_angles)
+        oct_y = R * np.sin(oct_angles)
+        ax.plot(oct_x, oct_y, color='#8888cc', linewidth=2, zorder=1)
+
+        # Shaded octagon fill (subtle, so the trail is readable)
+        oct_patch = patches.Polygon(
+            np.column_stack([oct_x[:-1], oct_y[:-1]]),
+            closed=True, facecolor='#22224a', edgecolor='none', zorder=0)
+        ax.add_patch(oct_patch)
 
         # Centre crosshair
         ax.axhline(0, color='#555577', linewidth=0.8, linestyle='--', zorder=1)
         ax.axvline(0, color='#555577', linewidth=0.8, linestyle='--', zorder=1)
 
-        # Grid ticks every 5 cm
-        ticks = np.arange(-0.20, 0.21, 0.05)
+        # Grid ticks rounded to nearest 5 cm
+        tick_step = 0.05
+        n_ticks   = int(lim / tick_step)
+        ticks     = np.arange(-n_ticks * tick_step, n_ticks * tick_step + 1e-9, tick_step)
+        ticks     = np.round(ticks, 3)
         ax.set_xticks(ticks)
         ax.set_yticks(ticks)
         ax.set_xticklabels([f'{t:.2f}' for t in ticks], fontsize=7, color='#aaaacc')

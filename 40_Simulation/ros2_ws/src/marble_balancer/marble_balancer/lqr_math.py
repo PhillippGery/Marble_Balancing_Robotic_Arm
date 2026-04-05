@@ -33,7 +33,7 @@ IB = (2.0 / 5.0) * MB * RB**2
 C  = MB * G / (MB + IB / RB**2)   # ≈ (5/7)*g ≈ 7.0 m/s²
 
 # Robot PT1 time constant (s) — tune if robot responds faster/slower
-T_ROBOT = 0.35
+T_ROBOT = 0.05
 
 
 # ── Continuous-time A, B (with PT1 robot model) ───────────────────────────────
@@ -120,6 +120,10 @@ def compute_dlqr(Q: np.ndarray, R: np.ndarray, dt: float, T: float = T_ROBOT):
 #  Y axis (vy/omega_beta) uses higher weights than X because the TCP Lissajous
 #  drives Y at 2× frequency (fb=2), producing 4× the pseudo-force vs X.
 # Original values: DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 0.5])
-DEFAULT_Q = np.diag([100.0, 100.0, 100.0, 100.0, 5.0, 0.5, 5.0, 1.0])
-#                     x      vx     y      vy↑    α    ωα   β    ωβ↑
-DEFAULT_R = np.eye(2) * 5.0
+
+# DEFAULT_Q = np.diag([55000.0, 55000.0, 400.0, 400.0, 5.0, 2.0, 5.0, 2.0])
+# #                     x      vx     y      vy↑    α    ωα   β    ωβ↑
+# DEFAULT_R = np.eye(2) * 5.0
+
+DEFAULT_Q = np.diag([100.0, 100.0, 200.0, 200.0, 5.0, 1.0, 5.0, 1.0])                                                                                       
+DEFAULT_R = np.eye(2) * 2.0
