@@ -51,7 +51,7 @@ class MarbleLQRController(Node):
         # ── Discrete LQR ──────────────────────────────────────────────────────
         Q = np.diag(q_diag)
         R = np.eye(2) * r_scale
-        self.K_d, self.Ad, self.Bd = compute_dlqr(Q, R, self.dt)
+        self.K_d, self.Ad, self.Bd, _ = compute_dlqr(Q, R, self.dt)
         self.get_logger().info(
             f'Discrete LQR ready  (dt={self.dt:.3f}s)\n'
             f'K_d =\n{self.K_d}'

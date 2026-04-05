@@ -67,7 +67,7 @@ colcon test-result --verbose
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
 | `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes linear velocity on `/tcp/lissajous_vel` |
 | `marble_visualizer` | `marble_visualizer.py` | Live 2D matplotlib window: ball position, 200-pt trail, plate boundary, setpoint |
-| `rl_residual` | `rl_residual_node.py` | SAC residual controller: loads trained policy, adds Δω to LQR output |
+| `rl_residual` | `rl_residual_node.py` | TD3 residual controller: loads trained policy, adds Δω to LQR output |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
 
 ## Key Topics / Services
@@ -103,51 +103,83 @@ See: `launch/servo_balancer.launch.py`
 
 ## Reinforcement Learning (Residual Controller)
 
-Training files are in `src/marble_balancer/rl_training/` — run standalone, no ROS needed.
+Training files are in `src/marble_balancer/rl_training/` — requires live Gazebo (online training).
 
 ### Install deps (once)
 ```bash
-pip install gymnasium stable-baselines3[extra] tensorboard
+pip install gymnasium stable-baselines3[extra] tensorboard cma
 pip install --upgrade matplotlib   # system matplotlib is NumPy-1.x compiled; must upgrade
 ```
 
-### Train
+### Train (online TD3 against live Gazebo)
+```bash
+# 1. Launch sim + MoveIt + Servo infrastructure (no controller — env IS the controller):
+ros2 launch marble_balancer rl_training.launch.py
+# With options:
+ros2 launch marble_balancer rl_training.launch.py timesteps:=500000 stage:=0
+ros2 launch marble_balancer rl_training.launch.py load:=/abs/path/to/model.zip
+
+# Train with TCP Lissajous disturbance + random marble spawn for generalization:
+ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
+
+# The launch file auto-starts train_td3_gazebo.py after go_to_pose exits.
+# Monitor: tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
+```
+
+**Single-model generalization:** `tcp_lissajous:=true` activates TCP Lissajous on 50% of episodes randomly (not all episodes). This trains a single model that generalizes to both stationary and moving TCP scenarios. `spawn_radius:=0.12` spawns the marble uniformly at random within 12 cm of the plate centre each episode.
+
+### Test controller at a specific spawn position
+```bash
+ros2 launch marble_balancer spawn_xy.launch.py x:=0.10 y:=0.0
+ros2 launch marble_balancer spawn_xy.launch.py x:=-0.12 y:=0.08 plot:=true
+# With RL:
+ros2 launch marble_balancer spawn_xy.launch.py x:=0.10 y:=0.0 rl:=true rl_model:=/path/to/best_model_td3.zip rl_norm:=/path/to/running_stats.pkl
+```
+Spawns the marble at the given plate-frame (x, y) offset from centre (clamped to ±0.18 m).
+
+### Validate with CMA-ES (detect local optima)
 ```bash
 cd src/marble_balancer/rl_training
-python train.py                          # 600k steps, 4 envs, starts at stage 0
-python train.py --timesteps 1000000 --envs 8
-python train.py --load models/best_model.zip  # continue training
-# Monitor: tensorboard --logdir tensorboard/
+python train_cmaes_gazebo.py                          # offline (fast, ~minutes)
+python train_cmaes_gazebo.py --td3-model models_td3/best_model_td3.zip
+python train_cmaes_gazebo.py --no-offline             # Gazebo mode (~100 hours!)
 ```
 
-### Evaluate
-```bash
-python eval.py --model models/best_model.zip --norm models/vec_normalize.pkl
-```
-
-### Deploy in Gazebo
+### Deploy
 ```bash
 ros2 launch marble_balancer servo_balancer.launch.py \
   rl:=true \
-  rl_model:=$(pwd)/src/marble_balancer/rl_training/models/best_model.zip \
-  rl_norm:=$(pwd)/src/marble_balancer/rl_training/models/vec_normalize.pkl \
-  rl_stage:=3
+  rl_model:=$(pwd)/src/marble_balancer/rl_training/models_td3/best_model_td3.zip \
+  rl_norm:=$(pwd)/src/marble_balancer/rl_training/models_td3/running_stats.pkl \
+  rl_stage:=2
 ```
 
 ### Architecture
-- `ball_plate_env.py` — Gymnasium env: PT1 physics + Coulomb/viscous friction + domain randomisation
-- `train.py` — SAC + curriculum callback (4 stages, clip ±2→±20°/s)
-- `rl_residual_node.py` — ROS2 node: loads policy, publishes LQR+residual to `/marble_servo_rl/delta_twist_cmds`
+- `gazebo_rl_env.py` — Gymnasium env wrapping live Gazebo (dual `gym.Env` + `rclpy.Node`)
+- `train_td3_gazebo.py` — TD3 + RLPD seeding (20K pure-LQR steps pre-fill buffer); manual `RunningMeanStd` normalisation
+- `train_cmaes_gazebo.py` — CMA-ES linear policy validator (58 params); defaults to `--offline` (ball_plate_env, fast)
+- `ball_plate_env.py` — Standalone PT1 physics env (offline validation only)
+- `rl_residual_node.py` — ROS2 node: loads TD3 + running_stats.pkl, publishes LQR+residual to `/marble_servo_rl/delta_twist_cmds`
+- `marble_spawner_xy.py` — spawns marble at user-specified plate-frame (x, y) coordinates; used by `spawn_xy.launch.py`
 - `marble_servo_controller.py` publishes 10-D state on `/marble/lqr_state` for the RL node
 - When `rl:=true`, `mux_controller` subscribes to `/marble_servo_rl/` instead of `/marble_servo/`
+- `lqr_math.compute_dlqr()` returns `(K, Ad, Bd, P)` — P used for potential shaping reward
 
-### Curriculum stages
-| Stage | Residual clip | Lissajous | Perturbations |
-|-------|--------------|-----------|---------------|
-| 0 | ±2°/s | off | off |
-| 1 | ±5°/s | off | on |
-| 2 | ±10°/s | on | on |
-| 3 | ±20°/s | on | on |
+### Observation (28-D)
+`[x/0.20, vx/0.50, y/0.20, vy/0.50, α/0.30, ωα/MAX_RATE, β/0.30, ωβ/MAX_RATE, action_history(20)]`
+Action history = last 10 2-D actions, oldest-first, raw [-1, 1].
+
+### Curriculum stages (3 stages, no perturbations — online Gazebo handles realism)
+| Stage | Residual clip (λ) |
+|-------|-------------------|
+| 0 | ±5°/s |
+| 1 | ±10°/s |
+| 2 | ±15°/s |
+
+### Training outputs (`models_td3/`)
+- `best_model_td3.zip` — best policy by evaluation reward
+- `running_stats.pkl` — `{mean, var, count}` for obs normalisation
+- `checkpoint_td3_<step>.zip` — periodic checkpoints (every 10K steps)
 
 ## Controller Tuning
 

@@ -39,7 +39,8 @@ Gazebo (UR5e + marble)
 | `marble_lissajous_node` | Publishes Lissajous figure-eight setpoints on `/marble/desired_pos` |
 | `marble_square_node` | Publishes 4-corner square step-response pattern for LQR tuning |
 | `tcp_lissajous_node` | Moves TCP along figure-eight while balancing; publishes feedforward tilt |
-| `rl_residual_node` | Loads trained SAC policy; adds residual correction to LQR output |
+| `rl_residual_node` | Loads trained TD3 policy; adds residual correction to LQR output |
+| `marble_spawner_xy` | Spawns marble at user-specified plate-frame (x, y) coordinates |
 
 ---
 
@@ -210,15 +211,22 @@ ros2 launch marble_balancer servo_balancer.launch.py square:=true \
 ros2 launch marble_balancer servo_balancer.launch.py tcp_lissajous:=true plot:=true
 ```
 
-### SAC residual controller
+### TD3 residual controller (deploy trained model)
 
 ```bash
-ros2 launch marble_balancer servo_balancer.launch.py \
-  rl:=true \
-  rl_model:=$(pwd)/src/marble_balancer/rl_training/models/best_model.zip \
-  rl_norm:=$(pwd)/src/marble_balancer/rl_training/models/vec_normalize.pkl \
-  rl_stage:=3
+ros2 launch marble_balancer servo_balancer.launch.py rl:=true rl_model:=$(pwd)/src/marble_balancer/rl_training/models_td3/best_model_td3.zip rl_norm:=$(pwd)/src/marble_balancer/rl_training/models_td3/running_stats.pkl rl_stage:=2
 ```
+
+### Spawn marble at specific position
+
+```bash
+ros2 launch marble_balancer spawn_xy.launch.py x:=0.10 y:=0.0
+ros2 launch marble_balancer spawn_xy.launch.py x:=-0.12 y:=0.08 plot:=true
+# With RL:
+ros2 launch marble_balancer spawn_xy.launch.py x:=0.10 y:=0.0 rl:=true rl_model:=$(pwd)/src/marble_balancer/rl_training/models_td3/best_model_td3.zip rl_norm:=$(pwd)/src/marble_balancer/rl_training/models_td3/running_stats.pkl
+```
+
+Spawns the marble at the given plate-frame (x, y) offset from centre (clamped to ±0.18 m). Useful for testing controller robustness at different initial positions.
 
 ---
 
@@ -243,32 +251,37 @@ Use `square:=true` for step-response tuning — the 4-corner pattern gives clear
 
 ---
 
-## RL Training (Standalone)
+## RL Training (Online — requires live Gazebo)
 
 ```bash
-cd src/marble_balancer/rl_training
+# Install deps (once)
+pip install gymnasium stable-baselines3[extra] tensorboard cma
 
-# Train from scratch (4 parallel envs, 600 k steps)
-python train.py --timesteps 600000 --envs 4
+# Standard training (500K steps)
+ros2 launch marble_balancer rl_training.launch.py
+
+# With generalization training (recommended):
+# - tcp_lissajous:=true → 50% of episodes activate TCP Lissajous motion (single model handles both)
+# - spawn_radius:=0.12  → marble spawned uniformly at random within 12 cm of centre each episode
+ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
 
 # Continue from checkpoint
-python train.py --load models/best_model.zip
+ros2 launch marble_balancer rl_training.launch.py load:=/path/to/checkpoint.zip
 
-# Evaluate
-python eval.py --model models/best_model.zip --norm models/vec_normalize.pkl
+# Monitor
+tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
 
-# Monitor training
-tensorboard --logdir tensorboard/
+# Validate with CMA-ES (detect local optima, ~minutes offline)
+cd src/marble_balancer/rl_training && python train_cmaes_gazebo.py
 ```
 
-**Curriculum stages:**
+**Curriculum stages (TD3, 3 stages):**
 
-| Stage | Residual clip | Lissajous | Perturbations |
-|-------|--------------|-----------|---------------|
-| 0 | ±2 °/s | off | off |
-| 1 | ±5 °/s | off | on |
-| 2 | ±10 °/s | on | on |
-| 3 | ±20 °/s | on | on |
+| Stage | Residual clip (λ) | Advances when |
+|-------|-------------------|---------------|
+| 0 | ±5 °/s | survival fraction > 30% (last 20 eps) |
+| 1 | ±10 °/s | survival fraction > 55% |
+| 2 | ±15 °/s | — (final stage) |
 
 ---
 
@@ -289,13 +302,19 @@ ros2_ws/src/
 │   │   ├── marble_lissajous_node.py   # Lissajous setpoint publisher
 │   │   ├── marble_square_node.py      # 4-corner square step-response pattern
 │   │   ├── tcp_lissajous_node.py      # TCP figure-eight + feedforward tilt
-│   │   └── rl_residual_node.py        # SAC residual policy inference
+│   │   ├── rl_residual_node.py        # TD3 residual policy inference
+│   │   └── marble_spawner_xy.py       # Marble spawn at plate-frame (x,y) coordinates
 │   ├── rl_training/
-│   │   ├── ball_plate_env.py          # Gymnasium env (PT1 + friction + randomisation)
-│   │   ├── train.py                   # SAC training with curriculum
-│   │   └── eval.py                    # Policy evaluation
+│   │   ├── gazebo_rl_env.py           # Gymnasium env wrapping live Gazebo
+│   │   ├── train_td3_gazebo.py        # TD3 + RLPD online training script
+│   │   ├── train_cmaes_gazebo.py      # CMA-ES linear policy validator
+│   │   ├── ball_plate_env.py          # PT1 physics env (offline CMA-ES only)
+│   │   ├── TRAINING_PIPELINE.md       # Full training pipeline documentation
+│   │   └── models_td3/                # Trained model outputs
 │   ├── launch/
-│   │   └── servo_balancer.launch.py   # Full system launch
+│   │   ├── servo_balancer.launch.py   # Full system launch
+│   │   ├── rl_training.launch.py      # RL training infrastructure (no controller)
+│   │   └── spawn_xy.launch.py         # Full stack with marble at specific position
 │   ├── config/
 │   │   ├── servo_params.yaml          # MoveIt Servo config (plate_tcp frame, 30 Hz)
 │   │   └── ur_controllers.yaml        # JointTrajectoryController at 100 Hz
@@ -342,5 +361,5 @@ ros2_ws/src/
 | Motion | MoveIt2 Servo (Cartesian velocity streaming) |
 | Control | Discrete-time LQR, SciPy `solve_discrete_are` |
 | State estimation | Extended Kalman Filter, nonlinear RK4 integration |
-| RL | Stable-Baselines3 SAC, Gymnasium |
+| RL | Stable-Baselines3 TD3, Gymnasium, RLPD buffer seeding |
 | Language | Python 3 |

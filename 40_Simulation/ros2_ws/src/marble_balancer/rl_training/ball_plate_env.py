@@ -14,17 +14,17 @@ Physics model:
 State vector (8-D, same as marble_servo_controller):
   [x, vx, y, vy, alpha, omega_alpha, beta, omega_beta]
 
-Observation (24-D, normalised to ~[-1, 1]):
-  [state(8), lqr_output(2), tcp_state(4), error_history(10)]
+Observation (28-D, matches gazebo_rl_env.py and rl_residual_node.py):
+  [state_norm(8), action_history_flat(20)]
+  action_history = last 10 2-D actions, oldest-first, raw [-1, 1]
 
 Action (2-D): residual [Δω_alpha, Δω_beta] — added to LQR output
   Clipped to ±clip_budget deg/s (set by curriculum stage)
 
 Curriculum stages (call env.set_stage(n)):
-  0 — clip ±2°/s,  no Lissajous, no random perturbations
-  1 — clip ±5°/s,  no Lissajous, random impulse perturbations
-  2 — clip ±10°/s, Lissajous active, perturbations
-  3 — clip ±20°/s, Lissajous active, perturbations  (full authority)
+  0 — clip ±5°/s,  no Lissajous, no random perturbations
+  1 — clip ±10°/s, no Lissajous, random impulse perturbations
+  2 — clip ±15°/s, Lissajous active, perturbations
 
 Install deps (once):
   pip install gymnasium stable-baselines3[extra] numpy scipy
@@ -55,27 +55,24 @@ DEFAULT_R = np.eye(2) * 5.0
 
 # ── Curriculum stage definitions ──────────────────────────────────────────────
 # (clip_budget_rad, use_lissajous, use_perturbations)
+# Matches gazebo_rl_env.py 3-stage curriculum
 STAGES = [
-    (math.radians(2.0),  False, False),
-    (math.radians(5.0),  False, True),
-    (math.radians(10.0), True,  True),
-    (math.radians(20.0), True,  True),
+    (math.radians(5.0),  False, False),
+    (math.radians(10.0), False, True),
+    (math.radians(15.0), True,  True),
 ]
 
-# ── Normalisation constants ────────────────────────────────────────────────────
+# ── Normalisation constants (must match gazebo_rl_env.py / rl_residual_node.py) ─
 _NORM = np.array([
-    0.20,   # x  (m)
-    0.50,   # vx (m/s)
-    0.20,   # y  (m)
-    0.50,   # vy (m/s)
-    0.30,   # alpha (rad)
+    0.20,      # x  (m)
+    0.50,      # vx (m/s)
+    0.20,      # y  (m)
+    0.50,      # vy (m/s)
+    0.30,      # alpha (rad)
     MAX_RATE,  # omega_alpha (rad/s)
-    0.30,   # beta (rad)
+    0.30,      # beta (rad)
     MAX_RATE,  # omega_beta (rad/s)
 ])
-_NORM_LQR    = np.array([MAX_RATE, MAX_RATE])
-_NORM_TCP    = np.array([0.30, 0.30, 0.40, 0.40])   # pos (m), vel (m/s)
-_NORM_ERR    = np.array([0.20, 0.20] * 5)            # 5 × (x_err, y_err)
 
 
 def _compute_lqr_gain(C: float, T: float) -> np.ndarray:
@@ -131,12 +128,15 @@ class BallPlateEnv(gym.Env):
         # Episode state
         self._state    = np.zeros(8)
         self._desired  = np.zeros(2)   # [x_d, y_d]
-        self._err_hist = collections.deque(
-            [np.zeros(2)] * 5, maxlen=5)   # last 5 (x_err, y_err)
         self._t        = 0.0
         self._step_num = 0
         self._params   = {}   # episode physical params (domain rand)
         self._K        = _K_NOM.copy()
+
+        # Action history: oldest at index 0, newest at index -1
+        # Must match gazebo_rl_env.py ordering (oldest-first)
+        self._action_hist   = collections.deque([np.zeros(2)] * 10, maxlen=10)
+        self._prev_action   = np.zeros(2)
 
         # TCP Lissajous (same defaults as servo_balancer.launch.py)
         self._amp_x  = 0.10
@@ -146,8 +146,8 @@ class BallPlateEnv(gym.Env):
         self._fb     = 2
         self._delta  = math.pi / 2.0
 
-        # Spaces
-        obs_dim = 8 + 2 + 4 + 10   # state + lqr_out + tcp + err_hist
+        # Spaces — 28-D to match gazebo_rl_env.py and rl_residual_node.py
+        obs_dim = 8 + 20   # state_norm(8) + action_history_flat(20)
         self.observation_space = spaces.Box(
             low=-3.0, high=3.0, shape=(obs_dim,), dtype=np.float32)
         self.action_space = spaces.Box(
@@ -192,16 +192,18 @@ class BallPlateEnv(gym.Env):
         # Desired position: zero (balance at centre)
         self._desired = np.zeros(2)
 
-        self._err_hist = collections.deque([np.zeros(2)] * 5, maxlen=5)
-        self._t        = 0.0
-        self._step_num = 0
+        self._action_hist   = collections.deque([np.zeros(2)] * 10, maxlen=10)
+        self._prev_action   = np.zeros(2)
+        self._t             = 0.0
+        self._step_num      = 0
         self._last_residual = np.zeros(2)
 
         return self._get_obs(), {}
 
     def step(self, action: np.ndarray):
         # Scale action from [-1,1] to [-clip, +clip]
-        residual = np.clip(action, -1.0, 1.0) * self._clip
+        action   = np.clip(action.astype(np.float32), -1.0, 1.0)
+        residual = action * self._clip
         self._last_residual = residual
 
         # LQR output
@@ -233,10 +235,12 @@ class BallPlateEnv(gym.Env):
             self._state[1] += self.np_random.uniform(-0.3, 0.3)   # vx impulse
             self._state[3] += self.np_random.uniform(-0.3, 0.3)   # vy impulse
 
-        # Error history
+        # Update action history (oldest-first: append at right)
+        self._action_hist.append(action.copy())
+        self._prev_action = action.copy()
+
         x_err = self._state[0] - self._desired[0]
         y_err = self._state[2] - self._desired[1]
-        self._err_hist.append(np.array([x_err, y_err]))
 
         # Termination: marble off plate
         terminated = (abs(self._state[0]) > PLATE_HALF * 0.95 or
@@ -288,36 +292,12 @@ class BallPlateEnv(gym.Env):
     # ── Observation ───────────────────────────────────────────────────────────
 
     def _get_obs(self) -> np.ndarray:
-        # LQR output (what classical controller just computed)
-        error = self._state.copy()
-        error[0] -= self._desired[0]
-        error[2] -= self._desired[1]
-        lqr_u = np.clip(-self._K @ error, -MAX_RATE, MAX_RATE)
-
-        # TCP Lissajous state
-        if self._use_lissajous:
-            ox = self._fa * self._omega0
-            oy = self._fb * self._omega0
-            tcp_state = np.array([
-                self._amp_x * math.sin(ox * self._t + self._delta),
-                self._amp_y * math.sin(oy * self._t),
-                self._amp_x * ox * math.cos(ox * self._t + self._delta),
-                self._amp_y * oy * math.cos(oy * self._t),
-            ])
-        else:
-            tcp_state = np.zeros(4)
-
-        # Error history (flattened, oldest first)
-        err_flat = np.array(list(self._err_hist)).flatten()
-
-        obs = np.concatenate([
-            self._state / _NORM,
-            lqr_u / _NORM_LQR,
-            tcp_state / _NORM_TCP,
-            err_flat / _NORM_ERR,
-        ]).astype(np.float32)
-
-        return np.clip(obs, -3.0, 3.0)
+        """28-D observation: [state_norm(8), action_history_flat(20)].
+        Matches gazebo_rl_env.py and rl_residual_node.py exactly."""
+        state_norm = np.clip(self._state / _NORM, -3.0, 3.0).astype(np.float32)
+        # Action history oldest-first (index 0 = oldest) — matches gazebo_rl_env.py
+        hist_flat  = np.array(list(self._action_hist), dtype=np.float32).flatten()
+        return np.concatenate([state_norm, hist_flat])
 
     # ── Render ────────────────────────────────────────────────────────────────
 

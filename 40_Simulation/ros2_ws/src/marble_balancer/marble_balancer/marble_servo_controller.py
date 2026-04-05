@@ -100,7 +100,7 @@ class MarbleServoController(Node):
         dt = 1.0 / CONTROL_HZ
 
         # ── LQR gain ──────────────────────────────────────────────────────────
-        self._K, _, _ = compute_dlqr(DEFAULT_Q, DEFAULT_R, dt)
+        self._K, _, _, _ = compute_dlqr(DEFAULT_Q, DEFAULT_R, dt)
         self.get_logger().info(
             f'LQR K (PT1 model, T={T_ROBOT}s):\n{np.array2string(self._K, precision=3)}')
 
