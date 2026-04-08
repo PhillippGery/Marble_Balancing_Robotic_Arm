@@ -16,3 +16,10 @@ browse.vc.db
 40_Simulation/ros2_ws/build/
 40_Simulation/ros2_ws/install/
 40_Simulation/ros2_ws/log/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+40_Simulation/ros2_ws.zip
