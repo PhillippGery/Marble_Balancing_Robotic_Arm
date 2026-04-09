@@ -21,7 +21,7 @@ import math
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, HistoryPolicy
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, Point
 from std_msgs.msg import Empty
 
 _LATCHED = QoSProfile(
@@ -59,6 +59,7 @@ class TcpLissajousNode(Node):
         self._active = False
 
         self._pub_vel = self.create_publisher(TwistStamped, '/tcp/lissajous_vel', 10)
+        self._pub_pos = self.create_publisher(Point, '/tcp/lissajous_pos', 10)
 
         self.create_subscription(Empty, '/marble/landed',   self._on_landed,   _LATCHED)
         self.create_subscription(Empty, '/marble/fell_off', self._on_fell_off, _LATCHED)
@@ -91,14 +92,18 @@ class TcpLissajousNode(Node):
         msg.header.stamp    = now
         msg.header.frame_id = 'base_link'
 
+        pos = Point()
         if self._active:
             omega_x = self._fa * self._omega0
             omega_y = self._fb * self._omega0
             msg.twist.linear.x = self._amp_x * omega_x * math.cos(omega_x * self._t + self._delta)
             msg.twist.linear.y = self._amp_y * omega_y * math.cos(omega_y * self._t)
+            pos.x = self._amp_x * math.sin(omega_x * self._t + self._delta)
+            pos.y = self._amp_y * math.sin(omega_y * self._t)
             self._t += self._dt
 
         self._pub_vel.publish(msg)
+        self._pub_pos.publish(pos)
 
 
 def main(args=None):

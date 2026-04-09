@@ -63,9 +63,9 @@ colcon test-result --verbose
 | `mux_controller` | `mux_controller.py` | Priority mux: manual overrides LQR; reverts after 0.5 s timeout |
 | `go_to_pose` | `go_to_pose.py` | Homing to balanced start position |
 | `marble_spawner` | `marble_spawner.py` | Spawns marble above plate via Gazebo service |
-| `marble_plotter` | `marble_plotter.py` | Records CSV + generates trajectory plots |
+| `marble_plotter` | `marble_plotter.py` | Records CSV + generates trajectory plots (marble XY, ω commanded vs actual, step response, TCP trajectory) |
 | `marble_lissajous` | `marble_lissajous_node.py` | Publishes Lissajous setpoints on `/marble/desired_pos` |
-| `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes linear velocity on `/tcp/lissajous_vel` |
+| `tcp_lissajous` | `tcp_lissajous_node.py` | Moves TCP along XY Lissajous; publishes velocity on `/tcp/lissajous_vel` and position on `/tcp/lissajous_pos` |
 | `marble_visualizer` | `marble_visualizer.py` | Live 2D matplotlib window: ball position, 200-pt trail, plate boundary, setpoint |
 | `rl_residual` | `rl_residual_node.py` | TD3 residual controller: loads trained policy, adds Δω to LQR output |
 | LQR math | `lqr_math.py` | Physics model + ZOH discretization + gain computation |
@@ -83,6 +83,7 @@ colcon test-result --verbose
 | `/marble/landed` / `/marble/fell_off` | `std_msgs/Empty` | spawner → plotter/lissajous (TRANSIENT_LOCAL) |
 | `/marble/desired_pos` | `geometry_msgs/Point` | lissajous → controller |
 | `/tcp/lissajous_vel` | `geometry_msgs/TwistStamped` | tcp_lissajous → controller (linear.x/y) |
+| `/tcp/lissajous_pos` | `geometry_msgs/Point` | tcp_lissajous → plotter (desired TCP XY position for plotting) |
 
 Services: `/spawn_entity`, `/delete_entity` (Gazebo), `/compute_ik` (MoveIt), `/servo_node/start_servo`
 
@@ -122,6 +123,9 @@ ros2 launch marble_balancer rl_training.launch.py load:=/abs/path/to/model.zip
 # Train with TCP Lissajous disturbance + random marble spawn for generalization:
 ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
 
+# Recommended full training run (1M steps, best generalisation):
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
+
 # The launch file auto-starts train_td3_gazebo.py after go_to_pose exits.
 # Monitor: tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
 ```
@@ -155,15 +159,18 @@ ros2 launch marble_balancer servo_balancer.launch.py \
 ```
 
 ### Architecture
-- `gazebo_rl_env.py` — Gymnasium env wrapping live Gazebo (dual `gym.Env` + `rclpy.Node`)
+- `gazebo_rl_env.py` — Gymnasium env wrapping live Gazebo (dual `gym.Env` + `rclpy.Node`); logs `tcp_lissajous_active` at every episode reset
 - `train_td3_gazebo.py` — TD3 + RLPD seeding (20K pure-LQR steps pre-fill buffer); manual `RunningMeanStd` normalisation
 - `train_cmaes_gazebo.py` — CMA-ES linear policy validator (58 params); defaults to `--offline` (ball_plate_env, fast)
 - `ball_plate_env.py` — Standalone PT1 physics env (offline validation only)
 - `rl_residual_node.py` — ROS2 node: loads TD3 + running_stats.pkl, publishes LQR+residual to `/marble_servo_rl/delta_twist_cmds`
 - `marble_spawner_xy.py` — spawns marble at user-specified plate-frame (x, y) coordinates; used by `spawn_xy.launch.py`
-- `marble_servo_controller.py` publishes 10-D state on `/marble/lqr_state` for the RL node
+- `marble_servo_controller.py` publishes to `/marble_servo/delta_twist_cmds` (→ mux) and 10-D state on `/marble/lqr_state` (→ RL node)
 - When `rl:=true`, `mux_controller` subscribes to `/marble_servo_rl/` instead of `/marble_servo/`
 - `lqr_math.compute_dlqr()` returns `(K, Ad, Bd, P)` — P used for potential shaping reward
+
+### Known architectural invariant
+`marble_servo_controller` MUST publish to `/marble_servo/delta_twist_cmds` (not directly to `/servo_node/delta_twist_cmds`). Publishing directly bypasses the mux entirely, breaking manual override and the full RL path (`rl_residual_node` subscribes to `/marble_servo/` and would never receive LQR commands).
 
 ### Observation (28-D)
 `[x/0.20, vx/0.50, y/0.20, vy/0.50, α/0.30, ωα/MAX_RATE, β/0.30, ωβ/MAX_RATE, action_history(20)]`
@@ -213,6 +220,37 @@ Low-pass time constant for velocity estimation. Increase (0.08 → 0.12) if osci
 1. Raise `Q[3]`: 200 → 300 → 400 (one step at a time)
 2. If both axes slow: raise `R`: 5.0 → 8.0
 3. If twitchy: raise `OMEGA_LPF_TC`: 0.08 → 0.12
+
+## Plotter Output
+
+`marble_plotter.py` generates 4 PNG files per run (saved alongside the CSV in `~/marble_logs/`):
+
+| File | Contents |
+|------|----------|
+| `_omega.png` | Commanded vs EKF vs Jacobian ω_alpha / ω_beta over time |
+| `_step.png` | X/Y marble position vs setpoint, plate angles, tracking error |
+| `_tcp.png` | TCP trajectory: actual (from TF) vs desired Lissajous (from `/tcp/lissajous_pos`); XY bird's-eye + X(t) + Y(t) |
+
+CSV columns include: marble state (8-D), LQR commands, Jacobian ω, desired setpoint, `tcp_actual_x/y/z` (TF), `tcp_desired_x/y` (Lissajous).
+
+The `_tcp.png` plot is most useful when `tcp_lissajous:=true` — desired line is omitted automatically when all zeros.
+
+Generate plots from an existing CSV without relaunching:
+```bash
+python3 src/marble_balancer/marble_balancer/marble_plotter.py --plot ~/marble_logs/<file>.csv
+```
+
+### RL performance observations (with TCP Lissajous)
+Measured on ~168 s runs with `tcp_lissajous:=true`:
+
+| Metric | With RL | Without RL |
+|--------|---------|------------|
+| RMS error X | 1.8 cm | 1.8 cm |
+| RMS error Y | **2.5 cm** | **4.0 cm** |
+| Max \|y\| | 3.4 cm | 8.2 cm |
+| β saturation | 3.9% | 23.5% |
+
+RL primarily improves Y axis (hard axis due to TCP Lissajous 2× frequency). X axis is unchanged.
 
 ## Additional Documentation
 - `.claude/docs/architectural_patterns.md` — PT1 model, Jacobian velocity, event-driven launch, LQR design, QoS patterns

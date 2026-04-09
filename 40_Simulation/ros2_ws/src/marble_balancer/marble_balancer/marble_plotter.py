@@ -51,6 +51,8 @@ FIELDNAMES = [
     'omega_beta_jacobian_deg',         # Jacobian omega_beta  — hardware-compatible comparison
     'desired_x', 'desired_y',         # setpoint from lissajous / square node
     'marble_z_abs',                   # raw z for diagnostics
+    'tcp_actual_x', 'tcp_actual_y', 'tcp_actual_z',  # actual plate_tcp in base_link (TF)
+    'tcp_desired_x', 'tcp_desired_y',                # desired TCP from tcp_lissajous_node
 ]
 
 
@@ -189,6 +191,63 @@ def plot_from_csv(csv_path: str):
 
     fig3.tight_layout()
 
+    # ── Figure 4: TCP trajectory — actual vs desired Lissajous ────────────────
+    tcp_ax = np.array([r.get('tcp_actual_x', 0.0)  for r in rows])
+    tcp_ay = np.array([r.get('tcp_actual_y', 0.0)  for r in rows])
+    tcp_az = np.array([r.get('tcp_actual_z', 0.0)  for r in rows])
+    tcp_dx = np.array([r.get('tcp_desired_x', 0.0) for r in rows])
+    tcp_dy = np.array([r.get('tcp_desired_y', 0.0) for r in rows])
+
+    # Express actual as relative displacement from its initial position so it
+    # can be directly compared with the Lissajous desired (which is a delta).
+    tcp_ax_rel = tcp_ax - tcp_ax[0]
+    tcp_ay_rel = tcp_ay - tcp_ay[0]
+
+    has_lissajous = np.any(np.abs(tcp_dx) > 1e-4) or np.any(np.abs(tcp_dy) > 1e-4)
+
+    fig4, axes4 = plt.subplots(1, 3, figsize=(15, 5))
+    fig4.suptitle('TCP Trajectory — Actual vs Desired Lissajous', fontsize=13)
+
+    # Left: XY bird's-eye
+    ax4xy = axes4[0]
+    ax4xy.plot(tcp_ax_rel, tcp_ay_rel, color='tab:blue', lw=1.2, label='Actual TCP (rel)')
+    ax4xy.plot(tcp_ax_rel[0], tcp_ay_rel[0], 'go', ms=8, label='Start')
+    ax4xy.plot(tcp_ax_rel[-1], tcp_ay_rel[-1], 'rs', ms=8, label='End')
+    if has_lissajous:
+        ax4xy.plot(tcp_dx, tcp_dy, color='tab:orange', lw=1.0, ls='--', alpha=0.8, label='Desired (Lissajous)')
+    ax4xy.set_xlabel('X (m)')
+    ax4xy.set_ylabel('Y (m)')
+    ax4xy.set_title('XY plane')
+    ax4xy.set_aspect('equal')
+    ax4xy.axhline(0, color='gray', lw=0.4)
+    ax4xy.axvline(0, color='gray', lw=0.4)
+    ax4xy.legend(fontsize=8)
+    ax4xy.grid(True, alpha=0.3)
+
+    # Middle: X vs time
+    ax4x = axes4[1]
+    ax4x.plot(t, tcp_ax_rel, color='tab:blue',   lw=1.2, label='Actual X (rel)')
+    if has_lissajous:
+        ax4x.plot(t, tcp_dx, color='tab:orange', lw=1.0, ls='--', alpha=0.8, label='Desired X')
+    ax4x.set_xlabel('Time (s)')
+    ax4x.set_ylabel('X displacement (m)')
+    ax4x.set_title('TCP X')
+    ax4x.legend(fontsize=8)
+    ax4x.grid(True, alpha=0.3)
+
+    # Right: Y vs time
+    ax4y = axes4[2]
+    ax4y.plot(t, tcp_ay_rel, color='tab:blue',   lw=1.2, label='Actual Y (rel)')
+    if has_lissajous:
+        ax4y.plot(t, tcp_dy, color='tab:orange', lw=1.0, ls='--', alpha=0.8, label='Desired Y')
+    ax4y.set_xlabel('Time (s)')
+    ax4y.set_ylabel('Y displacement (m)')
+    ax4y.set_title('TCP Y')
+    ax4y.legend(fontsize=8)
+    ax4y.grid(True, alpha=0.3)
+
+    fig4.tight_layout()
+
     # ── Console summary ───────────────────────────────────────────────────────
     sat_alpha = np.sum(np.abs(cmd_alpha_deg) >= MAX_RATE_DEG * 0.99)
     sat_beta  = np.sum(np.abs(cmd_beta_deg) >= MAX_RATE_DEG * 0.99)
@@ -205,9 +264,11 @@ def plot_from_csv(csv_path: str):
     # Save PNGs and open with system image viewer (xdg-open)
     base = Path(csv_path).with_suffix('')
     paths = [base.parent / (base.name + '_omega.png'),
-             base.parent / (base.name + '_step.png')]
+             base.parent / (base.name + '_step.png'),
+             base.parent / (base.name + '_tcp.png')]
     fig2.savefig(paths[0], dpi=120)
     fig3.savefig(paths[1], dpi=120)
+    fig4.savefig(paths[2], dpi=120)
     plt.close('all')
     for p in paths:
         print(f'Saved: {p}')
@@ -263,15 +324,26 @@ def record_node(default_output: Path):
             self._marble_z   = 0.0
             self._omega_alpha_jacobian = 0.0   # Jacobian omega — hardware-compatible comparison
             self._omega_beta_jacobian  = 0.0
+            self._tcp_actual_x = 0.0
+            self._tcp_actual_y = 0.0
+            self._tcp_actual_z = 0.0
+            self._tcp_desired_x = 0.0
+            self._tcp_desired_y = 0.0
 
+            import tf2_ros
             from std_msgs.msg import Float64MultiArray
             from geometry_msgs.msg import TwistStamped
+            self._tf_buffer   = tf2_ros.Buffer()
+            self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self)
+
             self.create_subscription(
                 Float64MultiArray, '/marble/lqr_state', self._lqr_cb, 10)
             self.create_subscription(
                 Odometry, '/marble/odom', self._odom_z_cb, 10)
             self.create_subscription(
                 Point, '/marble/desired_pos', self._desired_cb, 10)
+            self.create_subscription(
+                Point, '/tcp/lissajous_pos', self._tcp_desired_cb, 10)
             self.create_subscription(
                 TwistStamped, '/marble/plate_omega', self._plate_omega_cb, 10)
             self.create_subscription(
@@ -354,6 +426,10 @@ def record_node(default_output: Path):
             self._desired_x = msg.x
             self._desired_y = msg.y
 
+        def _tcp_desired_cb(self, msg: Point):
+            self._tcp_desired_x = msg.x
+            self._tcp_desired_y = msg.y
+
         def _odom_z_cb(self, msg: Odometry):
             self._marble_z = msg.pose.pose.position.z
 
@@ -366,6 +442,18 @@ def record_node(default_output: Path):
             s = msg.data
             t_sec = self.get_clock().now().nanoseconds * 1e-9
             self._lqr_state = list(s)
+
+            # Actual TCP position from TF (plate_tcp in base_link frame)
+            try:
+                import tf2_ros
+                tf = self._tf_buffer.lookup_transform(
+                    'base_link', 'plate_tcp', rclpy.time.Time())
+                self._tcp_actual_x = tf.transform.translation.x
+                self._tcp_actual_y = tf.transform.translation.y
+                self._tcp_actual_z = tf.transform.translation.z
+            except Exception:
+                pass   # keep last known value
+
             self._writer.writerow({
                 'time':               t_sec,
                 'x':                  s[0],
@@ -383,6 +471,11 @@ def record_node(default_output: Path):
                 'desired_x':          self._desired_x,
                 'desired_y':          self._desired_y,
                 'marble_z_abs':       self._marble_z,
+                'tcp_actual_x':       self._tcp_actual_x,
+                'tcp_actual_y':       self._tcp_actual_y,
+                'tcp_actual_z':       self._tcp_actual_z,
+                'tcp_desired_x':      self._tcp_desired_x,
+                'tcp_desired_y':      self._tcp_desired_y,
             })
             self._row_count += 1
 

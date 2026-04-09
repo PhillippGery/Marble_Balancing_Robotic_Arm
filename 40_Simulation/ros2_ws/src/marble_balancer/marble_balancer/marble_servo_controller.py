@@ -140,12 +140,12 @@ class MarbleServoController(Node):
         self._marble_z    = None
         self._marble_vz   = 0.0
         self._landed      = False
-        self._land_ticks  = 0
+        self._land_ticks  = 3
         self._homing      = False   # True while robot returns home; Servo is stopped
 
         # ── Publishers / subscribers ──────────────────────────────────────────
         self._twist_pub = self.create_publisher(
-            TwistStamped, '/servo_node/delta_twist_cmds', 10)
+            TwistStamped, '/marble_servo/delta_twist_cmds', 10)
         # LQR state published for rl_residual_node (8-D + 2-D LQR output = 10 floats)
         self._state_pub = self.create_publisher(
             Float64MultiArray, '/marble/lqr_state', 10)

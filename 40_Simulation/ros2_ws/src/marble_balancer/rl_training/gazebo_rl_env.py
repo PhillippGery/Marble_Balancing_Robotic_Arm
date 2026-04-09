@@ -393,6 +393,8 @@ class GazeboRLEnv(gym.Env, Node):
         # Randomise phase so model sees all phases, not always phase=0
         self._tcp_t = float(np.random.uniform(0.0, 2.0 * math.pi / self._tcp_omega0)) \
                       if self._tcp_episode_active else 0.0
+        self.get_logger().info(
+            f'Episode reset — tcp_lissajous_active={self._tcp_episode_active}')
 
         # Episode reset sequence: delete → home → spawn → wait for land
         self._delete_marble()
