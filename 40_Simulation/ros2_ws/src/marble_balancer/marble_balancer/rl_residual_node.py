@@ -43,8 +43,9 @@ _LATCHED = QoSProfile(
 )
 
 # Observation normalisation constants — must match gazebo_rl_env.py / ball_plate_env.py
-MAX_RATE = math.radians(45.0)
-_NORM    = np.array([0.20, 0.50, 0.20, 0.50, 0.30, MAX_RATE, 0.30, MAX_RATE])
+MAX_RATE    = math.radians(45.0)
+_NORM       = np.array([0.20, 0.50, 0.20, 0.50, 0.30, MAX_RATE, 0.30, MAX_RATE])
+_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.05, 0.05])
 
 # Curriculum residual clip budgets for TD3 (3 training stages + 1 alias for compat)
 _CLIP_BUDGETS = [
@@ -104,6 +105,8 @@ class RLResidualNode(Node):
         # Action history: oldest at index 0, newest at index -1 (10 × 2-D actions)
         # Must match gazebo_rl_env.py ordering (oldest-first).
         self._action_hist = collections.deque([np.zeros(2)] * 10, maxlen=10)
+        # Last full twist sent: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
+        self._last_twist_cmd = np.zeros(4)
 
         # ── Subscriptions ─────────────────────────────────────────────────────
         self.create_subscription(
@@ -151,6 +154,13 @@ class RLResidualNode(Node):
 
     def _lqr_twist_cb(self, msg: TwistStamped):
         self._last_twist = msg
+        # Store full twist for observation: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
+        self._last_twist_cmd = np.array([
+            msg.twist.angular.x,
+            msg.twist.angular.y,
+            msg.twist.linear.x,
+            msg.twist.linear.y,
+        ])
         if not (self._use_rl and self._enabled) or not self._landed:
             # Passthrough: RL disabled or marble not yet landed
             self._pub.publish(msg)
@@ -161,6 +171,7 @@ class RLResidualNode(Node):
     def _fell_cb(self, _):
         self._landed = False
         self._action_hist = collections.deque([np.zeros(2)] * 10, maxlen=10)
+        self._last_twist_cmd = np.zeros(4)
 
     # ── Inference ─────────────────────────────────────────────────────────────
 
@@ -191,11 +202,12 @@ class RLResidualNode(Node):
         self._action_hist.append(action.copy())
 
     def _build_obs(self, state: np.ndarray) -> np.ndarray:
-        """Build 28-D observation: [state_norm(8), action_history_flat(20)]."""
+        """Build 32-D observation: [state_norm(8), action_history_flat(20), twist_norm(4)]."""
         state_norm = np.clip(state / _NORM, -3.0, 3.0)
         # Action history oldest-first (index 0 = oldest) — matches gazebo_rl_env.py
         hist_flat  = np.array(list(self._action_hist), dtype=np.float32).flatten()
-        obs        = np.concatenate([state_norm, hist_flat]).astype(np.float32)
+        twist_norm = np.clip(self._last_twist_cmd / _TWIST_NORM, -3.0, 3.0).astype(np.float32)
+        obs        = np.concatenate([state_norm, hist_flat, twist_norm]).astype(np.float32)
 
         if self._running_stats is not None:
             mean = self._running_stats['mean'].astype(np.float32)

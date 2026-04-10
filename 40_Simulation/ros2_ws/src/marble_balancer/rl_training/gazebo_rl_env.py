@@ -7,9 +7,10 @@ This env IS the controller during training — do NOT run marble_servo_controlle
 simultaneously.  It owns the servo command loop, LQR computation, and episode
 management (delete → home → spawn → land).
 
-Observation (28-D):
+Observation (32-D):
   obs[0:8]   = state / _NORM             # [x, vx, y, vy, alpha, ωα, beta, ωβ]
   obs[8:28]  = action_history.flatten()  # last 10 2-D actions, oldest-first
+  obs[28:32] = twist_cmd / _TWIST_NORM   # [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
 
 Action (2-D, in [-1, 1]):
   residual = action * lambda              # Δω added to LQR output (rad/s)
@@ -61,6 +62,13 @@ LAND_CONFIRM    = 3                   # consecutive odom ticks required
 
 # Observation normalisation — must match rl_residual_node.py
 _NORM = np.array([0.20, 0.50, 0.20, 0.50, 0.30, MAX_RATE, 0.30, MAX_RATE])
+
+# Spawn verify: early-exit when marble settles near resting height
+LAND_Z_MARGIN   = 0.040   # ±4 cm z-window around surface_z + MARBLE_RADIUS
+LAND_CONFIRM    = 5       # consecutive odom ticks within window → confirmed settled
+
+# Twist command normalisation: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
+_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.05, 0.05])
 
 # Curriculum: residual clip budgets per stage
 _LAMBDAS = [math.radians(5.), math.radians(10.), math.radians(15.)]
@@ -140,9 +148,9 @@ class GazeboRLEnv(gym.Env, Node):
         # 0.0 = never (standard training), 0.5 = mixed (generalises both), 1.0 = always.
         self._tcp_lissajous_prob = 0.5 if use_tcp_lissajous else 0.0
         self._tcp_episode_active = False   # set each episode in reset()
-        self._tcp_amp_x  = 0.04                          # m
-        self._tcp_amp_y  = 0.04                          # m
-        self._tcp_omega0 = 2.0 * math.pi / 20.0         # rad/s  (period = 20 s)
+        self._tcp_amp_x  = 0.30                          # m  (matches tcp_lissajous_node defaults)
+        self._tcp_amp_y  = 0.30                          # m
+        self._tcp_omega0 = 2.0 * math.pi / 12.0         # rad/s  (period = 12 s)
         self._tcp_fa     = 1
         self._tcp_fb     = 2
         self._tcp_delta  = math.pi / 2.0
@@ -158,7 +166,7 @@ class GazeboRLEnv(gym.Env, Node):
 
         # ── Observation / action spaces ────────────────────────────────────────
         self.observation_space = spaces.Box(
-            low=-3.0, high=3.0, shape=(28,), dtype=np.float32)
+            low=-3.0, high=3.0, shape=(32,), dtype=np.float32)
         self.action_space = spaces.Box(
             low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
 
@@ -167,6 +175,8 @@ class GazeboRLEnv(gym.Env, Node):
         self._prev_action = np.zeros(2)
         # Action history: oldest at index 0, newest at index -1 (deque maxlen=10)
         self._action_hist = collections.deque([np.zeros(2)] * 10, maxlen=10)
+        # Last full twist command sent to servo: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
+        self._last_twist_cmd = np.zeros(4)
 
         # EMA velocity estimation
         self._prev_mx     = 0.0
@@ -386,6 +396,7 @@ class GazeboRLEnv(gym.Env, Node):
         self._omega_beta_actual  = 0.0
         self._action_hist = collections.deque([np.zeros(2)] * 10, maxlen=10)
         self._prev_action = np.zeros(2)
+        self._last_twist_cmd = np.zeros(4)
         # Randomly activate TCP Lissajous for this episode (50% when enabled)
         # — model sees both stationary and moving TCP → generalises to both
         self._tcp_episode_active = (
@@ -454,6 +465,7 @@ class GazeboRLEnv(gym.Env, Node):
         twist.twist.linear.x  = tcp_vx            # TCP X linear velocity (m/s)
         twist.twist.linear.y  = tcp_vy            # TCP Y linear velocity (m/s)
         self._twist_pub.publish(twist)
+        self._last_twist_cmd = np.array([omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy])
 
         # Reward (computed before updating history so prev_action is still last step's)
         reward = self._compute_reward(action)
@@ -496,7 +508,8 @@ class GazeboRLEnv(gym.Env, Node):
         state_norm = np.clip(self._state / _NORM, -3.0, 3.0).astype(np.float32)
         # Action history: oldest-first (index 0 = oldest), newest at index -1
         hist_flat  = np.array(list(self._action_hist), dtype=np.float32).flatten()
-        return np.concatenate([state_norm, hist_flat])
+        twist_norm = np.clip(self._last_twist_cmd / _TWIST_NORM, -3.0, 3.0).astype(np.float32)
+        return np.concatenate([state_norm, hist_flat, twist_norm])
 
     # ── Curriculum ────────────────────────────────────────────────────────────
 
@@ -611,15 +624,24 @@ class GazeboRLEnv(gym.Env, Node):
                 self.get_logger().warn(f'Spawn failed: {err} — retrying…')
                 continue
 
-            # Verify marble stays on plate (3 s monitor)
+            # Verify marble stays on plate — exit early once settled, 3 s fallback
             self._marble_z = None
             fell_through   = False
+            land_ticks     = 0
+            rest_z         = surface_z + MARBLE_RADIUS
             deadline       = time.monotonic() + 3.0
             while time.monotonic() < deadline:
                 rclpy.spin_once(self, timeout_sec=0.05)
-                if self._marble_z is not None and self._marble_z < surface_z - 0.05:
-                    fell_through = True
-                    break
+                if self._marble_z is not None:
+                    if self._marble_z < surface_z - 0.05:
+                        fell_through = True
+                        break
+                    if abs(self._marble_z - rest_z) < LAND_Z_MARGIN:
+                        land_ticks += 1
+                        if land_ticks >= LAND_CONFIRM:
+                            break   # settled — exit early
+                    else:
+                        land_ticks = 0  # still bouncing
 
             if not fell_through:
                 self.get_logger().info('Marble confirmed on plate.')

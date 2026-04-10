@@ -32,6 +32,8 @@ DROP_HEIGHT      = 0.10    # m above plate surface  (was 0.08; slightly higher =
 DELETE_SETTLE_S  = 0.6     # seconds to wait after delete before spawning
 MAX_VERIFY_S     = 3.0     # seconds to watch odom after spawn
 FALL_THROUGH_Z   = -0.05   # if marble drops this far below surface_z → fell through
+LAND_Z_MARGIN    = 0.040   # ±4 cm z-window around expected resting z (surface + radius)
+LAND_CONFIRM     = 5       # consecutive odom ticks within window → confirmed landed
 MAX_RETRIES      = 3
 
 CANDIDATE_FRAMES   = ['plate_tcp', 'marble_plate', 'tool0']
@@ -159,8 +161,12 @@ class MarbleSpawner(Node):
             self.get_logger().info('Spawn accepted — verifying marble stays on plate…')
 
             # ── 5. Monitor odom: confirm marble does NOT fall through ──────────
+            # Exits early once marble rests stably near surface + MARBLE_RADIUS.
+            # Falls back to full MAX_VERIFY_S timeout only if marble bounces long.
             self._marble_z = None
             fell_through   = False
+            land_ticks     = 0
+            rest_z         = surface_z + MARBLE_RADIUS
             deadline       = time.monotonic() + MAX_VERIFY_S
 
             while time.monotonic() < deadline and rclpy.ok():
@@ -169,6 +175,12 @@ class MarbleSpawner(Node):
                     if self._marble_z < surface_z + FALL_THROUGH_Z:
                         fell_through = True
                         break
+                    if abs(self._marble_z - rest_z) < LAND_Z_MARGIN:
+                        land_ticks += 1
+                        if land_ticks >= LAND_CONFIRM:
+                            break   # marble settled — exit early
+                    else:
+                        land_ticks = 0   # still bouncing
 
             if not fell_through:
                 self.get_logger().info(
