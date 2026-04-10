@@ -146,7 +146,12 @@ class GazeboRLEnv(gym.Env, Node):
         # ── TCP Lissajous disturbance (matches tcp_lissajous_node.py defaults) ─
         # tcp_lissajous_prob: probability that any given episode has TCP moving.
         # 0.0 = never (standard training), 0.5 = mixed (generalises both), 1.0 = always.
-        self._tcp_lissajous_prob = 0.5 if use_tcp_lissajous else 0.0
+        # TCP Lissajous probability per episode:
+        #   1.0 = every episode has TCP moving (train exclusively for tcp_lissajous deployment)
+        #   0.5 = mixed — generalises to both stationary and moving TCP (original behaviour)
+        #   0.0 = never (standard balancing only)
+        # To revert to mixed training: change 1.0 → 0.5 on the line below
+        self._tcp_lissajous_prob = 1.0 if use_tcp_lissajous else 0.0
         self._tcp_episode_active = False   # set each episode in reset()
         self._tcp_amp_x  = 0.30                          # m  (matches tcp_lissajous_node defaults)
         self._tcp_amp_y  = 0.30                          # m
