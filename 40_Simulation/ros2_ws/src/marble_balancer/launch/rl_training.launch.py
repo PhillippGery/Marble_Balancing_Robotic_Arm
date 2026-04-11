@@ -69,6 +69,9 @@ def generate_launch_description():
     spawn_radius_arg = DeclareLaunchArgument(
         'spawn_radius', default_value='0.0',
         description='Random marble spawn radius from plate centre (m, 0=centre always)')
+    gui_arg = DeclareLaunchArgument(
+        'gui', default_value='true',
+        description='Launch Gazebo GUI (true/false for headless)')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -102,6 +105,7 @@ def generate_launch_description():
         launch_arguments={
             'ur_type':                  'ur5e',
             'launch_rviz':              'false',
+            'gazebo_gui':               LaunchConfiguration('gui'),
             'description_package':      'marble_balancer',
             'description_file':         'ur5e_marble_balancer.urdf.xacro',
             'runtime_config_package':   'marble_balancer',
@@ -221,6 +225,7 @@ def generate_launch_description():
         use_ekf_arg,
         tcp_lissajous_arg,
         spawn_radius_arg,
+        gui_arg,
         ur_sim,
         move_group_node,
         servo_node,
