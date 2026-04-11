@@ -1,16 +1,16 @@
 """
 rl_training.launch.py
 ---------------------
-Launches Gazebo + UR5e + MoveIt2 Servo for online TD3 RL training.
+Launches Gazebo + UR5e + MoveIt2 Servo for online TD3 RL training (V2).
 
-Starts ONLY the infrastructure needed by gazebo_rl_env.py:
+Starts ONLY the infrastructure needed by gazebo_rl_env_v2.py:
   - Gazebo + UR5e + controllers  (ur_sim_control_marble.launch.py)
   - move_group
   - servo_node
-  - go_to_pose  (initial homing; gazebo_rl_env handles subsequent resets)
+  - go_to_pose  (initial homing; gazebo_rl_env_v2 handles subsequent resets)
 
 Does NOT start:
-  - marble_servo_controller  (gazebo_rl_env IS the controller)
+  - marble_servo_controller  (gazebo_rl_env_v2 IS the controller)
   - mux_controller
   - marble_spawner
   - marble_plotter / lissajous / rl_residual_node / marble_visualizer
@@ -18,9 +18,8 @@ Does NOT start:
 After go_to_pose exits the training script is started via ExecuteProcess.
 Run from the ros2_ws root, with the workspace sourced:
 
-  ros2 launch marble_balancer rl_training.launch.py
-  ros2 launch marble_balancer rl_training.launch.py timesteps:=500000 stage:=0
-  ros2 launch marble_balancer rl_training.launch.py load:=/abs/path/to/model.zip
+  ros2 launch marble_balancer rl_training.launch.py gui:=false
+  ros2 launch marble_balancer rl_training.launch.py gui:=false timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
 """
 
 import os
@@ -35,7 +34,7 @@ from launch.actions import (
 )
 from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
@@ -167,17 +166,7 @@ def generate_launch_description():
     )
 
     # ── 6. Training script (starts after go_to_pose exits + 1 s settle) ──────
-    # Resolve rl_training/ directory relative to this launch file's package.
-    rl_training_dir = os.path.join(
-        os.path.dirname(pkg_marble),   # src/marble_balancer/share → up to share/
-        '..', '..', '..',              # up to install/
-        '..', 'src', 'marble_balancer', 'rl_training'
-    )
-    train_script = os.path.abspath(
-        os.path.join(pkg_marble, '..', '..', '..', '..', '..', '..', '..', '..', '..', 'xxx'))
-
-    # Use the installed entry-point if registered in setup.py, otherwise fall
-    # back to the source path.  We use ros2 run to keep it ROS-context-aware.
+    # Launches train_td3_gazebo_v2.py after initial homing completes.
     training_process = ExecuteProcess(
         cmd=[
             'python3',
@@ -186,7 +175,7 @@ def generate_launch_description():
                 # Resolve src path relative to share directory:
                 # share/marble_balancer → ../../../../src/marble_balancer/rl_training
                 '..', '..', '..', '..', 'src', 'marble_balancer',
-                'rl_training', 'train_td3_gazebo.py',
+                'rl_training', 'train_td3_gazebo_v2.py',
             ]),
             '--timesteps',      LaunchConfiguration('timesteps'),
             '--stage',          LaunchConfiguration('stage'),
