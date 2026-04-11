@@ -283,12 +283,16 @@ def train(args):
         # ── Train TD3 ─────────────────────────────────────────────────────────
         if total_env_steps > 1000 and model.replay_buffer.size() > model.batch_size:
             model.train(gradient_steps=1, batch_size=model.batch_size)
+            if total_env_steps % 1000 == 0:
+                model.logger.dump(step=total_env_steps)
 
         # ── Periodic evaluation ────────────────────────────────────────────────
         if steps_since_eval >= eval_interval:
             steps_since_eval = 0
             mean_r = _evaluate(env, model, rms, n_episodes=5)
             print(f'[step {total_env_steps:,}] eval mean reward: {mean_r:.2f}')
+            model.logger.record('eval/mean_reward', mean_r)
+            model.logger.dump(step=total_env_steps)
 
             if mean_r > best_reward:
                 best_reward = mean_r

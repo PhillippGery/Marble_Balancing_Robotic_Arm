@@ -221,7 +221,7 @@ def generate_launch_description():
         parameters=[{
             'amplitude_x':  0.30,
             'amplitude_y':  0.30,
-            'period':       12.0,
+            'period':       15.0,   #was 12.0
             'fa':           1,
             'fb':           2,
             'delta':        1.5707963,   # pi/2

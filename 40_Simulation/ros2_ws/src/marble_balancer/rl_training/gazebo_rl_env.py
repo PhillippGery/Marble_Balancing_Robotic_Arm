@@ -152,11 +152,11 @@ class GazeboRLEnv(gym.Env, Node):
         #   0.5 = mixed — generalises to both stationary and moving TCP (original behaviour)
         #   0.0 = never (standard balancing only)
         # To revert to mixed training: change 1.0 → 0.5 on the line below
-        self._tcp_lissajous_prob = 1.0 if use_tcp_lissajous else 0.0
+        self._tcp_lissajous_prob = 0.7 if use_tcp_lissajous else 0.0
         self._tcp_episode_active = False   # set each episode in reset()
         self._tcp_amp_x  = 0.30                          # m  (matches tcp_lissajous_node defaults)
         self._tcp_amp_y  = 0.30                          # m
-        self._tcp_omega0 = 2.0 * math.pi / 12.0         # rad/s  (period = 12 s)
+        self._tcp_omega0 = 2.0 * math.pi / 20.0         # rad/s  (period = 20 s)
         self._tcp_fa     = 1
         self._tcp_fb     = 2
         self._tcp_delta  = math.pi / 2.0
@@ -410,11 +410,11 @@ class GazeboRLEnv(gym.Env, Node):
             np.random.random() < self._tcp_lissajous_prob)
         if self._tcp_episode_active:
             # Domain randomise amplitude + period each episode for generalisation
-            # Deployment uses 0.30 m / 12 s — keep that within the training range
+            # Deployment uses 0.30 m / 20 s — keep that within the training range
             amp = float(np.random.uniform(0.20, 0.40))     # 20–40 cm
             self._tcp_amp_x  = amp
             self._tcp_amp_y  = amp
-            period = float(np.random.uniform(10.0, 15.0))  # 10–15 s
+            period = float(np.random.uniform(12.0, 22.0))  # 12–22 s  (deployment = 20 s)
             self._tcp_omega0 = 2.0 * math.pi / period
             # Randomise starting phase so agent sees all cycle positions
             self._tcp_t = float(np.random.uniform(0.0, 2.0 * math.pi / self._tcp_omega0))
