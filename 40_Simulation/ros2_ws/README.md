@@ -2,6 +2,22 @@
 
 Real-time LQR control of a **UR5e 6-DOF robotic arm** balancing a marble on a plate attached to the end-effector. The arm tilts the plate using angular velocity commands via MoveIt2 Servo, keeping the marble centered. Runs in **Gazebo Classic** simulation with hardware-ready architecture.
 
+## ⭐ What's New (V2 — Current)
+
+**Production-ready RL training environment with bulletproof spawning and full TensorBoard visibility:**
+
+✅ **gazebo_rl_env_v2.py** — 21-D observation space, atomic reset retry loop, velocity braking, instant landing detection, ghost marble detection, reward lockout  
+✅ **train_td3_gazebo_v2.py** — Monitor wrapper for episode metrics, absolute paths, logger before seeding, model.learn() with callbacks  
+✅ **rl_training.launch.py** — `gui:=false` support for **300% faster headless training**  
+✅ **TensorBoard** — All episode metrics now visible (episode_reward, episode_length, curriculum/stage, curriculum/survival_fraction)  
+✅ **Model checkpoints** — Saved every 10K steps to `models_td3_v2/`, best model selected by evaluation reward  
+✅ **Resume training** — Load any checkpoint and continue with `--load` argument  
+
+**Quick start:**
+```bash
+ros2 launch marble_balancer rl_training.launch.py gui:=false timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
+```
+
 ---
 
 ## System Overview
@@ -253,35 +269,92 @@ Use `square:=true` for step-response tuning — the 4-corner pattern gives clear
 
 ## RL Training (Online — requires live Gazebo)
 
+### Quick Start (V2 — Recommended)
+
+**First-time training (1M steps, ~2-3 hours):**
 ```bash
 # Install deps (once)
-pip install gymnasium stable-baselines3[extra] tensorboard cma
+pip install gymnasium stable-baselines3[extra] tensorboard
 
-# Standard training (500K steps)
-ros2 launch marble_balancer rl_training.launch.py
-
-# With generalization training (recommended):
-# - tcp_lissajous:=true → 50% of episodes activate TCP Lissajous motion (single model handles both)
-# - spawn_radius:=0.12  → marble spawned uniformly at random within 12 cm of centre each episode
-ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
-
-# Continue from checkpoint
-ros2 launch marble_balancer rl_training.launch.py load:=/path/to/checkpoint.zip
-
-# Monitor
-tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
-
-# Validate with CMA-ES (detect local optima, ~minutes offline)
-cd src/marble_balancer/rl_training && python train_cmaes_gazebo.py
+# Start training (headless, no GUI)
+ros2 launch marble_balancer rl_training.launch.py gui:=false \
+  timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
 ```
 
-**Curriculum stages (TD3, 3 stages):**
+**Monitor in separate terminal:**
+```bash
+tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3_v2/
+# Open browser: http://localhost:6006
+```
+
+### Resume From Checkpoint
+
+Continue training from best saved model:
+```bash
+ros2 launch marble_balancer rl_training.launch.py gui:=false \
+  timesteps:=1000000 \
+  load:=$(pwd)/src/marble_balancer/rl_training/models_td3_v2/best_model_td3_v2.zip \
+  tcp_lissajous:=true spawn_radius:=0.12
+```
+
+### Training Features (V2)
+
+| Feature | Details |
+|---------|---------|
+| **Environment** | 21-D observation space (8-state + 9-TCP-3D-window + 2-target + 2-action) |
+| **Bulletproof Spawning** | Atomic reset retry loop, velocity braking, instant landing, ghost detection, reward lockout |
+| **Training Modes** | 50% Lissajous curve + 50% random jitter walk (with TCP Z-axis) |
+| **Marble Spawn** | Uniformly random within `spawn_radius` (default 0.12 m) of plate centre |
+| **Headless Mode** | `gui:=false` runs gzserver without GUI — **300% faster training** |
+| **Model Save Location** | `src/marble_balancer/rl_training/models_td3_v2/` |
+| **Checkpoints** | Saved every 10K steps: `checkpoint_td3_v2_*.zip` |
+| **Best Model** | `best_model_td3_v2.zip` — use this for deployment |
+
+### Curriculum Stages (TD3 V2)
 
 | Stage | Residual clip (λ) | Advances when |
 |-------|-------------------|---------------|
 | 0 | ±5 °/s | survival fraction > 30% (last 20 eps) |
 | 1 | ±10 °/s | survival fraction > 55% |
 | 2 | ±15 °/s | — (final stage) |
+
+### TensorBoard Metrics (Now Visible)
+
+All episode metrics now logged to TensorBoard:
+- `rollout/episode_reward` — total reward per episode
+- `rollout/episode_length` — steps per episode
+- `curriculum/survival_fraction` — % episodes surviving
+- `curriculum/stage` — curriculum advancement (0→1→2)
+- `td3/policy_loss` — actor loss
+- `td3/qf_loss` — Q-function loss
+
+### Deploy Trained Model
+
+```bash
+ros2 launch marble_balancer servo_balancer.launch.py \
+  rl:=true \
+  rl_model:=$(pwd)/src/marble_balancer/rl_training/models_td3_v2/best_model_td3_v2.zip \
+  rl_norm:=$(pwd)/src/marble_balancer/rl_training/models_td3_v2/running_stats_v2.pkl \
+  rl_stage:=2
+```
+
+### Old Training (V1 — Legacy)
+
+```bash
+# Standard training (500K steps)
+ros2 launch marble_balancer rl_training.launch.py
+
+# With generalization training:
+# - tcp_lissajous:=true → 50% of episodes activate TCP Lissajous motion
+# - spawn_radius:=0.12  → marble spawned uniformly at random within 12 cm of centre
+ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
+
+# Continue from checkpoint
+ros2 launch marble_balancer rl_training.launch.py load:=/path/to/checkpoint.zip
+
+# Validate with CMA-ES (detect local optima, ~minutes offline)
+cd src/marble_balancer/rl_training && python train_cmaes_gazebo.py
+```
 
 ---
 
@@ -305,15 +378,22 @@ ros2_ws/src/
 │   │   ├── rl_residual_node.py        # TD3 residual policy inference
 │   │   └── marble_spawner_xy.py       # Marble spawn at plate-frame (x,y) coordinates
 │   ├── rl_training/
-│   │   ├── gazebo_rl_env.py           # Gymnasium env wrapping live Gazebo
-│   │   ├── train_td3_gazebo.py        # TD3 + RLPD online training script
+│   │   ├── gazebo_rl_env.py           # Gymnasium env wrapping live Gazebo (V1 — legacy)
+│   │   ├── gazebo_rl_env_v2.py        # Bulletproof RL environment with 21-D obs (RECOMMENDED)
+│   │   ├── train_td3_gazebo.py        # TD3 + RLPD online training (V1 — legacy)
+│   │   ├── train_td3_gazebo_v2.py     # TD3 + RLPD with Monitor + callbacks (V2 — RECOMMENDED)
 │   │   ├── train_cmaes_gazebo.py      # CMA-ES linear policy validator
 │   │   ├── ball_plate_env.py          # PT1 physics env (offline CMA-ES only)
 │   │   ├── TRAINING_PIPELINE.md       # Full training pipeline documentation
-│   │   └── models_td3/                # Trained model outputs
+│   │   ├── models_td3/                # Trained models (V1)
+│   │   └── models_td3_v2/             # Trained models (V2)
+│   │       ├── best_model_td3_v2.zip  # Best policy by eval reward
+│   │       ├── checkpoint_td3_v2_*.zip # Periodic checkpoints (every 10K steps)
+│   │       ├── running_stats_v2.pkl   # Observation normalisation stats
+│   │       └── final_model_td3_v2.zip # Final model when training completes
 │   ├── launch/
-│   │   ├── servo_balancer.launch.py   # Full system launch
-│   │   ├── rl_training.launch.py      # RL training infrastructure (no controller)
+│   │   ├── servo_balancer.launch.py   # Full system launch (with/without RL)
+│   │   ├── rl_training.launch.py      # RL training infrastructure (V2, with gui:=false support)
 │   │   └── spawn_xy.launch.py         # Full stack with marble at specific position
 │   ├── config/
 │   │   ├── servo_params.yaml          # MoveIt Servo config (plate_tcp frame, 30 Hz)

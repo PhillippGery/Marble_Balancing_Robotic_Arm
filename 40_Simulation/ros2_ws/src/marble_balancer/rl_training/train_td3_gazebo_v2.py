@@ -155,7 +155,7 @@ class CurriculumCallback(BaseCallback):
 
             if frac > self.thresholds[self._stage]:
                 self._stage += 1
-                self.env.set_stage(self._stage)
+                self.env.unwrapped.set_stage(self._stage)
                 if self.verbose:
                     print(f'\n[Curriculum] → stage {self._stage} '
                           f'(survival={frac:.0%})')

@@ -42,11 +42,21 @@ Servo command (matches marble_servo_controller.py exactly):
 """
 
 import os
+import sys
 import math
 import time
 import subprocess
 import collections
 import numpy as np
+
+# Add workspace paths for imports (allows running from rl_training/ directory)
+_ws_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+_src_path = os.path.join(_ws_root, 'src')
+_install_path = os.path.join(_ws_root, 'install', 'lib', 'python3.10', 'site-packages')
+if _src_path not in sys.path:
+    sys.path.insert(0, _src_path)
+if _install_path not in sys.path:
+    sys.path.insert(0, _install_path)
 
 import rclpy
 from rclpy.node import Node
@@ -712,8 +722,17 @@ class GazeboRLEnvV2(gym.Env, Node):
 
     def _delete_marble(self):
         """Delete marble and verify deletion via odom silence + settlement time."""
-        if not self._delete_client.wait_for_service(timeout_sec=3.0):
-            self.get_logger().warn('/delete_entity not available — skipping delete.')
+        # Robust service availability check with retries
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            if self._delete_client.wait_for_service(timeout_sec=5.0):
+                break
+            self.get_logger().warn(
+                f'/delete_entity not available (attempt {attempt}/{max_retries}) — '
+                f'retrying in 0.5s...')
+            time.sleep(0.5)
+        else:
+            self.get_logger().error('/delete_entity service unavailable after retries!')
             return
         
         req = DeleteEntity.Request()
@@ -738,7 +757,7 @@ class GazeboRLEnvV2(gym.Env, Node):
                         odom_silence_start = time.monotonic()
                         self.get_logger().info(f'Odom silence detected ({time_since_odom:.2f}s) — marble deleted.')
                     break
-            
+        
         # Additional physics settlement time
         self.get_logger().info(
             f'Marble deleted — waiting {DELETE_SETTLE_S:.1f}s for physics flush…')
@@ -761,8 +780,17 @@ class GazeboRLEnvV2(gym.Env, Node):
 
     def _spawn_marble(self):
         """Spawn marble above plate; retry up to 3 times on fall-through."""
-        if not self._spawn_client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().error('/spawn_entity not available!')
+        # Robust service availability check with retries
+        max_retries = 3
+        for attempt in range(1, max_retries + 1):
+            if self._spawn_client.wait_for_service(timeout_sec=5.0):
+                break
+            self.get_logger().warn(
+                f'/spawn_entity not available (attempt {attempt}/{max_retries}) — '
+                f'retrying in 0.5s...')
+            time.sleep(0.5)
+        else:
+            self.get_logger().error('/spawn_entity service unavailable after retries!')
             return
 
         pkg = get_package_share_directory('marble_balancer')
