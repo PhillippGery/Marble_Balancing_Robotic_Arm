@@ -68,7 +68,8 @@ LAND_Z_MARGIN   = 0.040   # ±4 cm z-window around surface_z + MARBLE_RADIUS
 LAND_CONFIRM    = 5       # consecutive odom ticks within window → confirmed settled
 
 # Twist command normalisation: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
-_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.05, 0.05])
+# tcp_vx/vy sized for 0.30 m amplitude, 12 s period: max ~0.157 / 0.314 m/s
+_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.20, 0.35])
 
 # Curriculum: residual clip budgets per stage
 _LAMBDAS = [math.radians(5.), math.radians(10.), math.radians(15.)]
@@ -170,8 +171,9 @@ class GazeboRLEnv(gym.Env, Node):
         self._K, _, _, self._P = compute_dlqr(DEFAULT_Q, DEFAULT_R, dt)
 
         # ── Observation / action spaces ────────────────────────────────────────
+        # 36-D: 8 state + 20 action history + 4 twist cmd + 4 Lissajous phase
         self.observation_space = spaces.Box(
-            low=-3.0, high=3.0, shape=(32,), dtype=np.float32)
+            low=-3.0, high=3.0, shape=(36,), dtype=np.float32)
         self.action_space = spaces.Box(
             low=-1.0, high=1.0, shape=(2,), dtype=np.float32)
 
@@ -406,11 +408,23 @@ class GazeboRLEnv(gym.Env, Node):
         # — model sees both stationary and moving TCP → generalises to both
         self._tcp_episode_active = (
             np.random.random() < self._tcp_lissajous_prob)
-        # Randomise phase so model sees all phases, not always phase=0
-        self._tcp_t = float(np.random.uniform(0.0, 2.0 * math.pi / self._tcp_omega0)) \
-                      if self._tcp_episode_active else 0.0
+        if self._tcp_episode_active:
+            # Domain randomise amplitude + period each episode for generalisation
+            # Deployment uses 0.30 m / 12 s — keep that within the training range
+            amp = float(np.random.uniform(0.20, 0.40))     # 20–40 cm
+            self._tcp_amp_x  = amp
+            self._tcp_amp_y  = amp
+            period = float(np.random.uniform(10.0, 15.0))  # 10–15 s
+            self._tcp_omega0 = 2.0 * math.pi / period
+            # Randomise starting phase so agent sees all cycle positions
+            self._tcp_t = float(np.random.uniform(0.0, 2.0 * math.pi / self._tcp_omega0))
+        else:
+            self._tcp_t = 0.0
         self.get_logger().info(
-            f'Episode reset — tcp_lissajous_active={self._tcp_episode_active}')
+            f'Episode reset — tcp_lissajous_active={self._tcp_episode_active}'
+            + (f'  amp={self._tcp_amp_x*100:.1f}cm  '
+               f'period={2*math.pi/self._tcp_omega0:.1f}s'
+               if self._tcp_episode_active else ''))
 
         # Episode reset sequence: delete → home → spawn → wait for land
         self._delete_marble()
@@ -497,8 +511,9 @@ class GazeboRLEnv(gym.Env, Node):
     def _compute_reward(self, action: np.ndarray) -> float:
         x, vx, y, vy = (self._state[0], self._state[1],
                          self._state[2], self._state[3])
-        pos    = math.exp(-50.0 * (x ** 2 + y ** 2))
-        vel    = -0.1 * (vx ** 2 + vy ** 2)
+        # Y weighted 2.5× — TCP Lissajous drives Y at 2× freq (fb=2) → ~4× pseudo-force
+        pos    = math.exp(-50.0 * (x ** 2 + 2.5 * y ** 2))
+        vel    = -0.1 * vx ** 2 - 0.25 * vy ** 2
         smooth = -0.02 * float(np.dot(action - self._prev_action,
                                        action - self._prev_action))
         surv   = 0.05
@@ -514,7 +529,18 @@ class GazeboRLEnv(gym.Env, Node):
         # Action history: oldest-first (index 0 = oldest), newest at index -1
         hist_flat  = np.array(list(self._action_hist), dtype=np.float32).flatten()
         twist_norm = np.clip(self._last_twist_cmd / _TWIST_NORM, -3.0, 3.0).astype(np.float32)
-        return np.concatenate([state_norm, hist_flat, twist_norm])
+        # Lissajous phase encoding (+4 dims): lets agent anticipate TCP direction reversals
+        # sin/cos avoids discontinuity at 0/2π; zeros when TCP is not active this episode
+        if self._tcp_episode_active:
+            ox    = self._tcp_fa * self._tcp_omega0
+            oy    = self._tcp_fb * self._tcp_omega0
+            phi_x = ox * self._tcp_t + self._tcp_delta
+            phi_y = oy * self._tcp_t
+            phase = np.array([math.sin(phi_x), math.cos(phi_x),
+                               math.sin(phi_y), math.cos(phi_y)], dtype=np.float32)
+        else:
+            phase = np.zeros(4, dtype=np.float32)
+        return np.concatenate([state_norm, hist_flat, twist_norm, phase])
 
     # ── Curriculum ────────────────────────────────────────────────────────────
 

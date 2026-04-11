@@ -21,6 +21,7 @@ Run from the ros2_ws root, with the workspace sourced:
   ros2 launch marble_balancer rl_training.launch.py
   ros2 launch marble_balancer rl_training.launch.py timesteps:=500000 stage:=0
   ros2 launch marble_balancer rl_training.launch.py load:=/abs/path/to/model.zip
+  ros2 launch marble_balancer rl_training.launch.py headless:=true  # no Gazebo GUI
 """
 
 import os
@@ -70,6 +71,9 @@ def generate_launch_description():
     spawn_radius_arg = DeclareLaunchArgument(
         'spawn_radius', default_value='0.0',
         description='Random marble spawn radius from plate centre (m, 0=centre always)')
+    headless_arg = DeclareLaunchArgument(
+        'headless', default_value='false',
+        description='Run Gazebo without GUI (headless) for unattended training')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -103,6 +107,9 @@ def generate_launch_description():
         launch_arguments={
             'ur_type':                  'ur5e',
             'launch_rviz':              'false',
+            'gazebo_gui':               PythonExpression(
+                ["'false' if '", LaunchConfiguration('headless'), "' == 'true' else 'true'"]
+            ),
             'description_package':      'marble_balancer',
             'description_file':         'ur5e_marble_balancer.urdf.xacro',
             'runtime_config_package':   'marble_balancer',
@@ -232,6 +239,7 @@ def generate_launch_description():
         use_ekf_arg,
         tcp_lissajous_arg,
         spawn_radius_arg,
+        headless_arg,
         ur_sim,
         move_group_node,
         servo_node,

@@ -219,13 +219,12 @@ def generate_launch_description():
         executable='tcp_lissajous',
         name='tcp_lissajous_node',
         parameters=[{
-            'amplitude_x':  0.30, #was 0.4 both
+            'amplitude_x':  0.30,
             'amplitude_y':  0.30,
             'period':       12.0,
             'fa':           1,
             'fb':           2,
             'delta':        1.5707963,   # pi/2
-            'ff_gain':      0.0,   # start at 0 (disabled); try -1.0 if oscillation worsens with 1.0
             'publish_rate': 30.0,
         }],
         output='screen',
@@ -341,9 +340,7 @@ def generate_launch_description():
         OnProcessExit(
             target_action=marble_spawn,
             on_exit=[pilot_node, mux_node, mux_node_rl,
-                     rl_residual_node, visualizer_node,
-                     plotter_node, lissajous_node, square_node,
-                     tcp_lissajous_node, tcp_keyboard_node],
+                     rl_residual_node, visualizer_node],
         )
     )
 
@@ -363,4 +360,9 @@ def generate_launch_description():
         go_to_pose_on_moveit_ready,
         on_homed,
         on_marble_spawned,
+        plotter_node,
+        lissajous_node,
+        square_node,
+        tcp_lissajous_node,
+        tcp_keyboard_node,
     ])

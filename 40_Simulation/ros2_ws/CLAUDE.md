@@ -126,6 +126,9 @@ ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radi
 # Recommended full training run (1M steps, best generalisation):
 ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
 
+# Headless (no Gazebo GUI — faster, for unattended runs):
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12 headless:=true
+
 # The launch file auto-starts train_td3_gazebo.py after go_to_pose exits.
 # Monitor: tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
 ```
@@ -160,7 +163,7 @@ ros2 launch marble_balancer servo_balancer.launch.py \
 
 ### Architecture
 - `gazebo_rl_env.py` — Gymnasium env wrapping live Gazebo (dual `gym.Env` + `rclpy.Node`); logs `tcp_lissajous_active` at every episode reset
-- `train_td3_gazebo.py` — TD3 + RLPD seeding (20K pure-LQR steps pre-fill buffer); manual `RunningMeanStd` normalisation
+- `train_td3_gazebo.py` — TD3 + RLPD seeding (40K pure-LQR steps pre-fill buffer); manual `RunningMeanStd` normalisation (updated during seeding)
 - `train_cmaes_gazebo.py` — CMA-ES linear policy validator (58 params); defaults to `--offline` (ball_plate_env, fast)
 - `ball_plate_env.py` — Standalone PT1 physics env (offline validation only)
 - `rl_residual_node.py` — ROS2 node: loads TD3 + running_stats.pkl, publishes LQR+residual to `/marble_servo_rl/delta_twist_cmds`
@@ -172,16 +175,19 @@ ros2 launch marble_balancer servo_balancer.launch.py \
 ### Known architectural invariant
 `marble_servo_controller` MUST publish to `/marble_servo/delta_twist_cmds` (not directly to `/servo_node/delta_twist_cmds`). Publishing directly bypasses the mux entirely, breaking manual override and the full RL path (`rl_residual_node` subscribes to `/marble_servo/` and would never receive LQR commands).
 
-### Observation (28-D)
-`[x/0.20, vx/0.50, y/0.20, vy/0.50, α/0.30, ωα/MAX_RATE, β/0.30, ωβ/MAX_RATE, action_history(20)]`
-Action history = last 10 2-D actions, oldest-first, raw [-1, 1].
+### Observation (36-D)
+`[x/0.20, vx/0.50, y/0.20, vy/0.50, α/0.30, ωα/MAX_RATE, β/0.30, ωβ/MAX_RATE, action_history(20), twist_cmd(4), lissajous_phase(4)]`
+- Action history = last 10 2-D actions, oldest-first, raw [-1, 1]
+- Twist cmd = `[ωβ_cmd, ωα_cmd, tcp_vx, tcp_vy]` normalised by `[MAX_RATE, MAX_RATE, 0.20, 0.35]`
+- Lissajous phase = `[sin(φ_x), cos(φ_x), sin(φ_y), cos(φ_y)]`; all zeros when TCP is stationary
+- MAX_RATE = 60°/s = 1.047 rad/s
 
 ### Curriculum stages (3 stages, no perturbations — online Gazebo handles realism)
-| Stage | Residual clip (λ) |
-|-------|-------------------|
-| 0 | ±5°/s |
-| 1 | ±10°/s |
-| 2 | ±15°/s |
+| Stage | Residual clip (λ) | Advance threshold |
+|-------|-------------------|--------------------|
+| 0 | ±5°/s | survival fraction > 40% |
+| 1 | ±10°/s | survival fraction > 65% |
+| 2 | ±15°/s | — |
 
 ### Training outputs (`models_td3/`)
 - `best_model_td3.zip` — best policy by evaluation reward
@@ -243,14 +249,14 @@ python3 src/marble_balancer/marble_balancer/marble_plotter.py --plot ~/marble_lo
 ### RL performance observations (with TCP Lissajous)
 Measured on ~168 s runs with `tcp_lissajous:=true`:
 
-| Metric | With RL | Without RL |
-|--------|---------|------------|
-| RMS error X | 1.8 cm | 1.8 cm |
-| RMS error Y | **2.5 cm** | **4.0 cm** |
-| Max \|y\| | 3.4 cm | 8.2 cm |
-| β saturation | 3.9% | 23.5% |
+| Metric | With RL (v1 model) | Without RL | Target (v2 model) |
+|--------|-------------------|------------|-------------------|
+| RMS error X | 1.8 cm | 1.8 cm | ~1.8 cm |
+| RMS error Y | **2.5 cm** | **4.0 cm** | **< 2.0 cm** |
+| Max \|y\| | 3.4 cm | 8.2 cm | < 3.0 cm |
+| β saturation | 3.9% | 23.5% | < 3% |
 
-RL primarily improves Y axis (hard axis due to TCP Lissajous 2× frequency). X axis is unchanged.
+RL primarily improves Y axis (hard axis due to TCP Lissajous 2× frequency). X axis is unchanged. v2 model incorporates phase encoding, asymmetric Y reward, and domain randomization.
 
 ## Additional Documentation
 - `.claude/docs/architectural_patterns.md` — PT1 model, Jacobian velocity, event-driven launch, LQR design, QoS patterns

@@ -257,13 +257,17 @@ Use `square:=true` for step-response tuning — the 4-corner pattern gives clear
 # Install deps (once)
 pip install gymnasium stable-baselines3[extra] tensorboard cma
 
-# Standard training (500K steps)
-ros2 launch marble_balancer rl_training.launch.py
-
-# With generalization training (recommended):
+# Recommended full training run (1M steps):
 # - tcp_lissajous:=true → 50% of episodes activate TCP Lissajous motion (single model handles both)
 # - spawn_radius:=0.12  → marble spawned uniformly at random within 12 cm of centre each episode
-ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
+# - seed_steps:=40000   → 40K pure-LQR RLPD warm-start (~66 Lissajous cycles)
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12 seed_steps:=40000
+
+# For unattended / overnight runs — suppress Gazebo GUI (headless):
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12 seed_steps:=40000 headless:=true
+
+# Standard training (500K steps, no TCP motion)
+ros2 launch marble_balancer rl_training.launch.py
 
 # Continue from checkpoint
 ros2 launch marble_balancer rl_training.launch.py load:=/path/to/checkpoint.zip
@@ -275,12 +279,32 @@ tensorboard --logdir src/marble_balancer/rl_training/tensorboard_td3/
 cd src/marble_balancer/rl_training && python train_cmaes_gazebo.py
 ```
 
+**Observation space (36-D):**
+
+| Indices | Content |
+|---------|---------|
+| 0:8 | Normalised state `[x, vx, y, vy, α, ωα, β, ωβ]` |
+| 8:28 | Action history — last 10 actions × 2-D, oldest-first |
+| 28:32 | Twist cmd `[ωβ_cmd, ωα_cmd, tcp_vx, tcp_vy]` |
+| 32:36 | Lissajous phase `[sin(φ_x), cos(φ_x), sin(φ_y), cos(φ_y)]` — zeros when TCP inactive |
+
+**Domain randomisation:** Each episode with TCP active samples `amplitude ~ U(0.20, 0.40) m` and `period ~ U(10, 15) s`. Deployment (0.30 m / 12 s) stays within the training range.
+
+**Performance (TCP Lissajous, ~168 s runs):**
+
+| Metric | Without RL | v1 RL model | v2 target |
+|--------|-----------|-------------|-----------|
+| RMS error X | 1.8 cm | 1.8 cm | ~1.8 cm |
+| RMS error Y | 4.0 cm | 2.5 cm | **< 2.0 cm** |
+| Max \|y\| | 8.2 cm | 3.4 cm | < 3.0 cm |
+| β saturation | 23.5% | 3.9% | **< 3%** |
+
 **Curriculum stages (TD3, 3 stages):**
 
 | Stage | Residual clip (λ) | Advances when |
 |-------|-------------------|---------------|
-| 0 | ±5 °/s | survival fraction > 30% (last 20 eps) |
-| 1 | ±10 °/s | survival fraction > 55% |
+| 0 | ±5 °/s | survival fraction > 40% (last 20 eps) |
+| 1 | ±10 °/s | survival fraction > 65% |
 | 2 | ±15 °/s | — (final stage) |
 
 ---
