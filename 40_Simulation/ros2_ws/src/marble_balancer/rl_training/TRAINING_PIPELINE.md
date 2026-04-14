@@ -34,6 +34,9 @@ Marble on plate
 ### 1. Launch
 ```bash
 ros2 launch marble_balancer rl_training.launch.py
+
+# For unattended training runs, suppress the Gazebo GUI:
+ros2 launch marble_balancer rl_training.launch.py headless:=true
 ```
 This starts: Gazebo + UR5e + MoveIt Servo + `go_to_pose` (initial arm home).
 It does **NOT** start `marble_servo_controller` — `GazeboRLEnv` is the controller during training.
@@ -41,16 +44,16 @@ After `go_to_pose` exits, `train_td3_gazebo.py` starts automatically (1 s delay)
 
 ---
 
-### 2. Phase 1 — RLPD Buffer Seeding (20,000 steps, pure LQR)
+### 2. Phase 1 — RLPD Buffer Seeding (40,000 steps, pure LQR)
 
 Before TD3 trains, the replay buffer is pre-filled with **pure LQR transitions** (zero RL residual). This is called **RLPD (Replay-weighted Policy Distillation)** seeding.
 
 - Action sent every step: `[0, 0]` (no residual)
 - The LQR controller alone balances the marble
 - All transitions `(obs, action, reward, next_obs)` are stored in the replay buffer
-- `RunningMeanStd` normalisation is **NOT** updated during seeding (avoids biasing stats toward the pure-LQR regime)
+- `RunningMeanStd` normalisation **IS** updated during seeding (TCP velocities are now in range after normalization fix)
 
-**Why:** TD3 needs many samples before it can learn anything useful. Starting with stable LQR transitions gives it a warm start — it knows what "good behaviour" looks like from day one.
+**Why:** TD3 needs many samples before it can learn anything useful. Starting with stable LQR transitions gives it a warm start — it knows what "good behaviour" looks like from day one. 40K steps covers ~66+ full Lissajous cycles for a thorough warm-start.
 
 ---
 
@@ -95,13 +98,15 @@ The **sign negation** on both axes is essential — without it the arm moves opp
 
 ---
 
-## Observation Space (28-D)
+## Observation Space (36-D)
 
-Every observation vector fed to TD3 has 28 dimensions:
+Every observation vector fed to TD3 has 36 dimensions:
 
 ```
 obs[0:8]   = state / _NORM              # normalised plant state
 obs[8:28]  = action_history.flatten()   # last 10 actions, oldest-first
+obs[28:32] = twist_cmd / _TWIST_NORM    # LQR angular cmds + TCP velocity
+obs[32:36] = [sin(φ_x), cos(φ_x), sin(φ_y), cos(φ_y)]  # Lissajous phase
 ```
 
 ### State (8-D): `[x, vx, y, vy, α, ω_α, β, ω_β]`
@@ -113,18 +118,35 @@ obs[8:28]  = action_history.flatten()   # last 10 actions, oldest-first
 | 2 | y | marble Y position on plate (m) | 0.20 |
 | 3 | vy | marble Y velocity (m/s) | 0.50 |
 | 4 | α | plate pitch angle (rad) | 0.30 |
-| 5 | ω_α | plate pitch rate (rad/s) | MAX_RATE (≈1.05) |
+| 5 | ω_α | plate pitch rate (rad/s) | MAX_RATE (1.047 rad/s = 60°/s) |
 | 6 | β | plate roll angle (rad) | 0.30 |
-| 7 | ω_β | plate roll rate (rad/s) | MAX_RATE (≈1.05) |
+| 7 | ω_β | plate roll rate (rad/s) | MAX_RATE (1.047 rad/s = 60°/s) |
 
-Normalised values are clipped to `[-3, 3]`.
+### Twist Command (4-D)
+`[ω_β_cmd, ω_α_cmd, tcp_vx, tcp_vy]` — the full twist sent to MoveIt Servo this step.
+
+| Index | Content | Normaliser |
+|-------|---------|-----------|
+| 28 | ω_β_cmd | MAX_RATE |
+| 29 | ω_α_cmd | MAX_RATE |
+| 30 | tcp_vx | 0.20 m/s (sized for 0.30 m amplitude, 12 s period) |
+| 31 | tcp_vy | 0.35 m/s (sized for 0.30 m amplitude, 12 s period, fb=2) |
 
 ### Action History (20-D)
 Last 10 actions the agent took, each 2-D `[Δω_α, Δω_β]` in `[-1, 1]`.
 Oldest action is at index 0. This gives the agent **memory** — it can detect oscillation patterns and dampen them.
 
+### Lissajous Phase Encoding (4-D)
+`[sin(φ_x), cos(φ_x), sin(φ_y), cos(φ_y)]` — where in the Lissajous cycle the TCP currently is.
+- `φ_x = fa * ω₀ * t + δ`
+- `φ_y = fb * ω₀ * t`
+
+sin/cos encoding avoids discontinuity at 0/2π. All four values are **0.0** when TCP Lissajous is not active in this episode. This lets the agent distinguish "TCP is stationary" from any particular phase.
+
+Already in `[-1, 1]`, so no additional normalisation needed.
+
 ### Observation Normalisation
-A manual `RunningMeanStd` (Welford online algorithm) tracks the mean and variance of all 28 dimensions in real-time. Observations are normalised before storing in the buffer and before policy queries:
+A manual `RunningMeanStd` (Welford online algorithm) tracks the mean and variance of all 36 dimensions in real-time. Observations are normalised before storing in the buffer and before policy queries:
 ```python
 obs_norm = clip((obs - mean) / sqrt(var + 1e-8), -3, 3)
 ```
@@ -152,8 +174,9 @@ action ∈ [-1, 1]²     →     residual = action * λ  (rad/s)
 Each step returns a scalar reward composed of 5 terms:
 
 ```python
-pos    =  exp(-50 * (x² + y²))           # +1 at centre, → 0 at edges
-vel    = -0.1 * (vx² + vy²)              # penalise fast marble
+# Y weighted 2.5× — TCP Lissajous drives Y at 2× frequency (fb=2) → ~4× pseudo-force vs X
+pos    =  exp(-50 * (x² + 2.5*y²))       # +1 at centre, → 0 at edges; Y penalised more
+vel    = -0.1 * vx² - 0.25 * vy²         # Y velocity penalised 2.5× vs X
 smooth = -0.02 * ||action - prev_action||² # penalise jerky residual
 surv   =  0.05                            # +0.05 every step survived
 shape  =  0.99 * Φ(s') - Φ(s)            # potential shaping
@@ -194,10 +217,10 @@ An episode ends when any of the following occur:
 
 | Trigger | Action |
 |---------|--------|
-| Survival fraction > 30% | Advance to stage 1 (λ = 10°/s) |
-| Survival fraction > 55% | Advance to stage 2 (λ = 15°/s) |
+| Survival fraction > 40% | Advance to stage 1 (λ = 10°/s) |
+| Survival fraction > 65% | Advance to stage 2 (λ = 15°/s) |
 
-Survival fraction is more stable than raw reward across stages because λ changes the reward scale.
+Thresholds are higher than the original [30%, 55%] because the harder task (TCP Lissajous + asymmetric reward + domain randomization) needs a more stable policy before widening the residual budget. Survival fraction is more stable than raw reward across stages because λ changes the reward scale.
 
 ---
 
@@ -262,7 +285,7 @@ The TCP phase is also randomised at each episode reset (not always starting at z
 vx = A_x * ω_fa * cos(ω_fa * t + δ)
 vy = A_y * ω_fb * cos(ω_fb * t)
 ```
-where `A_x = A_y = 0.04 m`, `ω₀ = 2π/20 rad/s`, `fa=1`, `fb=2`, `δ = π/2`.
+where amplitude and period are **domain-randomised per episode**: `A_x = A_y ~ U(0.20, 0.40) m`, `period ~ U(10, 15) s`, `fa=1`, `fb=2`, `δ = π/2`. Deployment uses 0.30 m / 12 s (within the training range). The starting phase `t₀` is also randomised so the agent sees all cycle positions.
 
 ### Random Marble Spawn (`--spawn-radius R`)
 
@@ -281,10 +304,13 @@ The plate-frame offset is converted to world coordinates using the plate TCP rot
 ### Combined command
 
 ```bash
-ros2 launch marble_balancer rl_training.launch.py tcp_lissajous:=true spawn_radius:=0.12
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12 seed_steps:=40000
+
+# For unattended / overnight training — suppress Gazebo GUI:
+ros2 launch marble_balancer rl_training.launch.py timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12 seed_steps:=40000 headless:=true
 ```
 
-This produces one model that handles: stationary TCP, moving TCP, centred spawn, and off-centre spawn — all in one 500K-step training run.
+This produces one model that handles: stationary TCP, moving TCP (any amplitude 20–40 cm / period 10–15 s), centred spawn, and off-centre spawn — 1M steps recommended for the harder task.
 
 ---
 
@@ -297,7 +323,7 @@ cd src/marble_balancer/rl_training
 python train_cmaes_gazebo.py --td3-model models_td3/best_model_td3.zip
 ```
 
-Optimises a **linear policy** (28×2 weights + 2 bias = 58 params) using evolutionary search. If CMA-ES finds a reward >10% better than TD3, TD3 may be in a local optimum and needs retraining. Defaults to `--offline` mode using `ball_plate_env.py` (~minutes). Use `--no-offline` for live Gazebo (~100 hours).
+Optimises a **linear policy** against `ball_plate_env.py` (28-D offline obs, 56 params). Note: the offline env does not include TCP velocity or phase encoding (it's a simplified physics model), so CMA-ES validates the LQR+residual structure but does not fully replicate the 36-D training obs. If CMA-ES finds a reward >10% better than TD3, TD3 may be in a local optimum and needs retraining. Defaults to `--offline` mode (~minutes). Use `--no-offline` for live Gazebo (~100 hours).
 
 ---
 

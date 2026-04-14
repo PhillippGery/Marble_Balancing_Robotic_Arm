@@ -57,7 +57,7 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(TB_DIR,     exist_ok=True)
 
 # ── Curriculum advancement thresholds (survival fraction over last 20 eps) ────
-STAGE_THRESHOLDS = [0.30, 0.55]   # advance 0→1 at 30 %, 1→2 at 55 % survival
+STAGE_THRESHOLDS = [0.40, 0.65]   # advance 0→1 at 40 %, 1→2 at 65 % survival
 
 
 # ── Running mean/std for manual observation normalisation ─────────────────────
@@ -196,6 +196,9 @@ def train(args):
             next_obs, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
 
+            # Update normaliser stats during seeding — TCP velocities are now in range
+            rms.update(obs)
+
             # Store in replay buffer WITHOUT normalisation (buffer stores raw obs)
             model.replay_buffer.add(
                 obs        = obs[np.newaxis],
@@ -280,12 +283,16 @@ def train(args):
         # ── Train TD3 ─────────────────────────────────────────────────────────
         if total_env_steps > 1000 and model.replay_buffer.size() > model.batch_size:
             model.train(gradient_steps=1, batch_size=model.batch_size)
+            if total_env_steps % 1000 == 0:
+                model.logger.dump(step=total_env_steps)
 
         # ── Periodic evaluation ────────────────────────────────────────────────
         if steps_since_eval >= eval_interval:
             steps_since_eval = 0
             mean_r = _evaluate(env, model, rms, n_episodes=5)
             print(f'[step {total_env_steps:,}] eval mean reward: {mean_r:.2f}')
+            model.logger.record('eval/mean_reward', mean_r)
+            model.logger.dump(step=total_env_steps)
 
             if mean_r > best_reward:
                 best_reward = mean_r
@@ -340,8 +347,8 @@ if __name__ == '__main__':
                         help='Total online TD3 training steps (default 500 000)')
     parser.add_argument('--stage',      type=int,   default=0,
                         help='Starting curriculum stage 0-2 (default 0)')
-    parser.add_argument('--seed-steps', type=int,   default=20_000,
-                        help='RLPD pre-seeding steps of pure LQR (default 20 000)')
+    parser.add_argument('--seed-steps', type=int,   default=40_000,
+                        help='RLPD pre-seeding steps of pure LQR (default 40 000)')
     parser.add_argument('--load',       type=str,   default='',
                         help='Path to existing TD3 model .zip to continue training')
     parser.add_argument('--use-ekf',      action='store_true',

@@ -18,8 +18,15 @@ Does NOT start:
 After go_to_pose exits the training script is started via ExecuteProcess.
 Run from the ros2_ws root, with the workspace sourced:
 
+<<<<<<< HEAD
   ros2 launch marble_balancer rl_training.launch.py gui:=false
   ros2 launch marble_balancer rl_training.launch.py gui:=false timesteps:=1000000 tcp_lissajous:=true spawn_radius:=0.12
+=======
+  ros2 launch marble_balancer rl_training.launch.py
+  ros2 launch marble_balancer rl_training.launch.py timesteps:=500000 stage:=0
+  ros2 launch marble_balancer rl_training.launch.py load:=/abs/path/to/model.zip
+  ros2 launch marble_balancer rl_training.launch.py headless:=true  # no Gazebo GUI
+>>>>>>> origin/td3_learning
 """
 
 import os
@@ -69,9 +76,15 @@ def generate_launch_description():
     spawn_radius_arg = DeclareLaunchArgument(
         'spawn_radius', default_value='0.0',
         description='Random marble spawn radius from plate centre (m, 0=centre always)')
+<<<<<<< HEAD
     gui_arg = DeclareLaunchArgument(
         'gui', default_value='true',
         description='Launch Gazebo GUI (true/false for headless)')
+=======
+    headless_arg = DeclareLaunchArgument(
+        'headless', default_value='false',
+        description='Run Gazebo without GUI (headless) for unattended training')
+>>>>>>> origin/td3_learning
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -105,7 +118,13 @@ def generate_launch_description():
         launch_arguments={
             'ur_type':                  'ur5e',
             'launch_rviz':              'false',
+<<<<<<< HEAD
             'gazebo_gui':               LaunchConfiguration('gui'),
+=======
+            'gazebo_gui':               PythonExpression(
+                ["'false' if '", LaunchConfiguration('headless'), "' == 'true' else 'true'"]
+            ),
+>>>>>>> origin/td3_learning
             'description_package':      'marble_balancer',
             'description_file':         'ur5e_marble_balancer.urdf.xacro',
             'runtime_config_package':   'marble_balancer',
@@ -225,7 +244,11 @@ def generate_launch_description():
         use_ekf_arg,
         tcp_lissajous_arg,
         spawn_radius_arg,
+<<<<<<< HEAD
         gui_arg,
+=======
+        headless_arg,
+>>>>>>> origin/td3_learning
         ur_sim,
         move_group_node,
         servo_node,

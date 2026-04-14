@@ -42,10 +42,17 @@ _LATCHED = QoSProfile(
     history=HistoryPolicy.KEEP_LAST,
 )
 
-# Observation normalisation constants — must match gazebo_rl_env.py / ball_plate_env.py
-MAX_RATE    = math.radians(45.0)
+# Observation normalisation constants — must match gazebo_rl_env.py
+MAX_RATE    = math.radians(60.0)   # was 45° — fixed to match training env
 _NORM       = np.array([0.20, 0.50, 0.20, 0.50, 0.30, MAX_RATE, 0.30, MAX_RATE])
-_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.05, 0.05])
+_TWIST_NORM = np.array([MAX_RATE, MAX_RATE, 0.20, 0.35])   # sized for 0.30m/12s TCP
+
+# TCP Lissajous phase-encoding constants — must match launch file + gazebo_rl_env.py
+_TCP_OMEGA0   = 2.0 * math.pi / 12.0   # 12 s period (matches servo_balancer.launch.py)
+_TCP_FA       = 1
+_TCP_FB       = 2
+_TCP_DELTA    = math.pi / 2.0
+_CONTROL_HZ   = 30.0
 
 # Curriculum residual clip budgets for TD3 (3 training stages + 1 alias for compat)
 _CLIP_BUDGETS = [
@@ -108,6 +115,9 @@ class RLResidualNode(Node):
         # Last full twist sent: [omega_beta_cmd, omega_alpha_cmd, tcp_vx, tcp_vy]
         self._last_twist_cmd = np.zeros(4)
 
+        # TCP Lissajous phase counter (for phase encoding in obs[32:36])
+        self._tcp_t = 0.0
+
         # ── Subscriptions ─────────────────────────────────────────────────────
         self.create_subscription(
             Float64MultiArray, '/marble/lqr_state', self._state_cb, 10)
@@ -167,9 +177,11 @@ class RLResidualNode(Node):
 
     def _landed_cb(self, _):
         self._landed = True
+        self._tcp_t  = 0.0   # reset phase counter at each marble landing
 
     def _fell_cb(self, _):
         self._landed = False
+        self._tcp_t  = 0.0
         self._action_hist = collections.deque([np.zeros(2)] * 10, maxlen=10)
         self._last_twist_cmd = np.zeros(4)
 
@@ -177,6 +189,8 @@ class RLResidualNode(Node):
 
     def _compute_and_publish(self, state: np.ndarray, lqr_u: np.ndarray):
         obs    = self._build_obs(state)
+        # Advance phase counter AFTER building obs (matches gazebo_rl_env.py step() ordering)
+        self._tcp_t += 1.0 / _CONTROL_HZ
         action, _ = self._model.predict(obs, deterministic=True)
         action = np.clip(action, -1.0, 1.0)
 
@@ -202,12 +216,19 @@ class RLResidualNode(Node):
         self._action_hist.append(action.copy())
 
     def _build_obs(self, state: np.ndarray) -> np.ndarray:
-        """Build 32-D observation: [state_norm(8), action_history_flat(20), twist_norm(4)]."""
+        """Build 36-D observation: [state_norm(8), action_history_flat(20), twist_norm(4), phase(4)]."""
         state_norm = np.clip(state / _NORM, -3.0, 3.0)
         # Action history oldest-first (index 0 = oldest) — matches gazebo_rl_env.py
         hist_flat  = np.array(list(self._action_hist), dtype=np.float32).flatten()
         twist_norm = np.clip(self._last_twist_cmd / _TWIST_NORM, -3.0, 3.0).astype(np.float32)
-        obs        = np.concatenate([state_norm, hist_flat, twist_norm]).astype(np.float32)
+        # Lissajous phase encoding — always computed when landed (TCP Lissajous is active at deployment)
+        ox    = _TCP_FA * _TCP_OMEGA0
+        oy    = _TCP_FB * _TCP_OMEGA0
+        phi_x = ox * self._tcp_t + _TCP_DELTA
+        phi_y = oy * self._tcp_t
+        phase = np.array([math.sin(phi_x), math.cos(phi_x),
+                           math.sin(phi_y), math.cos(phi_y)], dtype=np.float32)
+        obs = np.concatenate([state_norm, hist_flat, twist_norm, phase]).astype(np.float32)
 
         if self._running_stats is not None:
             mean = self._running_stats['mean'].astype(np.float32)
