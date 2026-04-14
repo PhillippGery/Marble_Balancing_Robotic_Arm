@@ -57,25 +57,25 @@ This project implements a complete real-time marble balancing control stack for 
 ┌─────────────────────────────────────────────────────────────────────┐
 │                  Marble Balancing Control Stack                     │
 │                                                                     │
-│  Gazebo (UR5e + marble + plate)                                    │
+│  Gazebo (UR5e + marble + plate)                                     │
 │         |                                                           │
-│    /marble/odom (50 Hz)          /joint_states (100 Hz)            │
+│    /marble/odom (50 Hz)          /joint_states (100 Hz)             │
 │         |                               |                           │
 │         +──────────────┬────────────────┤                           │
 │                        │                │                           │
-│  ┌─────────────────────┴────────────────┴──────────────────┐       │
-│  │                                                          │       │
-│  │   marble_servo_controller (30 Hz)                       │       │
-│  │   ├─ Input: [x, vx, y, vy, α, ωα, β, ωβ]             │       │
-│  │   ├─ LQR: u_lqr = -K @ (x - x_desired)                │       │
-│  │   ├─ RL (optional): Δu = policy(x_21d)                │       │
-│  │   └─ Output: u = u_lqr + λ·Δu  (residual)            │       │
-│  │                        |                               │       │
-│  └────────────────────────┬───────────────────────────────┘       │
-│                           |                                       │
-│  MoveIt2 Servo + UR5e JointTrajectoryController                 │
-│         |                                                       │
-│      UR5e Joints (100 Hz control)                             │
+│  ┌─────────────────────┴────────────────┴──────────────────┐        │
+│  │                                                         │        │
+│  │   marble_servo_controller (30 Hz)                       │        │
+│  │   ├─ Input: [x, vx, y, vy, α, ωα, β, ωβ]                │        │
+│  │   ├─ LQR: u_lqr = -K @ (x - x_desired)                  │        │
+│  │   ├─ RL (optional): Δu = policy(x_21d)                  │        │
+│  │   └─ Output: u = u_lqr + λ·Δu  (residual)               │        │
+│  │                        |                                │        │
+│  └────────────────────────┬────────────────────────────────┘        │
+│                           |                                         │
+│  MoveIt2 Servo + UR5e JointTrajectoryController                     │
+│         |                                                           │
+│      UR5e Joints (100 Hz control)                                   │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
