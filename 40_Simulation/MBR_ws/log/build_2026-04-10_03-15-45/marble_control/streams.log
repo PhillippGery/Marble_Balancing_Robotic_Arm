@@ -1,0 +1,17 @@
+[0.468s] Invoking command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data
+[0.600s] running develop
+[0.702s] running egg_info
+[0.702s] writing marble_control.egg-info/PKG-INFO
+[0.702s] writing dependency_links to marble_control.egg-info/dependency_links.txt
+[0.702s] writing entry points to marble_control.egg-info/entry_points.txt
+[0.702s] writing requirements to marble_control.egg-info/requires.txt
+[0.702s] writing top-level names to marble_control.egg-info/top_level.txt
+[0.703s] reading manifest file 'marble_control.egg-info/SOURCES.txt'
+[0.703s] writing manifest file 'marble_control.egg-info/SOURCES.txt'
+[0.704s] running build_ext
+[0.704s] Creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages/marble-control.egg-link (link to .)
+[0.704s] Installing joint_publisher script to /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/marble_control
+[0.704s] 
+[0.704s] Installed /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control
+[0.704s] running symlink_data
+[0.719s] Invoked command in '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control' returned '0': PYTHONPATH=/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/marble_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/marble_control/build --no-deps symlink_data

@@ -1,0 +1,43 @@
+running develop
+running egg_info
+creating OldOne_description.egg-info
+writing OldOne_description.egg-info/PKG-INFO
+writing dependency_links to OldOne_description.egg-info/dependency_links.txt
+writing entry points to OldOne_description.egg-info/entry_points.txt
+writing requirements to OldOne_description.egg-info/requires.txt
+writing top-level names to OldOne_description.egg-info/top_level.txt
+writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+reading manifest file 'OldOne_description.egg-info/SOURCES.txt'
+writing manifest file 'OldOne_description.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/lib/python3.10/site-packages/OldOne-description.egg-link (link to .)
+
+Installed /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description
+running symlink_data
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/resource/OldOne_description -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/ament_index/resource_index/packages
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/package.xml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/gazebo.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/launch/display.launch.py -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/launch
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/zeball.urdf -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.trans -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/materials.xacro -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/urdf/OldOne.gazebo -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/urdf
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link1_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/base_link.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link5_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link6_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link2_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link4_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/link3_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/meshes/zEBALL_1.stl -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/meshes
+creating /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/gazebo.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/display.rviz -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
+symbolically linking /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/build/OldOne_description/config/ros_gz_bridge_gazebo.yaml -> /home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/MBR_ws/install/OldOne_description/share/OldOne_description/config
