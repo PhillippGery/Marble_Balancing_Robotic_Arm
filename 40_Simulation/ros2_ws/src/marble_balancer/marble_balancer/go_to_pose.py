@@ -30,7 +30,7 @@ TARGET_QY  = 0.0
 TARGET_QZ  = 0.0
 TARGET_QW  = 1.0
 
-MOVE_TIME_SEC = 3   # seconds to reach the pose
+MOVE_TIME_SEC = 1   # seconds to reach the pose (1s sufficient for RL training resets; use 3 for smooth demos)
 # ──────────────────────────────────────────────────────────────────────────────
 
 JOINTS = [

@@ -258,5 +258,15 @@ Measured on ~168 s runs with `tcp_lissajous:=true`:
 
 RL primarily improves Y axis (hard axis due to TCP Lissajous 2× frequency). X axis is unchanged. v2 model incorporates phase encoding, asymmetric Y reward, and domain randomization.
 
+## Demo vs Training Settings
+
+| Setting | RL Training | Demo / servo_balancer |
+|---------|-------------|----------------------|
+| `MOVE_TIME_SEC` in `go_to_pose.py:33` | `1` — fast reset, arm jerks to home | `3` — smooth homing motion |
+| `headless:=true` | yes | no |
+
+**Before running a demo:** set `MOVE_TIME_SEC = 3` in `marble_balancer/go_to_pose.py:33`.
+**Before starting RL training:** set `MOVE_TIME_SEC = 1` for faster episode resets (~2.5x more steps/hour).
+
 ## Additional Documentation
 - `.claude/docs/architectural_patterns.md` — PT1 model, Jacobian velocity, event-driven launch, LQR design, QoS patterns

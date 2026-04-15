@@ -63,6 +63,7 @@ def launch_setup(context, *args, **kwargs):
     launch_rviz = LaunchConfiguration("launch_rviz")
     gazebo_gui = LaunchConfiguration("gazebo_gui")
     plate_diameter = LaunchConfiguration("plate_diameter")
+    world = LaunchConfiguration("world")
 
     initial_joint_controllers = PathJoinSubstitution(
         [FindPackageShare(runtime_config_package), "config", controllers_file]
@@ -167,7 +168,8 @@ def launch_setup(context, *args, **kwargs):
             [FindPackageShare("gazebo_ros"), "/launch", "/gazebo.launch.py"]
         ),
         launch_arguments={
-            "gui": gazebo_gui,
+            "gui":   gazebo_gui,
+            "world": world,
         }.items(),
     )
 
@@ -317,6 +319,13 @@ def generate_launch_description():
             "plate_diameter",
             default_value="0.26",
             description="Diameter of the marble balancing plate in metres (circumscribed circle)",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "world",
+            default_value="",
+            description="Path to Gazebo world file. Empty = Gazebo default empty world.",
         )
     )
 

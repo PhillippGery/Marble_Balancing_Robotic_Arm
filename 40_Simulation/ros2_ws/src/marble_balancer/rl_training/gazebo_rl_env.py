@@ -52,7 +52,7 @@ OMEGA_LPF_TC    = 0.01                # joint velocity EMA time constant (s)
 MARBLE_RADIUS   = 0.015               # m
 PLATE_THICKNESS = 0.005               # m
 PLATE_HALF      = 0.20                # half-side of plate for termination check (m)
-DROP_HEIGHT     = 0.10                # m above plate surface for spawn
+DROP_HEIGHT     = 0.03                # m above plate surface for spawn (low = faster landing)
 DELETE_SETTLE_S = 0.6                 # seconds to wait after delete (physics flush)
 
 MAX_STEPS       = 600                 # 20 s at 30 Hz
@@ -156,7 +156,7 @@ class GazeboRLEnv(gym.Env, Node):
         self._tcp_episode_active = False   # set each episode in reset()
         self._tcp_amp_x  = 0.30                          # m  (matches tcp_lissajous_node defaults)
         self._tcp_amp_y  = 0.30                          # m
-        self._tcp_omega0 = 2.0 * math.pi / 20.0         # rad/s  (period = 20 s)
+        self._tcp_omega0 = 2.0 * math.pi / 15.0         # rad/s  (period = 15 s)
         self._tcp_fa     = 1
         self._tcp_fb     = 2
         self._tcp_delta  = math.pi / 2.0
@@ -410,11 +410,11 @@ class GazeboRLEnv(gym.Env, Node):
             np.random.random() < self._tcp_lissajous_prob)
         if self._tcp_episode_active:
             # Domain randomise amplitude + period each episode for generalisation
-            # Deployment uses 0.30 m / 20 s — keep that within the training range
+            # Deployment uses 0.30 m / 15 s — keep that within the training range
             amp = float(np.random.uniform(0.20, 0.40))     # 20–40 cm
             self._tcp_amp_x  = amp
             self._tcp_amp_y  = amp
-            period = float(np.random.uniform(12.0, 22.0))  # 12–22 s  (deployment = 20 s)
+            period = float(np.random.uniform(10.0, 20.0))  # 10–20 s  (deployment = 15 s)
             self._tcp_omega0 = 2.0 * math.pi / period
             # Randomise starting phase so agent sees all cycle positions
             self._tcp_t = float(np.random.uniform(0.0, 2.0 * math.pi / self._tcp_omega0))
@@ -511,18 +511,25 @@ class GazeboRLEnv(gym.Env, Node):
     def _compute_reward(self, action: np.ndarray) -> float:
         x, vx, y, vy = (self._state[0], self._state[1],
                          self._state[2], self._state[3])
-        # Y weighted 2.5× — TCP Lissajous drives Y at 2× freq (fb=2) → ~4× pseudo-force
-        pos    = math.exp(-50.0 * (x ** 2 + 2.5 * y ** 2))
-        vel    = -0.1 * vx ** 2 - 0.25 * vy ** 2
+        # Dual-scale position reward:
+        #   broad term  (exp-30)  — gradient signal when ball is far from centre
+        #   fine term   (exp-300) — strong gradient for precision near origin
+        # Y weighted 3.0× — TCP Lissajous drives Y at 2× freq (fb=2) → ~4× pseudo-force
+        pos  = (0.7 * math.exp(-30.0  * (x ** 2 + 3.0 * y ** 2))
+              + 0.3 * math.exp(-300.0 * (x ** 2 + 3.0 * y ** 2)))
+        # Extra Y centering bonus during TCP Lissajous episodes — agent learns to
+        # anticipate reversals via phase encoding and pre-correct on Y axis
+        if self._tcp_episode_active:
+            pos += 0.4 * math.exp(-300.0 * y ** 2)
+        # Stronger Y velocity damping (TCP Lissajous drives Y at 2× freq)
+        vel    = -0.1 * vx ** 2 - 0.40 * vy ** 2
         smooth = -0.02 * float(np.dot(action - self._prev_action,
                                        action - self._prev_action))
         surv   = 0.05
-        # LQR potential shaping: Φ(s) = -s^T P s  (zero at origin, negative elsewhere)
-        # gamma * Φ(s') - Φ(s) rewards moving toward origin without changing optimal policy
-        phi_new       = -float(self._state @ self._P @ self._state)
-        shape         = 0.99 * phi_new - self._phi_old
-        self._phi_old = phi_new
-        return pos + vel + smooth + surv + shape
+        # Potential shaping removed — dual-scale position reward provides sufficient
+        # gradient signal and the P-matrix shaping was producing large terminal spikes
+        # that caused critic loss explosion (1000–4000) and prevented convergence.
+        return pos + vel + smooth + surv
 
     def _get_obs(self) -> np.ndarray:
         state_norm = np.clip(self._state / _NORM, -3.0, 3.0).astype(np.float32)

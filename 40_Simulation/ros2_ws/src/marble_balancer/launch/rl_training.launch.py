@@ -74,6 +74,11 @@ def generate_launch_description():
     headless_arg = DeclareLaunchArgument(
         'headless', default_value='false',
         description='Run Gazebo without GUI (headless) for unattended training')
+    world_arg = DeclareLaunchArgument(
+        'world',
+        default_value=os.path.join(
+            get_package_share_directory('marble_balancer'), 'worlds', 'rl_training.world'),
+        description='Gazebo world file — default uncaps physics rate for faster RL training')
 
     pkg_marble = get_package_share_directory('marble_balancer')
     pkg_moveit = get_package_share_directory('ur_moveit_config')
@@ -116,6 +121,7 @@ def generate_launch_description():
             'controllers_file':         'ur_controllers.yaml',
             'initial_joint_controller': 'ur7e_arm_controller',
             'plate_diameter':           str(PLATE_DIAMETER),
+            'world':                    LaunchConfiguration('world'),
         }.items(),
     )
 
@@ -240,6 +246,7 @@ def generate_launch_description():
         tcp_lissajous_arg,
         spawn_radius_arg,
         headless_arg,
+        world_arg,
         ur_sim,
         move_group_node,
         servo_node,
