@@ -23,3 +23,5 @@ __pycache__/
 *.pyo
 
 40_Simulation/ros2_ws.zip
+
+40_Simulation/ros2_ws/src/marble_balancer/marble_balancer/__pycache__
