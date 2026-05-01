@@ -11,8 +11,8 @@ This launch file:
 
 Usage:
   ros2 launch marble_balancer compare_rl_vs_lqr.launch.py \
-    model:=models_td3_v2/best_model_td3_v2.zip \
-    episodes:=5 \
+    model:=models_td3_v2/TD3_gazebo_v2_15.zip \
+    episodes:=10 \
     tcp_lissajous:=false
 
 Parameters:
