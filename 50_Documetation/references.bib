@@ -1,0 +1,197 @@
+% References for "Hybrid Optimal and Residual Reinforcement Learning Controller
+% for 6-DOF Ball-and-Plate Stabilization"
+
+% --- Classical control / textbook ---
+@book{Spong2020,
+  author    = {Spong, Mark W. and Hutchinson, Seth and Vidyasagar, M.},
+  title     = {Robot Modeling and Control},
+  edition   = {2nd},
+  publisher = {John Wiley \& Sons},
+  year      = {2020}
+}
+
+@article{vanLoan1978,
+  author  = {Van Loan, Charles},
+  title   = {Computing integrals involving the matrix exponential},
+  journal = {IEEE Transactions on Automatic Control},
+  volume  = {23},
+  number  = {3},
+  pages   = {395--404},
+  year    = {1978}
+}
+
+@book{Anderson1990,
+  author    = {Anderson, Brian D. O. and Moore, John B.},
+  title     = {Optimal Control: Linear Quadratic Methods},
+  publisher = {Prentice Hall},
+  year      = {1990}
+}
+
+% --- Ball-and-plate prior art ---
+@article{Awtar2002,
+  author  = {Awtar, S. and Bernard, C. and Boklund, N. and Master, A. and Ueda, D. and Craig, K.},
+  title   = {Mechatronic design of a ball-on-plate balancing system},
+  journal = {Mechatronics},
+  volume  = {12},
+  number  = {2},
+  pages   = {217--228},
+  year    = {2002}
+}
+
+@article{Sotnikov2017,
+  author  = {Sotnikova, M. V. and Veremey, E. I.},
+  title   = {Modelling of ball-and-plate system based on first principle model and optimal control},
+  journal = {IFAC PapersOnLine},
+  volume  = {50},
+  number  = {1},
+  pages   = {6042--6047},
+  year    = {2017}
+}
+
+% --- Deep RL methods ---
+@inproceedings{Lillicrap2016,
+  author    = {Lillicrap, Timothy P. and Hunt, Jonathan J. and Pritzel, Alexander and Heess, Nicolas and Erez, Tom and Tassa, Yuval and Silver, David and Wierstra, Daan},
+  title     = {Continuous Control with Deep Reinforcement Learning},
+  booktitle = {Proc.\ Int.\ Conf.\ on Learning Representations (ICLR)},
+  year      = {2016}
+}
+
+@inproceedings{Fujimoto2018,
+  author    = {Fujimoto, Scott and van Hoof, Herke and Meger, David},
+  title     = {Addressing Function Approximation Error in Actor-Critic Methods},
+  booktitle = {Proc.\ Int.\ Conf.\ on Machine Learning (ICML)},
+  pages     = {1587--1596},
+  year      = {2018}
+}
+
+@inproceedings{Haarnoja2018,
+  author    = {Haarnoja, Tuomas and Zhou, Aurick and Abbeel, Pieter and Levine, Sergey},
+  title     = {Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor},
+  booktitle = {Proc.\ Int.\ Conf.\ on Machine Learning (ICML)},
+  pages     = {1861--1870},
+  year      = {2018}
+}
+
+@inproceedings{Hausknecht2015,
+  author    = {Hausknecht, Matthew and Stone, Peter},
+  title     = {Deep Recurrent Q-Learning for Partially Observable {MDP}s},
+  booktitle = {AAAI Fall Symposium on Sequential Decision Making for Intelligent Agents},
+  year      = {2015}
+}
+
+@article{Raffin2021,
+  author  = {Raffin, Antonin and Hill, Ashley and Gleave, Adam and Kanervisto, Anssi and Ernestus, Maximilian and Dormann, Noah},
+  title   = {Stable-Baselines3: Reliable Reinforcement Learning Implementations},
+  journal = {Journal of Machine Learning Research},
+  volume  = {22},
+  number  = {268},
+  pages   = {1--8},
+  year    = {2021}
+}
+
+% --- Residual / hybrid policies ---
+@inproceedings{Silver2018,
+  author    = {Silver, Tom and Allen, Kelsey R. and Tenenbaum, Joshua B. and Kaelbling, Leslie Pack},
+  title     = {Residual Policy Learning},
+  booktitle = {arXiv preprint arXiv:1812.06298},
+  year      = {2018}
+}
+
+@inproceedings{Johannink2019,
+  author    = {Johannink, Tobias and Bahl, Shikhar and Nair, Ashvin and Luo, Jianlan and Kumar, Avinash and Loskyll, Matthias and Ojea, Juan Aparicio and Solowjow, Eugen and Levine, Sergey},
+  title     = {Residual Reinforcement Learning for Robot Control},
+  booktitle = {Proc.\ IEEE Int.\ Conf.\ on Robotics and Automation (ICRA)},
+  pages     = {6023--6029},
+  year      = {2019}
+}
+
+@inproceedings{Iwata2021,
+  author    = {Iwata, Tomoharu and Kanezaki, Asako},
+  title     = {Residual Model Predictive Control with Reinforcement Learning},
+  booktitle = {Proc.\ IEEE Int.\ Conf.\ on Robotics and Automation (ICRA)},
+  year      = {2021}
+}
+
+@inproceedings{Westenbroek2022,
+  author    = {Westenbroek, Tyler and Castaneda, Fernando and Agrawal, Ayush and Sastry, Shankar and Sreenath, Koushil},
+  title     = {Lyapunov design for robust and efficient robotic reinforcement learning},
+  booktitle = {Conference on Robot Learning (CoRL)},
+  year      = {2022}
+}
+
+% --- Curriculum / failure modes ---
+@inproceedings{Bengio2009,
+  author    = {Bengio, Yoshua and Louradour, J\'er\^ome and Collobert, Ronan and Weston, Jason},
+  title     = {Curriculum Learning},
+  booktitle = {Proc.\ Int.\ Conf.\ on Machine Learning (ICML)},
+  pages     = {41--48},
+  year      = {2009}
+}
+
+@article{Akkaya2019,
+  author    = {Akkaya, Ilge and Andrychowicz, Marcin and Chociej, Maciek and others},
+  title     = {Solving Rubik's Cube with a Robot Hand},
+  journal   = {arXiv preprint arXiv:1910.07113},
+  year      = {2019}
+}
+
+@inproceedings{Florensa2017,
+  author    = {Florensa, Carlos and Held, David and Geng, Xinyang and Abbeel, Pieter},
+  title     = {Reverse Curriculum Generation for Reinforcement Learning},
+  booktitle = {Conference on Robot Learning (CoRL)},
+  year      = {2017}
+}
+
+@inproceedings{Kumar2020,
+  author    = {Kumar, Aviral and Zhou, Aurick and Tucker, George and Levine, Sergey},
+  title     = {Conservative {Q}-Learning for Offline Reinforcement Learning},
+  booktitle = {Proc.\ Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2020}
+}
+
+% --- Robotic / drone successes ---
+@article{Kaufmann2023,
+  author  = {Kaufmann, Elia and Bauersfeld, Leonard and Loquercio, Antonio and M\"{u}ller, Matthias and Koltun, Vladlen and Scaramuzza, Davide},
+  title   = {Champion-level drone racing using deep reinforcement learning},
+  journal = {Nature},
+  volume  = {620},
+  pages   = {982--987},
+  year    = {2023}
+}
+
+@article{Hwangbo2019,
+  author  = {Hwangbo, Jemin and Lee, Joonho and Dosovitskiy, Alexey and Bellicoso, Dario and Tsounis, Vassilios and Koltun, Vladlen and Hutter, Marco},
+  title   = {Learning agile and dynamic motor skills for legged robots},
+  journal = {Science Robotics},
+  volume  = {4},
+  number  = {26},
+  year    = {2019}
+}
+
+% --- Middleware ---
+@article{Macenski2022,
+  author  = {Macenski, Steven and Foote, Tully and Gerkey, Brian and Lalancette, Chris and Woodall, William},
+  title   = {Robot Operating System 2: Design, architecture, and uses in the wild},
+  journal = {Science Robotics},
+  volume  = {7},
+  number  = {66},
+  year    = {2022}
+}
+
+@inproceedings{Koenig2004,
+  author    = {Koenig, Nathan and Howard, Andrew},
+  title     = {Design and use paradigms for {Gazebo}, an open-source multi-robot simulator},
+  booktitle = {Proc.\ IEEE/RSJ Int.\ Conf.\ on Intelligent Robots and Systems (IROS)},
+  pages     = {2149--2154},
+  year      = {2004}
+}
+
+@article{Coleman2014,
+  author  = {Coleman, David and \c{S}ucan, Ioan A. and Chitta, Sachin and Correll, Nikolaus},
+  title   = {Reducing the Barrier to Entry of Complex Robotic Software: a {MoveIt!} Case Study},
+  journal = {Journal of Software Engineering for Robotics},
+  volume  = {5},
+  number  = {1},
+  pages   = {3--16},
+  year    = {2014}
+}

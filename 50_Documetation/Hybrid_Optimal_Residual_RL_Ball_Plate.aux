@@ -1,0 +1,142 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{Spong2020,Awtar2002}
+\citation{Johannink2019,Silver2018,Iwata2021}
+\citation{Johannink2019}
+\citation{Kaufmann2023}
+\citation{Hwangbo2019}
+\citation{Macenski2022}
+\citation{Koenig2004}
+\citation{Anderson1990}
+\citation{Fujimoto2018}
+\citation{Coleman2014}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\citation{Awtar2002,Sotnikov2017}
+\citation{Sotnikov2017}
+\citation{Lillicrap2016}
+\citation{Haarnoja2018}
+\citation{Fujimoto2018}
+\citation{Raffin2021}
+\citation{Silver2018,Johannink2019}
+\citation{Iwata2021}
+\citation{Westenbroek2022}
+\citation{Bengio2009}
+\citation{Akkaya2019,Florensa2017}
+\citation{Sotnikov2017,Awtar2002}
+\citation{vanLoan1978}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{section.2}\protected@file@percent }
+\newlabel{sec:rw}{{II}{2}{Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Classical ball-and-plate control}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Deep reinforcement learning for continuous control}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Residual and hybrid policy architectures}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}Curriculum learning and policy collapse}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}System Modeling, Optimal Baseline, and State Estimation}{2}{section.3}\protected@file@percent }
+\newlabel{sec:model}{{III}{2}{System Modeling, Optimal Baseline, and State Estimation}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Coupled ball--plate--actuator dynamics}{2}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:dyn}{{\mbox  {III-A}}{2}{Coupled ball--plate--actuator dynamics}{subsection.3.1}{}}
+\newlabel{eq:xddot}{{1}{2}{Coupled ball--plate--actuator dynamics}{equation.3.1}{}}
+\newlabel{eq:yddot}{{2}{2}{Coupled ball--plate--actuator dynamics}{equation.3.2}{}}
+\newlabel{eq:pt1}{{3}{2}{Servo lag (PT$_1$ model)}{equation.3.3}{}}
+\newlabel{eq:state}{{4}{3}{Augmented 8-D state}{equation.3.4}{}}
+\newlabel{eq:zoh}{{5}{3}{Augmented 8-D state}{equation.3.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Discrete-time Linear Quadratic Regulator}{3}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:lqr}{{\mbox  {III-B}}{3}{Discrete-time Linear Quadratic Regulator}{subsection.3.2}{}}
+\newlabel{eq:lqr_cost}{{6}{3}{Discrete-time Linear Quadratic Regulator}{equation.3.6}{}}
+\newlabel{eq:DARE}{{7}{3}{Discrete-time Linear Quadratic Regulator}{equation.3.7}{}}
+\newlabel{eq:Kd}{{8}{3}{Discrete-time Linear Quadratic Regulator}{equation.3.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Why an EKF and not numerical differentiation}{3}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:ekf}{{\mbox  {III-C}}{3}{Why an EKF and not numerical differentiation}{subsection.3.3}{}}
+\newlabel{eq:ekf_pred_x}{{9}{3}{Process and measurement model}{equation.3.9}{}}
+\newlabel{eq:ekf_F}{{10}{3}{Process and measurement model}{equation.3.10}{}}
+\newlabel{eq:ekf_pred_P}{{11}{3}{Process and measurement model}{equation.3.11}{}}
+\newlabel{eq:ekf_H}{{12}{3}{Process and measurement model}{equation.3.12}{}}
+\newlabel{eq:ekf_S}{{13}{3}{Process and measurement model}{equation.3.13}{}}
+\newlabel{eq:ekf_K}{{14}{3}{Process and measurement model}{equation.3.14}{}}
+\newlabel{eq:ekf_x}{{15}{3}{Process and measurement model}{equation.3.15}{}}
+\newlabel{eq:ekf_P}{{16}{3}{Process and measurement model}{equation.3.16}{}}
+\citation{Johannink2019}
+\citation{Hausknecht2015}
+\citation{Coleman2014}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Hybrid Control Architecture}{4}{section.4}\protected@file@percent }
+\newlabel{sec:hybrid}{{IV}{4}{Hybrid Control Architecture}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Residual command composition}{4}{subsection.4.1}\protected@file@percent }
+\newlabel{eq:hybrid}{{17}{4}{Residual command composition}{equation.4.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Augmented observation}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Reward shaping}{4}{subsection.4.3}\protected@file@percent }
+\newlabel{eq:reward}{{19}{4}{Reward shaping}{equation.4.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Authority curriculum}{4}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:curr}{{\mbox  {IV-D}}{4}{Authority curriculum}{subsection.4.4}{}}
+\newlabel{eq:lambda}{{20}{4}{Authority curriculum}{equation.4.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Experimental Protocol}{4}{section.5}\protected@file@percent }
+\newlabel{sec:protocol}{{V}{4}{Experimental Protocol}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Simulator and middleware}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Plant physical parameters}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Hybrid control architecture. The classical baseline (blue) computes $\bm  {u}^{\text  {LQR}}_k=-K_d\hat  {\bm  {x}}_k$ from the EKF estimate $\hat  {\bm  {x}}_k\in \mathbb  {R}^8$. The learned residual (orange) computes $\bm  {u}^{\text  {RL}}_k=\pi _\theta (\bm  {o}_k)$ from a 21-D augmented observation, scaled by the curriculum rate budget $\lambda $. The two streams sum at the junction and are forwarded to MoveIt\,2 Servo at 30\,Hz; only the sum reaches the plant. The EKF is the sole bridge between the noisy sensors (marble odometry @ 50\,Hz, plate orientation from \texttt  {plate\_tcp} TF) and both controllers; numerical differentiation of the TF stream is explicitly avoided in favour of model-based fusion (Sec.~\ref {sec:ekf}).}}{5}{figure.1}\protected@file@percent }
+\newlabel{fig:arch}{{1}{5}{Hybrid control architecture. The classical baseline (blue) computes $\bm {u}^{\text {LQR}}_k=-K_d\hat {\bm {x}}_k$ from the EKF estimate $\hat {\bm {x}}_k\in \R ^8$. The learned residual (orange) computes $\bm {u}^{\text {RL}}_k=\pi _\theta (\bm {o}_k)$ from a 21-D augmented observation, scaled by the curriculum rate budget $\lambda $. The two streams sum at the junction and are forwarded to MoveIt\,2 Servo at 30\,Hz; only the sum reaches the plant. The EKF is the sole bridge between the noisy sensors (marble odometry @ 50\,Hz, plate orientation from \texttt {plate\_tcp} TF) and both controllers; numerical differentiation of the TF stream is explicitly avoided in favour of model-based fusion (Sec.~\ref {sec:ekf})}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Disturbance}{5}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Scenarios}{5}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Episode structure and metrics}{5}{subsection.5.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Head-to-head metrics for Scenarios 1 and 2. Residual TD3 increases nominal-scenario survival rate by $20$ percentage points and reduces RMSE by $\sim 1\%$ in both scenarios, but cedes survival authority in the extreme-spawn condition. Numbers reproduced verbatim from Table~\ref {tab:results}.}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:results_bars}{{2}{5}{Head-to-head metrics for Scenarios 1 and 2. Residual TD3 increases nominal-scenario survival rate by $20$ percentage points and reduces RMSE by $\sim 1\%$ in both scenarios, but cedes survival authority in the extreme-spawn condition. Numbers reproduced verbatim from Table~\ref {tab:results}}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Training}{5}{subsection.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Results}{5}{section.6}\protected@file@percent }
+\newlabel{sec:results}{{VI}{5}{Results}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Head-to-head: pure LQR vs.\ Hybrid (200k checkpoint)}{5}{subsection.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Reading the headline numbers}{5}{subsection.6.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Production parameters (verbatim from \texttt  {lqr\_math.py}, \texttt  {marble\_ekf.py}, \texttt  {train\_td3\_gazebo\_v2.py}).}}{6}{table.1}\protected@file@percent }
+\newlabel{tab:hyper}{{I}{6}{Production parameters (verbatim from \texttt {lqr\_math.py}, \texttt {marble\_ekf.py}, \texttt {train\_td3\_gazebo\_v2.py})}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Pure dLQR vs.\ Hybrid (TD3 200k) over $10$ paired trials per scenario. Bold entries indicate the better controller per metric. RMSE, max peak error in metres; reward in shaping units of \eqref  {eq:reward}.}}{6}{table.2}\protected@file@percent }
+\newlabel{tab:results}{{II}{6}{Pure dLQR vs.\ Hybrid (TD3 200k) over $10$ paired trials per scenario. Bold entries indicate the better controller per metric. RMSE, max peak error in metres; reward in shaping units of \eqref {eq:reward}}{table.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Where the residual stops helping}{6}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-D}}Training reward over the run}{6}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Discussion}{6}{section.7}\protected@file@percent }
+\newlabel{sec:discussion}{{VII}{6}{Discussion}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Operational envelope of hybrid LQR\,+\,Residual TD3}{6}{subsection.7.1}\protected@file@percent }
+\newlabel{sec:envelope}{{\mbox  {VII-A}}{6}{Operational envelope of hybrid LQR\,+\,Residual TD3}{subsection.7.1}{}}
+\citation{Fujimoto2018}
+\citation{Fujimoto2018,Kumar2020}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Real training trajectory of run \texttt  {TD3\_gazebo\_v2\_15}. (a) Mean rollout reward per episode (raw + EMA, $\alpha \!=\!0.10$). (b) Mean episode length. The green dotted line marks the $200\,$k checkpoint used for Table~\ref {tab:results}; the red dashed line marks the Stage-1 onset at step $613\,$k.}}{7}{figure.3}\protected@file@percent }
+\newlabel{fig:training_curve}{{3}{7}{Real training trajectory of run \texttt {TD3\_gazebo\_v2\_15}. (a) Mean rollout reward per episode (raw + EMA, $\alpha \!=\!0.10$). (b) Mean episode length. The green dotted line marks the $200\,$k checkpoint used for Table~\ref {tab:results}; the red dashed line marks the Stage-1 onset at step $613\,$k}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Curriculum Shock at the Stage-1\,$\rightarrow $\,Stage-2 transition}{7}{subsection.7.2}\protected@file@percent }
+\newlabel{sec:shock}{{\mbox  {VII-B}}{7}{Curriculum Shock at the Stage-1\,$\rightarrow $\,Stage-2 transition}{subsection.7.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Gazebo latency and the real-time bottleneck}{7}{subsection.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Sensitivity to contact friction}{7}{subsection.7.4}\protected@file@percent }
+\newlabel{sec:friction}{{\mbox  {VII-D}}{7}{Sensitivity to contact friction}{subsection.7.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {Curriculum Shock.} Real training data from TensorBoard run \texttt  {TD3\_gazebo\_v2\_15}. The dashed red line at step $613\,$k marks the Stage-1\,$\rightarrow $\,Stage-2 authority transition (rate budget widens from $\lambda =10^\circ \!/$s to $15^\circ \!/$s); the green-shaded region is the long Stage-1 plateau. (a) Mean episode reward collapses from $+700$ to $-2{,}000$. (b) Mean episode length crashes from $\sim \!580$ to $\sim \!26$ control steps within $200\,$k further updates. (c) Critic loss diverges by approximately three orders of magnitude (log scale). (d) Actor loss inflates from a Stage-1 maximum of $\approx 102$ to $> 1{,}400$. The collapse is irreversible and indicative of a distributional shift in the bootstrap target rather than a transient gradient artefact.}}{8}{figure.4}\protected@file@percent }
+\newlabel{fig:shock}{{4}{8}{\textbf {Curriculum Shock.} Real training data from TensorBoard run \texttt {TD3\_gazebo\_v2\_15}. The dashed red line at step $613\,$k marks the Stage-1\,$\rightarrow $\,Stage-2 authority transition (rate budget widens from $\lambda =10^\circ \!/$s to $15^\circ \!/$s); the green-shaded region is the long Stage-1 plateau. (a) Mean episode reward collapses from $+700$ to $-2{,}000$. (b) Mean episode length crashes from $\sim \!580$ to $\sim \!26$ control steps within $200\,$k further updates. (c) Critic loss diverges by approximately three orders of magnitude (log scale). (d) Actor loss inflates from a Stage-1 maximum of $\approx 102$ to $> 1{,}400$. The collapse is irreversible and indicative of a distributional shift in the bootstrap target rather than a transient gradient artefact}{figure.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Sensitivity of head-to-head performance to ODE friction coefficient $\mu $ on Scenario~1. Numbers in the running entries are produced by Kevin Biju Mathew's friction-sweep run (handoff document accompanies the paper).}}{8}{table.3}\protected@file@percent }
+\newlabel{tab:friction}{{III}{8}{Sensitivity of head-to-head performance to ODE friction coefficient $\mu $ on Scenario~1. Numbers in the running entries are produced by Kevin Biju Mathew's friction-sweep run (handoff document accompanies the paper)}{table.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion and Future Work}{8}{section.8}\protected@file@percent }
+\newlabel{sec:conclusion}{{VIII}{8}{Conclusion and Future Work}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-A}}What we conclude}{8}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VIII-B}}Future work}{8}{subsection.8.2}\protected@file@percent }
+\newlabel{sec:future}{{\mbox  {VIII-B}}{8}{Future work}{subsection.8.2}{}}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{Spong2020}{1}
+\bibcite{Awtar2002}{2}
+\bibcite{Johannink2019}{3}
+\bibcite{Silver2018}{4}
+\bibcite{Iwata2021}{5}
+\bibcite{Kaufmann2023}{6}
+\bibcite{Hwangbo2019}{7}
+\bibcite{Macenski2022}{8}
+\bibcite{Koenig2004}{9}
+\bibcite{Anderson1990}{10}
+\bibcite{Fujimoto2018}{11}
+\bibcite{Coleman2014}{12}
+\bibcite{Sotnikov2017}{13}
+\bibcite{Lillicrap2016}{14}
+\bibcite{Haarnoja2018}{15}
+\bibcite{Raffin2021}{16}
+\bibcite{Westenbroek2022}{17}
+\bibcite{Bengio2009}{18}
+\bibcite{Akkaya2019}{19}
+\bibcite{Florensa2017}{20}
+\bibcite{vanLoan1978}{21}
+\bibcite{Hausknecht2015}{22}
+\bibcite{Kumar2020}{23}
+\@writefile{toc}{\contentsline {section}{References}{9}{section*.15}\protected@file@percent }
+\gdef \@abspage@last{9}
