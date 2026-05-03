@@ -93,7 +93,7 @@ ax.set_xlabel(r"Training step ($\times 10^3$)")
 ax.set_title(r"(d) Actor blow-up: $102 \rightarrow 1{,}471$ ($\sim\!14\times$)")
 
 fig.suptitle(
-    "Curriculum Shock — TD3\\_gazebo\\_v2\\_15: green = Stage 1 plateau ($\\lambda{=}10^\\circ$/s), "
+    "Curriculum Shock: green = Stage 1 plateau ($\\lambda{=}10^\\circ$/s), "
     "red = Stage 2 ($\\lambda{=}15^\\circ$/s), dashed line marks Stage-2 onset (613k steps)",
     fontsize=9.5, y=1.005, fontweight="bold")
 fig.tight_layout()

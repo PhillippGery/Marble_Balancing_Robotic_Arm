@@ -40,7 +40,7 @@ ax.plot(steps_r/1e3, ema(rew), color="#1f77b4", lw=1.6, label="EMA ($\\alpha{=}0
 ax.axhline(0, color="black", lw=0.4, alpha=0.5)
 ax.axvline(SHOCK/1e3, color="#c0392b", linestyle="--", lw=1.0, alpha=0.85)
 ax.axvline(200, color="#2ca02c", linestyle=":", lw=1.0, alpha=0.85)
-ax.text(SHOCK/1e3, ax.get_ylim()[1]*0.92, " Stage-1 onset (613k)",
+ax.text(SHOCK/1e3, ax.get_ylim()[1]*0.92, " Stage-2 onset (613k)",
         color="#c0392b", fontsize=7.5, va="top", ha="left")
 ax.text(200, ax.get_ylim()[1]*0.78, " 200k checkpoint\n(eval point)",
         color="#2ca02c", fontsize=7.5, va="top", ha="left")

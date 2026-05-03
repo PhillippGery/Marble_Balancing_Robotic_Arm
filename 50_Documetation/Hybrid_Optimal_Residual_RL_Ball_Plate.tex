@@ -203,7 +203,7 @@ This section presents the parts of the project the residual policy is
 \emph{layered on top of}: (i) the coupled ball--plate--actuator model with an
 explicit first-order servo lag, (ii) the discrete-time LQR synthesised on
 that model, and (iii) the Extended Kalman Filter that fuses the marble
-odometry and the \texttt{plate\_tcp} TF stream into a smooth 8-D state. The
+odometry and the plate-orientation transform stream into a smooth 8-D state. The
 EKF is not an afterthought; it is what makes a $30\,$Hz LQR work on a
 manipulator whose only state-of-the-plate observable is a noisy quaternion.
 
@@ -304,25 +304,24 @@ weights $Q_\alpha,Q_\beta$ are kept low so the LQR is permitted to reach
 saturating tilts during recovery; tilt-rate weights
 $Q_{\omega_\alpha},Q_{\omega_\beta}$ are kept low for the same reason.
 Control weight $R$ is kept moderate so the LQR remains aggressive at small
-errors. The numerical values are listed verbatim from \texttt{lqr\_math.py}
-in Table~\ref{tab:hyper}.
+errors. The numerical values used in our deployment are listed in
+Table~\ref{tab:hyper}.
 
 \subsection{Why an EKF and not numerical differentiation}
 \label{sec:ekf}
 Two observable streams are available at runtime: \emph{(i)} marble position
-$(x,y)$ at $50\,$Hz from the Gazebo \texttt{libgazebo\_ros\_p3d} odometry
-plugin, and \emph{(ii)} plate orientation from the
-$\texttt{plate\_tcp}\!\rightarrow\!\texttt{world}$ TF, which is broadcast at
-the joint-state rate. \emph{Neither} stream provides velocity directly. The
+$(x,y)$ at $50\,$Hz from a ground-truth marble-pose odometry stream, and
+\emph{(ii)} plate orientation reconstructed at the joint-state rate from
+the manipulator forward kinematics. \emph{Neither} stream provides velocity directly. The
 naive workaround is finite-difference numerical differentiation
 $\hat{v}_x = (x_k - x_{k-1})/T_s$. This is a poor choice on this plant for
 three concrete reasons:
 
 \begin{enumerate}
   \item \textbf{Differentiating quantised TF poses amplifies $1/T_s$ noise.}
-        The plate quaternion in \texttt{plate\_tcp} is reconstructed from
-        joint encoders through forward kinematics; per-step rotation noise
-        is $\mathcal{O}(10^{-4})\,$rad. Backward differencing maps that
+        The plate quaternion is reconstructed from joint encoders through
+        forward kinematics; per-step rotation noise is
+        $\mathcal{O}(10^{-4})\,$rad. Backward differencing maps that
         noise into a tilt-rate noise of
         $\mathcal{O}(10^{-4}/T_s)\approx 3\!\times\!10^{-3}\,$rad$/$s,
         which is the same order as the true rates the LQR must regulate.
@@ -386,8 +385,7 @@ states use $\mathcal{O}(10^{-4})$ and $\mathcal{O}(10^{-5})$ respectively.
 Measurement noise $R_{\text{ekf}} = 10^{-10} I_4$ in simulation reflects
 the near-perfect Gazebo plugins and is intended to be raised to
 $\mathcal{O}(10^{-3})$ on real hardware with camera-based marble tracking.
-Numerical values are reproduced verbatim from \texttt{marble\_ekf.py} in
-Table~\ref{tab:hyper}.
+Numerical values are listed in Table~\ref{tab:hyper}.
 
 % =============================================================================
 \section{Hybrid Control Architecture}
@@ -466,7 +464,7 @@ $\bm{u}^{\text{RL}}_k=\pi_\theta(\bm{o}_k)$ from a 21-D augmented
 observation, scaled by the curriculum rate budget $\lambda$. The two streams sum at the
 junction and are forwarded to MoveIt\,2 Servo at 30\,Hz; only the sum
 reaches the plant. The EKF is the sole bridge between the noisy sensors
-(marble odometry @ 50\,Hz, plate orientation from \texttt{plate\_tcp} TF)
+(marble odometry @ 50\,Hz, plate orientation from forward kinematics)
 and both controllers; numerical differentiation of the TF stream is
 explicitly avoided in favour of model-based fusion (Sec.~\ref{sec:ekf}).}
 \label{fig:arch}
@@ -501,8 +499,7 @@ time.
 \label{sec:curr}
 The residual is shaped, not by an angle clip, but by a per-axis
 \emph{angular-rate} budget $\lambda$ that scales the actor output before
-summation with $\bm{u}^{\text{LQR}}$ (line 583 of
-\texttt{gazebo\_rl\_env\_v2.py}):
+summation with $\bm{u}^{\text{LQR}}$:
 \begin{equation}
 \bm{u}^{\text{RL}}_k = \lambda \cdot \mathrm{tanh}(\pi_\theta(\bm{o}_k)),\quad
 \lambda \in \{5,\,10,\,15\}^\circ /\text{s}.
@@ -520,10 +517,6 @@ the rate budget:
   \item \textbf{Stage 2}\;\;($\lambda^{(2)} = 15^\circ/$s):
         engaged once the rolling survival fraction exceeds $55\%$.
 \end{itemize}
-The 5/10/15 schedule is hard-coded in
-\texttt{gazebo\_rl\_env\_v2.py} (\texttt{\_LAMBDAS} list); the survival
-thresholds $\{0.30,\,0.55\}$ are in
-\texttt{train\_td3\_gazebo\_v2.py} (\texttt{STAGE\_THRESHOLDS}).
 Each transition is implemented as an instantaneous step on $\lambda$ at
 the moment the threshold is crossed---the exact discontinuity that
 Section~\ref{sec:discussion} identifies as the proximate cause of
@@ -537,19 +530,37 @@ quantitative values are not stated explicitly in the text, they appear in
 Table~\ref{tab:hyper}.
 
 \subsection{Simulator and middleware}
-The robot is loaded via the official \texttt{ur\_description} URDF macros into
-Gazebo Classic 11 with the ODE physics back-end at fixed time-step
-$\Delta t_{\text{sim}}=1\,$ms and real-time factor $1.0$. ROS\,2 Humble
-provides the messaging layer and MoveIt\,2 Servo \cite{Coleman2014} converts
-end-effector twist commands into joint velocities through inverse-Jacobian
-control. All controllers, the EKF, and the TD3 inference loop run at $30\,$Hz
-on a single workstation. The repository, training scripts, and recorded
-TensorBoard logs are released with this paper.
+The UR5e is loaded into Gazebo Classic 11 with the ODE physics back-end at
+fixed time-step $\Delta t_{\text{sim}}=1\,$ms and real-time factor $1.0$.
+ROS\,2 Humble provides the messaging layer and MoveIt\,2 Servo
+\cite{Coleman2014} converts end-effector twist commands into joint
+velocities through inverse-Jacobian control. All controllers, the EKF,
+and the TD3 inference loop run at $30\,$Hz on a single workstation. The
+training scripts and recorded learning-curve logs are released with this
+paper.
+
+% =============================================================================
+% Experimental setup figure --- replace robot_setup.png with your screenshot
+% (any aspect ratio works; figures/robot_setup.png is referenced below)
+% =============================================================================
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.7\columnwidth]{figures/robot_setup.png}
+\caption{Experimental setup. A UR5e 6-DOF manipulator carries a
+$0.70\times0.70\,$m flat plate on its tool flange; a spherical marble of
+radius $15\,$mm and mass $50\,$g rolls on the plate's top surface.
+The whole scene is simulated in Gazebo Classic with ODE contact at
+$\mu = 0.6$. The arm tilts the plate via small angular-velocity commands
+issued through MoveIt\,2 Servo to keep the marble centred while the TCP
+simultaneously traces a 3-D Lissajous disturbance.}
+\label{fig:setup}
+\end{figure}
 
 \subsection{Plant physical parameters}
-The end-effector plate is a $0.70 \times 0.70 \times 0.005\,$m flat slab of
-mass $0.150\,$kg, rigidly attached to the UR5e \texttt{tool0} link. The
-marble is a sphere of radius $0.015\,$m and mass $0.050\,$kg. ODE contact
+Figure~\ref{fig:setup} shows the simulated setup. The end-effector plate
+is a $0.70 \times 0.70 \times 0.005\,$m flat slab of mass $0.150\,$kg,
+rigidly attached to the UR5e tool flange. The marble is a sphere of
+radius $0.015\,$m and mass $0.050\,$kg. ODE contact
 parameters are the Gazebo defaults with Coulomb friction coefficient
 $\mu=0.6$, surface restitution $0.0$, and contact stiffness sufficient to
 prevent inter-penetration at $\Delta t_{\text{sim}}$. The choice
@@ -599,13 +610,12 @@ buffer holds $10^6$ transitions, the actor and twin critics use two
 $256$-unit MLPs, learning rate $3\times 10^{-4}$, batch size $256$, target
 smoothing noise $\sigma_{\text{tgt}}=0.2$ clipped at $0.5$, exploration noise
 $\sigma_{\text{exp}}=0.1$, discount $\gamma=0.99$, and policy-update delay
-$d=2$. The two-stage authority curriculum (Sec.~\ref{sec:curr}) gates Stage~1
-on a moving-window survival fraction.
+$d=2$. The three-stage authority curriculum (Sec.~\ref{sec:curr}) gates
+each $\lambda$ widening on a moving-window survival fraction.
 
 \begin{table*}[t]
 \centering
-\caption{Production parameters (verbatim from \texttt{lqr\_math.py},
-\texttt{marble\_ekf.py}, \texttt{train\_td3\_gazebo\_v2.py}).}
+\caption{System parameters used in the deployed controller.}
 \label{tab:hyper}
 \renewcommand{\arraystretch}{1.05}
 \setlength{\tabcolsep}{6pt}
@@ -708,7 +718,7 @@ Sec.~\ref{sec:envelope}.
 
 \subsection{Training reward over the run}
 Figure~\ref{fig:training_curve} reports the on-policy training reward
-(\texttt{rollout/ep\_rew\_mean} in TensorBoard) and the mean episode
+(mean per-episode rollout reward) and the mean episode
 length over the full $1.0\,$M-step run from which the $200\,$k checkpoint
 of Table~\ref{tab:results} is drawn. The trajectory is informative: after
 an initial exploration phase ($0$--$70\,$k) the policy stabilises at a mean
@@ -726,11 +736,12 @@ regime.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/training_curve.pdf}
-\caption{Real training trajectory of run \texttt{TD3\_gazebo\_v2\_15}.
+\caption{Training trajectory of the $1.0\,$M-step run.
 (a) Mean rollout reward per episode (raw + EMA, $\alpha\!=\!0.10$).
 (b) Mean episode length. The green dotted line marks the $200\,$k
 checkpoint used for Table~\ref{tab:results}; the red dashed line marks the
-Stage-1 onset at step $613\,$k.}
+Stage-2 onset at step $613\,$k (rate budget widening from
+$10^\circ\!/$s to $15^\circ\!/$s).}
 \label{fig:training_curve}
 \end{figure}
 
@@ -768,9 +779,8 @@ controller no worse than its constituents would predict.
 
 \subsection{Curriculum Shock at the Stage-1\,$\rightarrow$\,Stage-2 transition}
 \label{sec:shock}
-A $1.0\,$M-step training run, recorded in TensorBoard run
-\texttt{TD3\_gazebo\_v2\_15} and visualized in Fig.~\ref{fig:shock},
-exhibits a reproducible failure mode that we name \emph{Curriculum Shock}.
+The $1.0\,$M-step training run visualized in Fig.~\ref{fig:shock} exhibits
+a reproducible failure mode that we name \emph{Curriculum Shock}.
 The agent advances through Stage~0 ($\lambda=5^\circ/$s) at step
 $\sim 17\,$k once the rolling-window survival fraction exceeds the first
 threshold, and operates inside Stage~1 ($\lambda=10^\circ/$s) up to
@@ -793,8 +803,8 @@ $15^\circ/$s. Within $40\,$k further training steps:
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/curriculum_shock.pdf}
-\caption{\textbf{Curriculum Shock.} Real training data from TensorBoard run
-\texttt{TD3\_gazebo\_v2\_15}. The dashed red line at step $613\,$k marks
+\caption{\textbf{Curriculum Shock.} Training-time scalars from the
+$1.0\,$M-step run. The dashed red line at step $613\,$k marks
 the Stage-1\,$\rightarrow$\,Stage-2 authority transition (rate budget
 widens from $\lambda=10^\circ\!/$s to $15^\circ\!/$s); the green-shaded
 region is the long Stage-1 plateau. (a) Mean episode reward collapses from
