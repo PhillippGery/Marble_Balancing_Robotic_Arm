@@ -80,7 +80,9 @@ MAX_RATE        = np.deg2rad(60.0)    # max angular rate to servo (rad/s)
 OMEGA_LPF_TC    = 0.01                # joint velocity EMA time constant (s)
 MARBLE_RADIUS   = 0.015               # m
 PLATE_THICKNESS = 0.005               # m
-PLATE_HALF      = 0.20                # half-side of plate for termination check (m)
+PLATE_HALF      = 0.20                # = PLATE_DIAMETER / 2 (octagon circumscribed half-diameter, m).
+                                      # Used as half-side of an axis-aligned bounding square
+                                      # for the "fell off plate" termination check.
 DROP_HEIGHT     = 0.10                # m above plate surface for spawn
 DELETE_SETTLE_S = 0.6                 # seconds to wait after delete (physics flush)
 

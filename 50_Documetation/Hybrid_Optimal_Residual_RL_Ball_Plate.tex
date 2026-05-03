@@ -545,9 +545,10 @@ paper.
 % =============================================================================
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.7\columnwidth]{figures/robot_setup.png}
+\includegraphics[width=\columnwidth]{figures/robot_setup.png}
 \caption{Experimental setup. A UR5e 6-DOF manipulator carries a
-$0.70\times0.70\,$m flat plate on its tool flange; a spherical marble of
+flat octagonal plate of $0.40\,$m circumscribed-circle diameter on its
+tool flange; a spherical marble of
 radius $15\,$mm and mass $50\,$g rolls on the plate's top surface.
 The whole scene is simulated in Gazebo Classic with ODE contact at
 $\mu = 0.6$. The arm tilts the plate via small angular-velocity commands
@@ -558,7 +559,8 @@ simultaneously traces a 3-D Lissajous disturbance.}
 
 \subsection{Plant physical parameters}
 Figure~\ref{fig:setup} shows the simulated setup. The end-effector plate
-is a $0.70 \times 0.70 \times 0.005\,$m flat slab of mass $0.150\,$kg,
+is a flat octagonal slab of $0.40\,$m circumscribed-circle diameter and
+$0.005\,$m thickness, mass $0.150\,$kg,
 rigidly attached to the UR5e tool flange. The marble is a sphere of
 radius $0.015\,$m and mass $0.050\,$kg. ODE contact
 parameters are the Gazebo defaults with Coulomb friction coefficient
@@ -588,9 +590,15 @@ recovery requires saturating the LQR's tilt budget within the first
 $200\,$ms.
 
 \subsection{Episode structure and metrics}
-Episodes terminate at the earlier of (a) a fixed horizon $H=500$ control
-steps ($\approx 16.7\,$s) or (b) the marble leaving an absorbing region
-$|x|+|y|>0.30\,$m. We report four metrics per condition:
+Episodes terminate at the earlier of (a) a fixed horizon $H=600$ control
+steps ($20\,$s at $30\,$Hz) or (b) the marble leaving the plate, detected
+by either of two conditions: an axis-aligned bounding box
+$|x|>0.20\,$m\;\text{or}\;$|y|>0.20\,$m (the half-diagonal of the
+octagonal plate's circumscribed square), or a vertical drop
+$z_b < z_{\text{plate}} - 0.05\,$m indicating the marble has rolled past
+an octagon flat side and fallen. A trial is recorded as a
+\emph{win} if it reaches at least $590$ control steps without termination
+(within $\sim\!1\%$ of the horizon). We report four metrics per condition:
 \begin{itemize}
   \item \textbf{Win-rate}: fraction of $10$ trials reaching $H$ without
         termination.
@@ -626,7 +634,7 @@ each $\lambda$ widening on a moving-window survival fraction.
 $m_b$ (marble)            & $0.050\,$kg                   & Replay size              & $10^6$ \\
 $r_b$                     & $0.015\,$m                    & Batch size               & $256$  \\
 $I_b=\tfrac{2}{5}m_br_b^2$& $4.5\!\times\!10^{-9}$ kg$\,$m$^2$ & Actor / critic LR   & $3\!\times\!10^{-4}$ \\
-plate                     & $0.7\!\times\!0.7\!\times\!0.005$ m, $0.150\,$kg & Discount $\gamma$ & $0.99$ \\
+plate                     & octagonal, $\varnothing\,0.40$ m $\times\,0.005$ m, $0.150\,$kg & Discount $\gamma$ & $0.99$ \\
 $\tau$ (PT$_1$)           & $0.35\,$s                     & Soft-update $\rho$       & $5\!\times\!10^{-3}$ \\
 $T_s$                     & $1/30\,$s ($30\,$Hz)         & Target smoothing $\sigma_\text{tgt}$ & $0.2$, clip $0.5$ \\
 \midrule
@@ -723,7 +731,7 @@ length over the full $1.0\,$M-step run from which the $200\,$k checkpoint
 of Table~\ref{tab:results} is drawn. The trajectory is informative: after
 an initial exploration phase ($0$--$70\,$k) the policy stabilises at a mean
 episode reward in the $+500$ to $+700$ range and a mean episode length
-near the horizon $H=500$ steps. The $200\,$k evaluation point used for our
+near the horizon $H=600$ steps. The $200\,$k evaluation point used for our
 head-to-head comparison sits inside the long stable Stage~1 plateau (the
 agent advanced through Stage~0 already at step $\sim\!17\,$k, when its
 rolling survival fraction first exceeded $30\%$) --- which is why we picked

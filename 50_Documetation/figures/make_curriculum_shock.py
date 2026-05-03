@@ -69,8 +69,8 @@ ax = axes[0, 1]
 ax.plot(steps_l/1e3, eplen, color="#2ca02c", lw=0.6, alpha=0.35)
 ax.plot(steps_l/1e3, ema(eplen), color="#2ca02c", lw=1.7)
 style(ax)
-ax.axhline(500, color="black", lw=0.4, ls=":", alpha=0.5)
-ax.text(50, 500, " horizon $H{=}500$", fontsize=7, va="bottom")
+ax.axhline(600, color="black", lw=0.4, ls=":", alpha=0.5)
+ax.text(50, 600, " horizon $H{=}600$", fontsize=7, va="bottom")
 ax.set_ylabel("Episode length (steps)")
 ax.set_title("(b) Survivability collapse: $580 \\rightarrow 26$ steps")
 
@@ -93,7 +93,7 @@ ax.set_xlabel(r"Training step ($\times 10^3$)")
 ax.set_title(r"(d) Actor blow-up: $102 \rightarrow 1{,}471$ ($\sim\!14\times$)")
 
 fig.suptitle(
-    "Curriculum Shock: green = Stage 1 plateau ($\\lambda{=}10^\\circ$/s), "
+    "Curriculum Shock — TD3\\_gazebo\\_v2\\_15: green = Stage 1 plateau ($\\lambda{=}10^\\circ$/s), "
     "red = Stage 2 ($\\lambda{=}15^\\circ$/s), dashed line marks Stage-2 onset (613k steps)",
     fontsize=9.5, y=1.005, fontweight="bold")
 fig.tight_layout()

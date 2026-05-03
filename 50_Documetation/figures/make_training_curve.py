@@ -54,7 +54,7 @@ ax.legend(loc="lower left", framealpha=0.95)
 ax = axes[1]
 ax.plot(steps_l/1e3, eplen, color="#2ca02c", lw=0.6, alpha=0.35)
 ax.plot(steps_l/1e3, ema(eplen), color="#2ca02c", lw=1.6, label="EMA")
-ax.axhline(500, color="black", lw=0.4, ls=":", alpha=0.5, label="episode horizon $H{=}500$")
+ax.axhline(600, color="black", lw=0.4, ls=":", alpha=0.5, label="episode horizon $H{=}600$")
 ax.axvline(SHOCK/1e3, color="#c0392b", linestyle="--", lw=1.0, alpha=0.85)
 ax.axvline(200, color="#2ca02c", linestyle=":", lw=1.0, alpha=0.85)
 ax.set_xlabel("Training step ($\\times 10^3$)")
