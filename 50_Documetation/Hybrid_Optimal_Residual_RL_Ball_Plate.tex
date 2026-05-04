@@ -58,10 +58,10 @@ dynamic damper for the unmodeled non-linearities, contact stochasticity, and
 end-effector latency that LQR cannot reject by construction. Across two
 controlled scenarios---a nominal $0.12\,$m spawn under 3-D Lissajous TCP
 disturbance and an extreme $0.18\,$m edge spawn with added jitter---an
-under-trained residual policy at $200\,$k steps (the
-``Precision Damper'') raises the episode survival rate from
-$40\%$ to $60\%$ and improves tracking RMSE by $1.1\%$ in the nominal
-scenario, while ceding survival authority in the extreme scenario. We
+under-trained residual policy improves tracking RMSE by $1.1\%$ in the nominal
+scenario and wins the paired head-to-head reward comparison against
+the LQR baseline on $60\%$ of the seeds (vs.\ LQR's $40\%$), while
+losing the head-to-head $30\%$ vs.\ $70\%$ in the extreme scenario. We
 further document a reproducible failure mode: at the
 Stage-1\,$\rightarrow$\,Stage-2 curriculum transition near step $613\,$k
 (rate budget widening from $10^\circ/$s to $15^\circ/$s), the critic loss diverges by
@@ -128,7 +128,7 @@ We make three contributions:
         MoveIt\,2 Servo \cite{Coleman2014}.
   \item \textbf{Operational envelope.} We quantify the conditions under which
         the residual improves over LQR (small-signal nominal disturbances:
-        $+20$ percentage-point survival, $-1.1\%$ RMSE) and the conditions
+        $+20$ percentage-point head-to-head reward win-rate, $-1.1\%$ RMSE) and the conditions
         under which it does not (extreme edge spawn, where conservative
         residual authority is insufficient).
   \item \textbf{Curriculum Shock.} We document and quantify a previously
@@ -244,8 +244,11 @@ well-approximated by a first-order PT$_1$ lag,
 \end{equation}
 with a single time constant $\tau$ that captures both the Servo solver
 latency and the joint-tracking PD bandwidth. We identified $\tau =
-0.35\,$s by step-response logging on the simulated UR5e; including this
-state in the LQR model is what allows the controller to anticipate the lag
+0.35\,$s empirically by commanding constant-amplitude angular-velocity
+step inputs to the simulated UR5e through MoveIt\,2 Servo and fitting a
+single-pole exponential to the resulting plate-rate response; this value
+was held fixed for the remainder of the project. Including this state in
+the LQR model is what allows the controller to anticipate the lag
 instead of fighting it.
 
 \paragraph*{Augmented 8-D state}
@@ -596,24 +599,28 @@ by either of two conditions: an axis-aligned bounding box
 $|x|>0.20\,$m\;\text{or}\;$|y|>0.20\,$m (the half-diagonal of the
 octagonal plate's circumscribed square), or a vertical drop
 $z_b < z_{\text{plate}} - 0.05\,$m indicating the marble has rolled past
-an octagon flat side and fallen. A trial is recorded as a
-\emph{win} if it reaches at least $590$ control steps without termination
-(within $\sim\!1\%$ of the horizon). We report four metrics per condition:
+an octagon flat side and fallen. We report four metrics per condition:
 \begin{itemize}
-  \item \textbf{Win-rate}: fraction of $10$ trials reaching $H$ without
-        termination.
+  \item \textbf{Win-rate}: percentage of identical
+        paired test scenarios in which the controller's cumulative
+        episode reward (combined stability and survival contributions
+        under \eqref{eq:reward}) exceeds the opponent's. With paired
+        deterministic seeds and no ties observed, the LQR and Hybrid
+        win-rates are complementary and sum to $100\%$.
   \item \textbf{RMSE}: root-mean-square distance of the marble from the
-        plate centre over the entire episode, averaged over surviving trials.
+        plate centre over the entire episode, averaged across all $10$
+        trials.
   \item \textbf{Max peak error}: maximum instantaneous distance from centre
         across the entire episode.
   \item \textbf{Mean total reward}: episode-summed reward computed under the
         same shaping function \eqref{eq:reward} for both controllers.
 \end{itemize}
 Trials use deterministic seeds $0\!\ldots\!9$ for spawn azimuth and
-disturbance phase to make LQR and Hybrid runs paired comparisons.
+disturbance phase to make LQR and Hybrid runs paired comparisons; the
+win-rate metric is only meaningful under this paired-seed protocol.
 
 \subsection{Training}
-TD3 is trained with stable-baselines3 v2.0 on a single NVIDIA GPU. The replay
+TD3 is trained with stable-baselines3 v2.0. The replay
 buffer holds $10^6$ transitions, the actor and twin critics use two
 $256$-unit MLPs, learning rate $3\times 10^{-4}$, batch size $256$, target
 smoothing noise $\sigma_{\text{tgt}}=0.2$ clipped at $0.5$, exploration noise
@@ -658,6 +665,8 @@ $Q_{\omega_\alpha},Q_{\omega_\beta}$ & $4\!\times\!10^{-2}$ & $H$               
 \section{Results}
 \label{sec:results}
 
+The main comparisons are made with the 'best' model at 200,000 steps. The reason for this is explained in the section \ref{sec:discussion}.
+
 \subsection{Head-to-head: pure LQR vs.\ Hybrid (200k checkpoint)}
 Table~\ref{tab:results} summarizes the comparison between the optimal
 baseline and the Hybrid controller using the $200\,$k-step TD3 checkpoint
@@ -668,7 +677,10 @@ data.
 \centering
 \caption{Pure dLQR vs.\ Hybrid (TD3 200k) over $10$ paired trials per
 scenario. Bold entries indicate the better controller per metric.
-RMSE, max peak error in metres; reward in shaping units of \eqref{eq:reward}.}
+RMSE, max peak error in metres; reward in shaping units of \eqref{eq:reward}.
+The reward-superiority win-rate row reports the percentage of paired
+trials in which each controller's cumulative episode reward exceeds the
+other's; rows are complementary and sum to $100\%$.}
 \label{tab:results}
 \renewcommand{\arraystretch}{1.05}
 \begin{tabular}{@{}l c c c c c@{}}
@@ -677,10 +689,10 @@ RMSE, max peak error in metres; reward in shaping units of \eqref{eq:reward}.}
 \cmidrule(lr){3-4} \cmidrule(lr){5-6}
 Metric                  & Direction        & Pure dLQR          & Hybrid TD3 $200$k         & Pure dLQR          & Hybrid TD3 $200$k \\
 \midrule
-Mean total reward       & higher is better & \textbf{$+711.99$} & $+690.81$                 & \textbf{$+823.68$} & $+778.91$ \\
-RMSE (m)                & lower is better  & $0.1920$           & \textbf{$0.1898$}         & $0.2587$           & \textbf{$0.2556$} \\
-Max peak error (m)      & lower is better  & \textbf{$0.3858$}  & $0.4098$                  & $0.6923$           & \textbf{$0.6379$} \\
-Episode win-rate        & higher is better & $40\%$ ($4/10$)    & \textbf{$60\%$ ($6/10$)}  & \textbf{$70\%$ ($7/10$)} & $30\%$ ($3/10$) \\
+Mean total reward       & higher is better & $\mathbf{+711.99}$ & $+690.81$                 & $\mathbf{+823.68}$ & $+778.91$ \\
+RMSE (m)                & lower is better  & $0.1920$           & $\mathbf{0.1898}$         & $0.2587$           & $\mathbf{0.2556}$ \\
+Max peak error (m)      & lower is better  & \textbf{$0.3858$}  & $0.4098$                  & $0.6923$           & $\mathbf{0.6379}$ \\
+Win-rate & higher is better & $40\%$ ($4/10$)    & $\mathbf{60\%(6/10)}$  & $\mathbf{70\% (7/10)} $& $30\%$ ($3/10$) \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -688,41 +700,46 @@ Episode win-rate        & higher is better & $40\%$ ($4/10$)    & \textbf{$60\%$
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/results_bars.pdf}
-\caption{Head-to-head metrics for Scenarios 1 and 2. Residual TD3 increases
-nominal-scenario survival rate by $20$ percentage points and reduces RMSE by
-$\sim 1\%$ in both scenarios, but cedes survival authority in the
-extreme-spawn condition. Numbers reproduced verbatim from
-Table~\ref{tab:results}.}
+\caption{Head-to-head metrics for Scenarios 1 and 2. The Hybrid TD3
+controller wins the paired reward comparison on $ 60\%$ of the
+nominal-scenario seeds (a $+20$ pp gap over LQR's $40\%$) and reduces
+RMSE by $\sim 1\%$ in both scenarios, but loses the head-to-head to LQR
+($30\%$ vs.\ $70\%$) in the extreme-spawn condition. Numbers reproduced
+verbatim from Table~\ref{tab:results}.}
 \label{fig:results_bars}
 \end{figure}
 
 \subsection{Reading the headline numbers}
 The Scenario~1 result is the central positive claim of this paper: with
-identical disturbance, identical state estimator, identical sample
-schedule, and a residual policy whose maximum authority is one third of the
-LQR's saturation envelope, episode survival rises from $40\%$ to $60\%$ and
-the average tracking error \emph{also} drops by $1.1\%$. The two
-improvements are not in tension. Inspection of failure modes in the LQR
-trials shows that they fail because the LQR has zero margin against the
-TCP-induced acceleration when the marble is already off-centre; the residual
-policy spends most of its action budget biasing the plate \emph{ahead} of
-the disturbance, effectively converting a feedforward problem into a
-learned compensator. RMSE improves slightly because the additional damping
-also reduces small-amplitude oscillations during the steady-state phase.
+identical disturbance, identical state estimator, identical paired seed
+schedule, and a residual policy whose maximum authority is one third of
+the LQR's saturation envelope, the Hybrid controller wins the
+reward-superiority comparison on $6$ of $10$ seeded scenarios while LQR
+wins only $4$, and the average tracking error \emph{also} drops by
+$1.1\%$. The two improvements are not in tension. Inspection of the
+seeds where LQR loses shows that those scenarios are precisely the ones
+where the LQR has zero margin against the TCP-induced acceleration when
+the marble is already off-centre; the residual policy spends most of its
+action budget biasing the plate \emph{ahead} of the disturbance,
+effectively converting a feedforward problem into a learned compensator.
+RMSE improves slightly because the additional damping also reduces
+small-amplitude oscillations during the steady-state phase. Note that the residual still lowers Scenario~2 RMSE by 1.2\% despite losing the win-rate: it adds control variance that improves average centring on the seeds where the marble survives, but widens the seed-to-seed reward spread enough to flip the paired comparison on a majority of the LQR-rescued seeds.
 
 \subsection{Where the residual stops helping}
-Scenario~2 inverts the picture. The pure LQR survives $7$ of $10$ trials
-because at $0.18\,$m the marble enters a regime where the linear plant model
-\emph{is} an accurate description of the recovery dynamics: the LQR
-saturates its tilt budget, accelerates the plate against the rolling
-direction, and rescues the marble through the linearity of small-error
-recovery. The $200\,$k Hybrid policy survives only $3$ of $10$ trials
-because it has \emph{not been trained near the boundary}: its replay buffer
-contains few episodes initialized at $0.18\,$m, its residual is hard-clipped
-to a residual rate budget of $\pm 10^\circ/$s in the Stage~1 regime in
-which it was checkpointed, and its small-signal damping bias \emph{interferes}
-constructively with the LQR's saturated rescue. We will return to this in
-Sec.~\ref{sec:envelope}.
+Scenario~2 inverts the picture. The pure LQR wins the head-to-head on
+$7$ of $10$ paired trials because at $0.18\,$m the marble enters a regime
+where the linear plant model \emph{is} an accurate description of the
+recovery dynamics: the LQR saturates its tilt budget, accelerates the
+plate against the rolling direction, and rescues the marble through the
+linearity of small-error recovery. The $200\,$k Hybrid policy wins only
+$3$ of $10$ paired trials because it has \emph{not been trained near the
+boundary}: its replay buffer contains few episodes initialized at
+$0.18\,$m, its residual is hard-clipped to a residual rate budget of
+$\pm 10^\circ/$s in the Stage~1 regime in which it was checkpointed, and
+its small-signal damping bias \emph{interferes} destructively with the
+LQR's saturated rescue, lowering the cumulative reward on the seeds
+where LQR alone would have rescued the marble. We will return to this
+in Sec.~\ref{sec:envelope}.
 
 \subsection{Training reward over the run}
 Figure~\ref{fig:training_curve} reports the on-policy training reward
@@ -769,8 +786,8 @@ valid but unmodeled non-linearities cause sustained tracking error, (b) the
 residual authority budget is large enough to compensate the unmodeled term
 but small enough that the LQR retains primary control authority, and (c) the
 training distribution covers the operating regime. In Scenario~1 all three
-hold, and the residual produces both better survival and better steady-state
-precision.
+hold, and the residual produces both a higher reward-superiority win-rate
+and better steady-state precision.
 
 \paragraph*{Where residual RL hurts}
 The residual policy fails to improve over LQR when any of the three
@@ -861,20 +878,35 @@ and warm-start the critic for a number of update steps before resuming
 joint training. These mitigations are concrete future work
 (Sec.~\ref{sec:future}).
 
-\subsection{Gazebo latency and the real-time bottleneck}
-A second-order observation that is harder to quantify but easier to
-illustrate concerns the closed-loop latency of the ROS\,2 / Gazebo stack.
-At a $30\,$Hz control loop the budget per cycle is $33.3\,$ms; on our
-workstation the measured cycle time was dominated by ($\approx 8\,$ms) the
-Gazebo physics step transport plus ($\approx 4\,$ms) MoveIt\,2 Servo
-inverse-Jacobian solve plus ($\approx 3\,$ms) TD3 inference, leaving
-$\sim\!18\,$ms of slack at nominal load and shrinking under disturbance.
-Because the LQR was synthesized on the PT$_1$ model with $\tau=0.06\,$s, it
-absorbs a $\le 33\,$ms additional latency comfortably; the residual,
-however, is trained on \emph{simulator-time} states and emits commands that
-arrive late under load, producing the high-frequency over-correction
-transients (``jitter'') visible in real-time recordings of Scenario~2. The
-residual is, in effect, fighting the latency it cannot observe.
+\subsection{Latency and the real-time bottleneck}
+A second-order observation, which we can illustrate qualitatively but
+have not yet quantified end-to-end, concerns the closed-loop latency of
+the ROS\,2 / Gazebo stack. It is important to distinguish this
+\emph{software} latency from the \emph{robot-dynamics} lag of
+Sec.~\ref{sec:dyn}: the empirically identified $\tau=0.35\,$s in
+\eqref{eq:pt1} is a physical PT$_1$ property of the UR5e end-effector
+chain (MoveIt\,2 Servo solver, joint-PD tracking, simulated actuator
+inertia) that we deliberately included in the LQR plant model so that
+the controller anticipates it instead of fighting it. The Gazebo and
+ROS\,2 message-passing pipeline introduces an \emph{additional}
+cycle-to-cycle scheduling delay --- physics step transport, the
+inverse-Jacobian solve, the EKF update, TD3 inference, and the ROS\,2
+callback queue --- which is \emph{not} part of the LQR plant model.
+
+At a $30\,$Hz control loop the per-cycle budget is $33.3\,$ms; the LQR
+is robust to scheduling delays a few milliseconds in size by virtue of
+its sample period $T_s$ alone, since $T_s$ already enters the
+discretisation \eqref{eq:zoh} of the dynamics. The residual policy, by
+contrast, is trained on simulator-time states and emits high-bandwidth
+corrections; when those corrections arrive late relative to the
+closed-loop physics, they appear in the recorded trajectory as the
+high-frequency over-correction transients (``jitter'') visible in
+Scenario~2. We hypothesise---but have not isolated experimentally---that
+this latency-induced phase mismatch is a contributor to the residual's
+underperformance under jittered disturbance. A direct, per-cycle latency
+budget (physics, Servo, EKF, inference, callback queue) is left as a
+measurement exercise under the latency-aware action smoothing item in
+Sec.~\ref{sec:future}.
 
 \subsection{Sensitivity to contact friction}
 \label{sec:friction}
@@ -885,9 +917,12 @@ contact. To address robustness explicitly, we conducted (resp.\ are conducting)
 a sweep of $\mu \in \{0.3, 0.5, 0.6, 0.8, 1.0\}$ on Scenario~1, holding all
 other parameters fixed and running $10$ paired trials per coefficient for
 both pure LQR and the $200\,$k Hybrid policy. Table~\ref{tab:friction}
-collects the metric of primary interest---the win-rate gap
-$\Delta_\text{win}=\text{win}_{\text{Hybrid}}-\text{win}_{\text{LQR}}$---and
-the RMSE of each controller. We expect the gap to be largest at the
+collects the metric of primary interest---the reward-superiority
+win-rate gap
+$\Delta_\text{win}=\text{win}_{\text{Hybrid}}-\text{win}_{\text{LQR}}$,
+where each $\text{win}$ counts the paired seeds in which that
+controller's cumulative episode reward exceeds the other's---and the
+RMSE of each controller. We expect the gap to be largest at the
 ODE default (where the LQR was tuned) and to attenuate at low $\mu$ (where
 the marble loses traction faster than either controller can react) and at
 high $\mu$ (where the LQR's small-signal margins are already adequate).
@@ -895,8 +930,7 @@ high $\mu$ (where the LQR's small-signal margins are already adequate).
 \begin{table}[t]
 \centering
 \caption{Sensitivity of head-to-head performance to ODE friction coefficient
-$\mu$ on Scenario~1. Numbers in the running entries are produced by Kevin
-Biju Mathew's friction-sweep run (handoff document accompanies the paper).}
+$\mu$ on Scenario~1.}
 \label{tab:friction}
 \renewcommand{\arraystretch}{1.05}
 \setlength{\tabcolsep}{4pt}
@@ -925,8 +959,9 @@ threshold.
 
 \subsection{What we conclude}
 First, residual TD3 layered on a discrete-time LQR provably improves
-small-signal performance: in the nominal Scenario~1 it raises survival from
-$40$ to $60\,\%$ and reduces RMSE by $1.1\%$ at one third of the LQR's tilt
+small-signal performance: in the nominal Scenario~1 the Hybrid controller
+wins the paired reward-superiority comparison on $60\%$ of seeds (vs.\
+LQR's $40\%$) and reduces RMSE by $1.1\%$ at one third of the LQR's tilt
 authority. Second, the same residual cedes performance to the optimal
 baseline at extreme initial conditions because its training distribution
 under-samples that regime; this is a feature of any learned compensator
