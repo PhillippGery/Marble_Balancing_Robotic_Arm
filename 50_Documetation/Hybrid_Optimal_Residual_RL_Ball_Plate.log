@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.7.18)  4 MAY 2026 15:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.7.18)  4 MAY 2026 15:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -960,13 +960,13 @@ _curve.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8 <./figures/curriculum_shock.pdf>]
-Underfull \hbox (badness 1796) in paragraph at lines 980--983
+Underfull \hbox (badness 1796) in paragraph at lines 979--982
  []\OT1/ptm/m/it/10 Replay-buffer hy-giene: [] \OT1/ptm/m/n/10 At the tran-si-t
 ion, flush off-
  []
 
 
-Underfull \hbox (badness 4505) in paragraph at lines 983--986
+Underfull \hbox (badness 4505) in paragraph at lines 982--985
  []\OT1/ptm/m/it/10 Latency-aware ac-tion smooth-ing: [] \OT1/ptm/m/n/10 Add an
  ex-plicit
  []
@@ -1035,11 +1035,11 @@ onts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1
 /urw/times/utmbi8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/urw/times/utmri8a.
 pfb>
-Output written on Hybrid_Optimal_Residual_RL_Ball_Plate.pdf (10 pages, 602858 b
+Output written on Hybrid_Optimal_Residual_RL_Ball_Plate.pdf (10 pages, 602881 b
 ytes).
 PDF statistics:
- 837 PDF objects out of 1000 (max. 8388607)
- 523 compressed objects within 6 object streams
+ 836 PDF objects out of 1000 (max. 8388607)
+ 522 compressed objects within 6 object streams
  119 named destinations out of 1000 (max. 500000)
  417 words of extra memory for PDF output out of 10000 (max. 10000000)
 
