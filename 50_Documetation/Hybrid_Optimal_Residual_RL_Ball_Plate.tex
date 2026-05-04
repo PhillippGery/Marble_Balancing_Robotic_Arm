@@ -435,7 +435,7 @@ expected behaviour in mind.
 
 % --- Bottom row: estimation + RL ---
 \node[block, below=28mm of lqr] (ekf) {EKF\\$\hat{\bm{x}}\in\R^8$ @ 30\,Hz};
-\node[block, below=26mm of ur5e] (sense) {Sensors\\marble odom (50\,Hz)\\plate\_tcp TF};
+\node[block, below=25mm of ur5e] (sense) {Sensors\\marble odom (50\,Hz)\\plate\_tcp TF};
 \node[rl, below=13mm of sum] (td3) {TD3 actor $\pi_\theta$\\(21-D observation)};
 
 % --- Forward edges ---
