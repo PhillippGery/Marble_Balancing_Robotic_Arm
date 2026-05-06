@@ -161,7 +161,7 @@ def generate_launch_description():
 
     # 6. Comparison script
     # Use absolute path: /home/Gery/.../src/marble_balancer/rl_training/compare_rl_vs_lqr.py
-    ws_root = '/home/Gery/Marble_Balancing_Robotic_Arm/40_Simulation/ros2_ws'
+    ws_root = '/home/lincoln/Marble_Balancing_Robotic_Arm/40_Simulation/ros2_ws'
     compare_script_path = os.path.join(ws_root, 'src', 'marble_balancer', 
                                         'rl_training', 'compare_rl_vs_lqr.py')
     
