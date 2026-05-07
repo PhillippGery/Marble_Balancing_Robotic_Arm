@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.7.18)  4 MAY 2026 15:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.7.18)  6 MAY 2026 21:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -960,18 +960,18 @@ _curve.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8 <./figures/curriculum_shock.pdf>]
-Underfull \hbox (badness 1796) in paragraph at lines 979--982
+Underfull \hbox (badness 1796) in paragraph at lines 1022--1025
  []\OT1/ptm/m/it/10 Replay-buffer hy-giene: [] \OT1/ptm/m/n/10 At the tran-si-t
 ion, flush off-
  []
 
 
-Underfull \hbox (badness 4505) in paragraph at lines 982--985
+Underfull \hbox (badness 4505) in paragraph at lines 1025--1028
  []\OT1/ptm/m/it/10 Latency-aware ac-tion smooth-ing: [] \OT1/ptm/m/n/10 Add an
  ex-plicit
  []
 
-(./Hybrid_Optimal_Residual_RL_Ball_Plate.bbl [9])
+[9] (./Hybrid_Optimal_Residual_RL_Ball_Plate.bbl)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -983,22 +983,28 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[10
-
-] (./Hybrid_Optimal_Residual_RL_Ball_Plate.aux)
+[10] (./Hybrid_Optimal_Residual_RL_Ball_Plate.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-Package rerunfilecheck Info: File `Hybrid_Optimal_Residual_RL_Ball_Plate.out' h
-as not changed.
-(rerunfilecheck)             Checksum: 309CBABFCE6F4ABA7BB0902A7188E13F;7126.
+
+
+Package rerunfilecheck Warning: File `Hybrid_Optimal_Residual_RL_Ball_Plate.out
+' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `Hybrid_Optimal_Residual_RL_Ball_Pla
+te.out':
+(rerunfilecheck)             Before: 309CBABFCE6F4ABA7BB0902A7188E13F;7126
+(rerunfilecheck)             After:  C432467E9C37AE817F882F9491349A37;7126.
  ) 
 Here is how much of TeX's memory you used:
- 23793 strings out of 474116
- 450634 string characters out of 5743682
+ 23795 strings out of 474116
+ 450648 string characters out of 5743682
  1963187 words of memory out of 5000000
- 45606 multiletter control sequences out of 15000+600000
+ 45605 multiletter control sequences out of 15000+600000
  615951 words of font info for 154 fonts, out of 8000000 for 9000
  1147 hyphenation exceptions out of 8191
  84i,13n,94p,950b,850s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1035,11 +1041,11 @@ onts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1
 /urw/times/utmbi8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/urw/time
 s/utmr8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/urw/times/utmri8a.
 pfb>
-Output written on Hybrid_Optimal_Residual_RL_Ball_Plate.pdf (10 pages, 602937 b
+Output written on Hybrid_Optimal_Residual_RL_Ball_Plate.pdf (10 pages, 605225 b
 ytes).
 PDF statistics:
- 836 PDF objects out of 1000 (max. 8388607)
- 522 compressed objects within 6 object streams
- 119 named destinations out of 1000 (max. 500000)
+ 841 PDF objects out of 1000 (max. 8388607)
+ 527 compressed objects within 6 object streams
+ 122 named destinations out of 1000 (max. 500000)
  417 words of extra memory for PDF output out of 10000 (max. 10000000)
 
