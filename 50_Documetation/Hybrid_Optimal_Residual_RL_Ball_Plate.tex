@@ -435,7 +435,7 @@ expected behaviour in mind.
 
 % --- Bottom row: estimation + RL ---
 \node[block, below=28mm of lqr] (ekf) {EKF\\$\hat{\bm{x}}\in\R^8$ @ 30\,Hz};
-\node[block, below=25mm of ur5e] (sense) {Sensors\\marble odom (50\,Hz)\\plate\_tcp TF};
+\node[block, below=25.5mm of ur5e] (sense) {Sensors\\marble odom (50\,Hz)\\plate\_tcp TF};
 \node[rl, below=13mm of sum] (td3) {TD3 actor $\pi_\theta$\\(21-D observation)};
 
 % --- Forward edges ---
@@ -491,7 +491,7 @@ r_k = &-k_p \|\bm{p}_k\|^2 - k_v \|\dot{\bm{p}}_k\|^2 - k_t (\alpha_k^2+\beta_k^
       &-k_s \|\Delta\bm{u}^{\text{RL}}_k\|^2 + r_{\text{surv}}\,\mathbb{1}[\text{alive}].
 \label{eq:reward}
 \end{align}
-Compared with the initial training run, we sharpened the position penalty,
+We conducted two main versions of the training setup with multiple runs and variations of the training parameters. The first run served as a baseline and revealed several improvement points. Compared with the initial training run, we sharpened the position penalty,
 removed the redundant velocity-axis penalty, raised the tilt-magnitude weight
 $k_t$ from $0.1$ to $0.2$, and increased the per-step survival bonus from
 $0.05$ to $0.10$ to encourage longer episodes. We also pruned the observation
@@ -822,7 +822,7 @@ $15^\circ/$s. Within $40\,$k further training steps:
   \item Critic loss spikes by approximately three orders of magnitude, from
         a Stage-1 maximum of $\approx 220$ to a peak of $65{,}484$.
   \item Actor loss inflates by an order of magnitude from a Stage-1 maximum
-        of $\approx 102$ to a steady-state $\approx 1{,}435$.
+        of $\approx 102$ to a steady-state $\approx 1{,}471$.
 \end{itemize}
 
 \begin{figure*}[t]
