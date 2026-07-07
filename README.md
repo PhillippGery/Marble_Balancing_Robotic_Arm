@@ -34,11 +34,11 @@ A real-time hybrid controller that stabilises a free-rolling spherical marble on
   <tr>
     <td align="center" width="50%">
       <img src="50_Documetation/videos/hybrid_lissajous.gif" alt="Hybrid Lissajous tracking"/><br/>
-      <b>Hybrid (LQR + TD3 residual)</b><br/>Same Lissajous trajectory; residual reshapes the closed-loop response.
+      <b>Hybrid (LQR + TD3 residual)</b><br/>TCP Lissajous trajectory; residual reshapes the closed-loop response.
     </td>
     <td align="center" width="50%">
       <img src="50_Documetation/videos/hybrid_tcp_jitter.gif" alt="Hybrid under TCP jitter disturbance"/><br/>
-      <b>Hybrid under TCP jitter</b><br/>Hybrid controller rejecting band-limited TCP-velocity jitter while the marble holds centre.
+      <b>Hybrid under TCP jitter (Random Noise)</b><br/>Hybrid controller rejecting band-limited TCP-velocity jitter while the marble holds centre.
     </td>
   </tr>
 </table>
