@@ -27,7 +27,7 @@ A real-time hybrid controller that stabilises a free-rolling spherical marble on
   <tr>
     <td colspan="2" align="center">
       <img src="50_Documetation/videos/lqr_lissajous.gif" alt="LQR-only Lissajous tracking" width="90%"/><br/>
-      <b>LQR baseline</b><br/>Marble Lissajous tracking with the optimal LQR alone.
+      <b>LQR baseline</b><br/>Marble Lissajous tracking with the optimal LQR alone (Static TCP).
     </td>
   </tr>
   
